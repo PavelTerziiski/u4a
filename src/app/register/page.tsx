@@ -37,7 +37,7 @@ export default function Register() {
       localStorage.setItem('u4a_username', username)
       router.push('/dashboard')
     } catch (e) {
-      setError(e.message)
+      setError(e instanceof Error ? e.message : 'Грешка')
     } finally {
       setLoading(false)
     }
