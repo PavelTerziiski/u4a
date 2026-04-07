@@ -36,7 +36,7 @@ export default function Register() {
       if (error) throw error
       localStorage.setItem('u4a_username', username)
       router.push('/dashboard')
-    } catch (e: any) {
+    } catch (e) {
       setError(e.message)
     } finally {
       setLoading(false)

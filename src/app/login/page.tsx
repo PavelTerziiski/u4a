@@ -25,7 +25,7 @@ export default function Login() {
       if (error || !data) throw new Error('Грешно име или парола')
       localStorage.setItem('u4a_username', username)
       router.push('/dashboard')
-    } catch (e: any) {
+    } catch (e) {
       setError(e.message)
     } finally {
       setLoading(false)
