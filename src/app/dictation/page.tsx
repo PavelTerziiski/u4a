@@ -50,21 +50,44 @@ export default function DictationPage() {
     setPauseProgress(0)
   }
 
-  const speak = (text: string, onDone?: () => void) => {
-    window.speechSynthesis.cancel()
-    const utt = new SpeechSynthesisUtterance(text)
-    utt.lang = 'bg-BG'
-    utt.rate = 0.85 * speed
-    const voices = window.speechSynthesis.getVoices()
-    const daria = voices.find(v => v.name.toLowerCase().includes('daria'))
-    if (daria) utt.voice = daria
-    setSpeaking(true)
-    utt.onend = () => {
-      setSpeaking(false)
-      if (onDone) onDone()
+  const speak = async (text: string, onDone?: () => void) => {
+  window.speechSynthesis.cancel()
+  setSpeaking(true)
+
+  try {
+    const res = await fetch('/api/tts', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ text, speed: 0.85 * speed })
+    })
+    const data = await res.json()
+    
+    if (data.audio) {
+      const audio = new Audio(`data:audio/mp3;base64,${data.audio}`)
+      audio.onended = () => {
+        setSpeaking(false)
+        if (onDone) onDone()
+      }
+      audio.play()
+      return
     }
-    window.speechSynthesis.speak(utt)
+  } catch (e) {
+    console.error('TTS error:', e)
   }
+
+  // Fallback към Web Speech API
+  const utt = new SpeechSynthesisUtterance(text)
+  utt.lang = 'bg-BG'
+  utt.rate = 0.85 * speed
+  const voices = window.speechSynthesis.getVoices()
+  const daria = voices.find(v => v.name.toLowerCase().includes('daria'))
+  if (daria) utt.voice = daria
+  utt.onend = () => {
+    setSpeaking(false)
+    if (onDone) onDone()
+  }
+  window.speechSynthesis.speak(utt)
+}
 
   const startPause = (text: string, grade: number, onDone: () => void) => {
     const chars = text.length
