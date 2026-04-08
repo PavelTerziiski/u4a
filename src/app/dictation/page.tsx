@@ -11,7 +11,7 @@ type WordResult = { word: string; correct: boolean; input: string }
 type SentenceResult = { sentence: string; input: string; wordResults: WordResult[]; correct: boolean }
 
 const REPEAT_LIMITS: Record<number, number> = { 2: 4, 3: 3, 4: 2, 5: 1 }
-const CHARS_PER_SECOND: Record<number, number> = { 2: 0.5, 3: 0.7, 4: 1.1, 5: 1.5 }
+const CHARS_PER_SECOND: Record<number, number> = { 2: 0.7, 3: 1.0, 4: 1.4, 5: 1.8 }
 
 export default function DictationPage() {
   const router = useRouter()
