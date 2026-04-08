@@ -10,7 +10,7 @@ type Sentence = { id: number; text: string }
 type WordResult = { word: string; correct: boolean; input: string }
 type SentenceResult = { sentence: string; input: string; wordResults: WordResult[]; correct: boolean }
 
-const REPEAT_LIMITS: Record<number, number> = { 2: 3, 3: 2, 4: 1, 5: 0 }
+const REPEAT_LIMITS: Record<number, number> = { 2: 4, 3: 3, 4: 2, 5: 1 }
 const CHARS_PER_SECOND: Record<number, number> = { 2: 0.6, 3: 0.8, 4: 1.0, 5: 1.2 }
 
 export default function DictationPage() {
