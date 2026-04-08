@@ -214,8 +214,19 @@ export default function DictationPage() {
       time_seconds: 0,
       results: newResults,
     })
+    const today = new Date().toISOString().slice(0, 10)
+    const lastDate = (profile as any).last_session_date
+    const yesterday = new Date(Date.now() - 86400000).toISOString().slice(0, 10)
+    const newStreak = lastDate === today
+      ? (profile.streak || 0)
+      : lastDate === yesterday
+      ? (profile.streak || 0) + 1
+      : 1
+
     await supabase.from('profiles').update({
-      total_sessions: (profile.total_sessions || 0) + 1
+      total_sessions: (profile.total_sessions || 0) + 1,
+      streak: newStreak,
+      last_session_date: today
     }).eq('id', profile.id)
     setWeeklyCount(c => c + 1)
     setResults(newResults)
