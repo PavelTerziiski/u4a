@@ -12,6 +12,7 @@ type SentenceResult = { sentence: string; input: string; wordResults: WordResult
 
 const REPEAT_LIMITS: Record<number, number> = { 2: 4, 3: 3, 4: 2, 5: 1 }
 const CHARS_PER_SECOND: Record<number, number> = { 2: 0.7, 3: 1.0, 4: 1.4, 5: 1.8 }
+const FREE_WEEKLY_LIMIT = 2
 
 export default function DictationPage() {
   const router = useRouter()
@@ -28,6 +29,7 @@ export default function DictationPage() {
   const [fullInput, setFullInput] = useState('')
   const [results, setResults] = useState<SentenceResult[]>([])
   const [speed, setSpeed] = useState(1.0)
+  const [weeklyCount, setWeeklyCount] = useState(0)
   const progressTimer = useRef<NodeJS.Timeout | null>(null)
   const currentAudio = useRef<HTMLAudioElement | null>(null)
 
@@ -40,6 +42,17 @@ export default function DictationPage() {
         setProfile(data)
         supabase.from('dictations').select('*').eq('grade', data.grade)
           .then(({ data: d }) => setDictations(d || []))
+
+        // Брои диктовките тази седмица
+        const weekStart = new Date()
+        weekStart.setDate(weekStart.getDate() - weekStart.getDay())
+        weekStart.setHours(0, 0, 0, 0)
+        supabase
+          .from('dictation_sessions')
+          .select('*', { count: 'exact', head: true })
+          .eq('profile_id', data.id)
+          .gte('created_at', weekStart.toISOString())
+          .then(({ count }) => setWeeklyCount(count ?? 0))
       })
   }, [])
 
@@ -128,6 +141,13 @@ export default function DictationPage() {
   }
 
   const startDictation = (d: Dictation) => {
+    if (!profile) return
+
+    if (!profile.is_premium && weeklyCount >= FREE_WEEKLY_LIMIT) {
+      setPhase('limit')
+      return
+    }
+
     const grade = d.grade
     setSelected(d)
     setPhase('ready')
@@ -197,9 +217,32 @@ export default function DictationPage() {
     await supabase.from('profiles').update({
       total_sessions: (profile.total_sessions || 0) + 1
     }).eq('id', profile.id)
+    setWeeklyCount(c => c + 1)
     setResults(newResults)
     setPhase('done')
   }
+
+  // ЛИМИТ
+  if (phase === 'limit') return (
+    <main className="min-h-screen bg-orange-50 flex flex-col items-center justify-center p-6">
+      <div className="w-full max-w-md text-center">
+        <Fox mood="sad" size={160} />
+        <h2 className="text-2xl font-bold text-gray-700 mt-6 mb-2">Достигна седмичния лимит</h2>
+        <p className="text-gray-500 mb-2">Безплатният план включва {FREE_WEEKLY_LIMIT} диктовки седмично.</p>
+        <p className="text-gray-500 mb-8">Нова седмица — нови диктовки! 🗓️</p>
+        <div className="bg-orange-100 rounded-2xl p-6 mb-6">
+          <p className="text-orange-700 font-bold text-lg mb-2">⭐ Premium — 4.50€/месец</p>
+          <p className="text-orange-600 text-sm">Неограничени диктовки + качествен глас + обяснения на грешките</p>
+        </div>
+        <button
+          onClick={() => setPhase('pick')}
+          className="w-full bg-white text-orange-500 border-2 border-orange-300 font-bold py-4 rounded-2xl hover:bg-orange-50 transition-colors"
+        >
+          ← Назад
+        </button>
+      </div>
+    </main>
+  )
 
   // ИЗБОР
   if (phase === 'pick') return (
@@ -209,6 +252,13 @@ export default function DictationPage() {
           ← Назад
         </button>
         <h1 className="text-2xl font-bold text-gray-700 mb-2">Избери диктовка</h1>
+
+        {!profile?.is_premium && (
+          <div className="bg-orange-100 rounded-2xl p-3 mb-4 flex items-center justify-between">
+            <p className="text-orange-700 text-sm">Безплатни диктовки тази седмица:</p>
+            <p className="text-orange-700 font-bold">{weeklyCount}/{FREE_WEEKLY_LIMIT}</p>
+          </div>
+        )}
 
         <div className="bg-white rounded-2xl p-4 shadow mb-6">
           <p className="text-gray-500 text-sm mb-2">Скорост на четене:</p>
