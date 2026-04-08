@@ -29,6 +29,7 @@ export default function DictationPage() {
   const [results, setResults] = useState<SentenceResult[]>([])
   const [speed, setSpeed] = useState(1.0)
   const progressTimer = useRef<NodeJS.Timeout | null>(null)
+  const currentAudio = useRef<HTMLAudioElement | null>(null)
 
   useEffect(() => {
     const username = localStorage.getItem('u4a_username')
@@ -44,50 +45,70 @@ export default function DictationPage() {
 
   const stopAll = () => {
     window.speechSynthesis.cancel()
+    if (currentAudio.current) {
+      currentAudio.current.pause()
+      currentAudio.current = null
+    }
     clearInterval(progressTimer.current!)
     setSpeaking(false)
     setPausing(false)
     setPauseProgress(0)
   }
 
-  const speak = async (text: string, onDone?: () => void) => {
-  window.speechSynthesis.cancel()
-  setSpeaking(true)
+  const speak = (text: string, onDone?: () => void) => {
+    window.speechSynthesis.cancel()
+    if (currentAudio.current) {
+      currentAudio.current.pause()
+      currentAudio.current = null
+    }
+    setSpeaking(true)
 
-  try {
-    const res = await fetch('/api/tts', {
+    fetch('/api/tts', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ text, speed: 0.85 * speed })
     })
-    const data = await res.json()
-    
-    if (data.audio) {
-      const audio = new Audio(`data:audio/mp3;base64,${data.audio}`)
-      audio.onended = () => {
-        setSpeaking(false)
-        if (onDone) onDone()
-      }
-      audio.play()
-      return
-    }
-  } catch (e) {
-    console.error('TTS error:', e)
+      .then(res => res.json())
+      .then(data => {
+        if (data.audio) {
+          const audio = new Audio(`data:audio/mpeg;base64,${data.audio}`)
+          currentAudio.current = audio
+          audio.onended = () => {
+            setSpeaking(false)
+            currentAudio.current = null
+            if (onDone) onDone()
+          }
+          audio.onerror = () => {
+            console.error('Audio error, falling back')
+            setSpeaking(false)
+            useFallback(text, onDone)
+          }
+          audio.play().catch(() => {
+            setSpeaking(false)
+            useFallback(text, onDone)
+          })
+        } else {
+          useFallback(text, onDone)
+        }
+      })
+      .catch(() => {
+        useFallback(text, onDone)
+      })
   }
 
-  // Fallback към Web Speech API
-  const utt = new SpeechSynthesisUtterance(text)
-  utt.lang = 'bg-BG'
-  utt.rate = 0.85 * speed
-  const voices = window.speechSynthesis.getVoices()
-  const daria = voices.find(v => v.name.toLowerCase().includes('daria'))
-  if (daria) utt.voice = daria
-  utt.onend = () => {
-    setSpeaking(false)
-    if (onDone) onDone()
+  const useFallback = (text: string, onDone?: () => void) => {
+    const utt = new SpeechSynthesisUtterance(text)
+    utt.lang = 'bg-BG'
+    utt.rate = 0.85 * speed
+    const voices = window.speechSynthesis.getVoices()
+    const daria = voices.find(v => v.name.toLowerCase().includes('daria'))
+    if (daria) utt.voice = daria
+    utt.onend = () => {
+      setSpeaking(false)
+      if (onDone) onDone()
+    }
+    window.speechSynthesis.speak(utt)
   }
-  window.speechSynthesis.speak(utt)
-}
 
   const startPause = (text: string, grade: number, onDone: () => void) => {
     const chars = text.length

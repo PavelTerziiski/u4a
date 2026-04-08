@@ -17,8 +17,8 @@ export async function POST(req: NextRequest) {
         input: { text },
         voice: {
           languageCode: 'bg-BG',
-          name: 'bg-BG-Wavenet-B',
-          ssmlGender: 'MALE'
+          name: 'bg-BG-Standard-A',
+          ssmlGender: 'FEMALE'
         },
         audioConfig: {
           audioEncoding: 'MP3',
