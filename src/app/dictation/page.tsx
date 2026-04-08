@@ -28,7 +28,6 @@ export default function DictationPage() {
   const [fullInput, setFullInput] = useState('')
   const [results, setResults] = useState<SentenceResult[]>([])
   const [speed, setSpeed] = useState(1.0)
-  // pauseTimer removed
   const progressTimer = useRef<NodeJS.Timeout | null>(null)
 
   useEffect(() => {
@@ -42,6 +41,14 @@ export default function DictationPage() {
           .then(({ data: d }) => setDictations(d || []))
       })
   }, [])
+
+  const stopAll = () => {
+    window.speechSynthesis.cancel()
+    clearInterval(progressTimer.current!)
+    setSpeaking(false)
+    setPausing(false)
+    setPauseProgress(0)
+  }
 
   const speak = (text: string, onDone?: () => void) => {
     window.speechSynthesis.cancel()
@@ -123,6 +130,12 @@ export default function DictationPage() {
     })
   }
 
+  const handleBack = () => {
+    stopAll()
+    setPhase('pick')
+    setSelected(null)
+  }
+
   const checkSentence = (original: string, userInput: string): WordResult[] => {
     const normalize = (s: string) => s.trim().toLowerCase().replace(/[.,!?;:»«–]/g, '')
     const originalWords = original.trim().split(/\s+/)
@@ -151,14 +164,13 @@ export default function DictationPage() {
     })
 
     const score = newResults.filter(r => r.correct).length
-    const timeSeconds = 0
     await supabase.from('dictation_sessions').insert({
       profile_id: profile.id,
       dictation_id: selected.id,
       dictation_title: selected.title,
       score,
       total: sentences.length,
-      time_seconds: timeSeconds,
+      time_seconds: 0,
       results: newResults,
     })
     await supabase.from('profiles').update({
@@ -177,7 +189,6 @@ export default function DictationPage() {
         </button>
         <h1 className="text-2xl font-bold text-gray-700 mb-2">Избери диктовка</h1>
 
-        {/* Скорост */}
         <div className="bg-white rounded-2xl p-4 shadow mb-6">
           <p className="text-gray-500 text-sm mb-2">Скорост на четене:</p>
           <div className="grid grid-cols-2 gap-2">
@@ -217,11 +228,17 @@ export default function DictationPage() {
     const repeatLimit = REPEAT_LIMITS[selected.grade] ?? 0
     return (
       <main className="min-h-screen bg-orange-50 flex flex-col items-center justify-center p-6">
-        <div className="w-full max-w-md text-center">
-          <p className="text-gray-400 text-sm mb-1">{selected.title}</p>
-          <p className="text-orange-500 font-bold mb-6">Изречение {sentenceIndex + 1} от {sentences.length}</p>
+        <div className="w-full max-w-md">
+          <button onClick={handleBack} className="text-orange-400 mb-4 flex items-center gap-2">
+            ← Спри диктовката
+          </button>
 
-          <div className="w-full bg-orange-100 rounded-full h-3 mb-8">
+          <div className="text-center mb-4">
+            <p className="text-gray-400 text-sm">{selected.title}</p>
+            <p className="text-orange-500 font-bold">Изречение {sentenceIndex + 1} от {sentences.length}</p>
+          </div>
+
+          <div className="w-full bg-orange-100 rounded-full h-3 mb-6">
             <div className="bg-orange-500 h-3 rounded-full transition-all" style={{ width: `${(sentenceIndex / sentences.length) * 100}%` }} />
           </div>
 
@@ -229,7 +246,7 @@ export default function DictationPage() {
             <Fox mood={foxMood} size={140} />
           </div>
 
-          <div className="bg-white rounded-3xl p-6 shadow-lg mb-6">
+          <div className="bg-white rounded-3xl p-6 shadow-lg mb-4">
             {speaking && <p className="text-orange-500 font-bold text-lg animate-pulse">🔊 Лисицата чете...</p>}
             {pausing && (
               <div>
@@ -242,15 +259,19 @@ export default function DictationPage() {
             {!speaking && !pausing && <p className="text-gray-400">Подготвям се...</p>}
           </div>
 
-          {repeatLimit > 0 && (
-            <button
-              onClick={handleRepeat}
-              disabled={repeatsLeft <= 0 || speaking}
-              className="bg-white border-2 border-orange-300 text-orange-500 font-bold px-6 py-3 rounded-2xl hover:bg-orange-50 disabled:opacity-40 transition-all"
-            >
-              🔁 Повтори ({repeatsLeft} останали)
-            </button>
-          )}
+          <button
+            onClick={handleRepeat}
+            disabled={repeatsLeft <= 0 || speaking || repeatLimit === 0}
+            className={`w-full py-3 rounded-2xl font-bold border-2 transition-all ${
+              repeatLimit === 0
+                ? 'hidden'
+                : repeatsLeft <= 0 || speaking
+                ? 'bg-gray-100 text-gray-400 border-gray-200'
+                : 'bg-white border-orange-300 text-orange-500 hover:bg-orange-50'
+            }`}
+          >
+            🔁 Повтори {repeatLimit > 0 && `(${repeatsLeft} от ${repeatLimit})`}
+          </button>
         </div>
       </main>
     )
@@ -306,45 +327,4 @@ export default function DictationPage() {
         <div className="w-full max-w-lg">
           <div className="text-center mb-6">
             <Fox mood={mood} size={128} />
-            <h1 className="text-3xl font-bold text-gray-700 mb-2 mt-4">
-              {percent >= 80 ? '🎉 Браво!' : percent >= 50 ? '👍 Добре!' : '💪 Продължавай!'}
-            </h1>
-            <p className="text-6xl font-bold text-orange-500">{score}/{sentences.length}</p>
-            <p className="text-gray-400">{percent}% верни изречения</p>
-          </div>
-
-          <div className="bg-white rounded-3xl p-6 shadow-lg mb-6">
-            {results.map((r, i) => (
-              <div key={i} className="py-3 border-b border-gray-100 last:border-0">
-                <div className="flex items-start justify-between gap-2">
-                  <p className="text-gray-500 text-sm flex-1">{r.sentence}</p>
-                  <span className={r.correct ? 'text-green-500 text-xl' : 'text-red-500 text-xl'}>
-                    {r.correct ? '✓' : '✗'}
-                  </span>
-                </div>
-                {!r.correct && (
-                  <div className="mt-2 flex flex-wrap gap-1">
-                    {r.wordResults.map((wr, j) => (
-                      <span key={j} className={`text-sm px-1 rounded ${wr.correct ? 'text-gray-600' : 'bg-red-100 text-red-600 font-bold'}`}>
-                        {wr.word}
-                      </span>
-                    ))}
-                  </div>
-                )}
-              </div>
-            ))}
-          </div>
-
-          <button
-            onClick={() => router.push('/dashboard')}
-            className="w-full bg-orange-500 text-white text-xl font-bold py-4 rounded-2xl hover:bg-orange-600 transition-colors"
-          >
-            Към началото 🏠
-          </button>
-        </div>
-      </main>
-    )
-  }
-
-  return null
-}
+            <h1 className="text-3xl font-bold text-gr
