@@ -46,6 +46,9 @@ export default function Register() {
   return (
     <main className="min-h-screen bg-orange-50 flex flex-col items-center justify-center p-6">
       <div className="w-full max-w-md">
+        <button onClick={() => router.push('/')} className="text-orange-400 mb-4 flex items-center gap-2">
+  ← Назад
+</button>
         <h1 className="text-4xl font-bold text-orange-500 text-center mb-2">u4a</h1>
         <p className="text-center text-orange-700 mb-8">Създай своя профил</p>
 
