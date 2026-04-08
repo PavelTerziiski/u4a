@@ -327,4 +327,45 @@ export default function DictationPage() {
         <div className="w-full max-w-lg">
           <div className="text-center mb-6">
             <Fox mood={mood} size={128} />
-            <h1 className="text-3xl font-bold text-gr
+            <h1 className="text-3xl font-bold text-gray-700 mb-2 mt-4">
+              {percent >= 80 ? '🎉 Браво!' : percent >= 50 ? '👍 Добре!' : '💪 Продължавай!'}
+            </h1>
+            <p className="text-6xl font-bold text-orange-500">{score}/{sentences.length}</p>
+            <p className="text-gray-400">{percent}% верни изречения</p>
+          </div>
+
+          <div className="bg-white rounded-3xl p-6 shadow-lg mb-6">
+            {results.map((r, i) => (
+              <div key={i} className="py-3 border-b border-gray-100 last:border-0">
+                <div className="flex items-start justify-between gap-2">
+                  <p className="text-gray-500 text-sm flex-1">{r.sentence}</p>
+                  <span className={r.correct ? 'text-green-500 text-xl' : 'text-red-500 text-xl'}>
+                    {r.correct ? '✓' : '✗'}
+                  </span>
+                </div>
+                {!r.correct && (
+                  <div className="mt-2 flex flex-wrap gap-1">
+                    {r.wordResults.map((wr, j) => (
+                      <span key={j} className={`text-sm px-1 rounded ${wr.correct ? 'text-gray-600' : 'bg-red-100 text-red-600 font-bold'}`}>
+                        {wr.word}
+                      </span>
+                    ))}
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+
+          <button
+            onClick={() => router.push('/dashboard')}
+            className="w-full bg-orange-500 text-white text-xl font-bold py-4 rounded-2xl hover:bg-orange-600 transition-colors"
+          >
+            Към началото 🏠
+          </button>
+        </div>
+      </main>
+    )
+  }
+
+  return null
+}
