@@ -28,7 +28,6 @@ export default function DictationPage() {
   const [fullInput, setFullInput] = useState('')
   const [results, setResults] = useState<SentenceResult[]>([])
   const [speed, setSpeed] = useState(1.0)
-  const [voiceGender, setVoiceGender] = useState<'female' | 'male'>('female')
   const progressTimer = useRef<NodeJS.Timeout | null>(null)
   const currentAudio = useRef<HTMLAudioElement | null>(null)
 
@@ -45,7 +44,6 @@ export default function DictationPage() {
   }, [])
 
   const stopAll = () => {
-    window.speechSynthesis.cancel()
     if (currentAudio.current) {
       currentAudio.current.pause()
       currentAudio.current = null
@@ -56,24 +54,7 @@ export default function DictationPage() {
     setPauseProgress(0)
   }
 
-  const fallbackToWebSpeech = (text: string, onDone?: () => void) => {
-    const utt = new SpeechSynthesisUtterance(text)
-    utt.lang = 'bg-BG'
-    utt.rate = 0.85 * speed
-    if (voiceGender === 'female') {
-      const voices = window.speechSynthesis.getVoices()
-      const daria = voices.find(v => v.name.toLowerCase().includes('daria'))
-      if (daria) utt.voice = daria
-    }
-    utt.onend = () => {
-      setSpeaking(false)
-      if (onDone) onDone()
-    }
-    window.speechSynthesis.speak(utt)
-  }
-
   const speak = (text: string, onDone?: () => void) => {
-    window.speechSynthesis.cancel()
     if (currentAudio.current) {
       currentAudio.current.pause()
       currentAudio.current = null
@@ -83,7 +64,7 @@ export default function DictationPage() {
     fetch('/api/tts', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ text, speed: 0.85 * speed, voice: voiceGender })
+      body: JSON.stringify({ text, speed: 0.85 * speed, voice: 'male' })
     })
       .then(res => res.json())
       .then(data => {
@@ -95,20 +76,15 @@ export default function DictationPage() {
             currentAudio.current = null
             if (onDone) onDone()
           }
-          audio.onerror = () => {
-            setSpeaking(false)
-            fallbackToWebSpeech(text, onDone)
-          }
-          audio.play().catch(() => {
-            setSpeaking(false)
-            fallbackToWebSpeech(text, onDone)
-          })
+          audio.play()
         } else {
-          fallbackToWebSpeech(text, onDone)
+          setSpeaking(false)
+          if (onDone) onDone()
         }
       })
       .catch(() => {
-        fallbackToWebSpeech(text, onDone)
+        setSpeaking(false)
+        if (onDone) onDone()
       })
   }
 
@@ -245,21 +221,6 @@ export default function DictationPage() {
                 className={`py-3 rounded-xl font-bold border-2 transition-all ${speed === s.val ? 'bg-orange-500 text-white border-orange-500' : 'bg-white text-orange-500 border-orange-200'}`}
               >
                 {s.label}
-              </button>
-            ))}
-          </div>
-        </div>
-
-        <div className="bg-white rounded-2xl p-4 shadow mb-6">
-          <p className="text-gray-500 text-sm mb-2">Глас:</p>
-          <div className="grid grid-cols-2 gap-2">
-            {[{label: '👩 Жена', val: 'female'}, {label: '👨 Мъж', val: 'male'}].map(v => (
-              <button
-                key={v.val}
-                onClick={() => setVoiceGender(v.val as 'female' | 'male')}
-                className={`py-3 rounded-xl font-bold border-2 transition-all ${voiceGender === v.val ? 'bg-orange-500 text-white border-orange-500' : 'bg-white text-orange-500 border-orange-200'}`}
-              >
-                {v.label}
               </button>
             ))}
           </div>
