@@ -18,7 +18,7 @@ export default function DictationPage() {
   const [profile, setProfile] = useState<Profile | null>(null)
   const [dictations, setDictations] = useState<Dictation[]>([])
   const [selected, setSelected] = useState<Dictation | null>(null)
-  const [phase, setPhase] = useState<'pick' | 'play' | 'write' | 'done'>('pick')
+  const [phase, setPhase] = useState<'pick' | 'ready' | 'play' | 'write' | 'done'>('pick')
   const [sentenceIndex, setSentenceIndex] = useState(0)
   const [repeatsLeft, setRepeatsLeft] = useState(0)
   const [speaking, setSpeaking] = useState(false)
@@ -130,12 +130,11 @@ export default function DictationPage() {
   const startDictation = (d: Dictation) => {
     const grade = d.grade
     setSelected(d)
-    setPhase('play')
+    setPhase('ready')
     setSentenceIndex(0)
     setRepeatsLeft(REPEAT_LIMITS[grade] ?? 0)
     setFoxMood('happy')
     setFullInput('')
-    setTimeout(() => readSentence(d.sentences as Sentence[], 0, grade), 500)
   }
 
   const handleRepeat = () => {
@@ -240,6 +239,30 @@ export default function DictationPage() {
             </button>
           ))}
         </div>
+      </div>
+    </main>
+  )
+
+  // ГОТОВ
+  if (phase === 'ready' && selected) return (
+    <main className="min-h-screen bg-orange-50 flex flex-col items-center justify-center p-6">
+      <div className="w-full max-w-md text-center">
+        <Fox mood="happy" size={160} />
+        <h2 className="text-2xl font-bold text-gray-700 mt-6 mb-2">{selected.title}</h2>
+        <p className="text-gray-500 mb-2">{(selected.sentences as Sentence[]).length} изречения</p>
+        <p className="text-gray-500 mb-8">Вземи молив и хартия. Когато си готов, натисни бутона!</p>
+        <button
+          onClick={() => {
+            setPhase('play')
+            setTimeout(() => readSentence(selected.sentences as Sentence[], 0, selected.grade), 300)
+          }}
+          className="w-full bg-orange-500 text-white text-2xl font-bold py-6 rounded-2xl hover:bg-orange-600 transition-colors shadow-lg"
+        >
+          Готов съм! ✏️
+        </button>
+        <button onClick={handleBack} className="mt-4 text-orange-400">
+          ← Назад
+        </button>
       </div>
     </main>
   )
