@@ -33,6 +33,7 @@ export default function DictationPage() {
   const [ocrLoading, setOcrLoading] = useState(false)
   const [explanations, setExplanations] = useState<Record<number, string>>({})
   const [loadingExplanations, setLoadingExplanations] = useState(false)
+  const [checkoutLoading, setCheckoutLoading] = useState(false)
   const progressTimer = useRef<NodeJS.Timeout | null>(null)
   const currentAudio = useRef<HTMLAudioElement | null>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
@@ -273,6 +274,22 @@ export default function DictationPage() {
     fetchExplanations(newResults)
   }
 
+  const handleStripeCheckout = async () => {
+    if (!profile) return
+    setCheckoutLoading(true)
+    try {
+      const res = await fetch('/api/stripe/checkout', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId: profile.id, username: profile.username }),
+      })
+      const data = await res.json()
+      if (data.url) window.location.href = data.url
+    } catch {
+      setCheckoutLoading(false)
+    }
+  }
+
   // ЛИМИТ
   if (phase === 'limit') return (
     <main className="min-h-screen bg-orange-50 flex flex-col items-center justify-center p-6">
@@ -283,7 +300,14 @@ export default function DictationPage() {
         <p className="text-gray-500 mb-8">Нова седмица — нови диктовки! 🗓️</p>
         <div className="bg-orange-100 rounded-2xl p-6 mb-6">
           <p className="text-orange-700 font-bold text-lg mb-2">⭐ Premium — 4.50€/месец</p>
-          <p className="text-orange-600 text-sm">Неограничени диктовки + качествен глас + обяснения на грешките</p>
+          <p className="text-orange-600 text-sm mb-4">Неограничени диктовки + качествен глас + обяснения на грешките</p>
+          <button
+            onClick={handleStripeCheckout}
+            disabled={checkoutLoading}
+            className="w-full bg-orange-500 text-white font-bold py-3 rounded-xl hover:bg-orange-600 transition-colors disabled:opacity-50"
+          >
+            {checkoutLoading ? '⏳ Зареждане...' : '⭐ Стани Premium →'}
+          </button>
         </div>
         <button onClick={() => setPhase('pick')} className="w-full bg-white text-orange-500 border-2 border-orange-300 font-bold py-4 rounded-2xl hover:bg-orange-50 transition-colors">
           ← Назад
