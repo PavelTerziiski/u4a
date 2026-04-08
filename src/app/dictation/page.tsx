@@ -76,7 +76,6 @@ export default function DictationPage() {
       currentAudio.current = null
     }
     setSpeaking(true)
-
     fetch('/api/tts', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -111,11 +110,9 @@ export default function DictationPage() {
     setPausing(true)
     setPauseProgress(0)
     setFoxMood('writing')
-
     const steps = 50
     const stepMs = pauseMs / steps
     let step = 0
-
     progressTimer.current = setInterval(() => {
       step++
       setPauseProgress(Math.round((step / steps) * 100))
@@ -204,30 +201,25 @@ export default function DictationPage() {
   const fetchExplanations = async (newResults: SentenceResult[]) => {
     if (!profile?.is_premium) return
     setLoadingExplanations(true)
-    // wrongResults not needed
     const newExplanations: Record<number, string> = {}
-
-    for (const [i, r] of newResults.entries()) {
-      if (!r.correct) {
-        const wrongWords = r.wordResults.filter(w => !w.correct).map(w => w.word)
-        try {
-          const res = await fetch('/api/explain', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              sentence: r.sentence,
-              userInput: r.input,
-              wrongWords
+    await Promise.all(
+      newResults.map(async (r, i) => {
+        if (!r.correct) {
+          const wrongWords = r.wordResults.filter(w => !w.correct).map(w => w.word)
+          try {
+            const res = await fetch('/api/explain', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ sentence: r.sentence, userInput: r.input, wrongWords })
             })
-          })
-          const data = await res.json()
-          if (data.explanation) newExplanations[i] = data.explanation
-        } catch {
-          // ignore
+            const data = await res.json()
+            if (data.explanation) newExplanations[i] = data.explanation
+          } catch {
+            // ignore
+          }
         }
-      }
-    }
-
+      })
+    )
     setExplanations(newExplanations)
     setLoadingExplanations(false)
   }
@@ -247,18 +239,11 @@ export default function DictationPage() {
     if (!selected || !profile) return
     const sentences = selected.sentences as Sentence[]
     const inputSentences = fullInput.trim().split('\n').filter(s => s.trim())
-
     const newResults: SentenceResult[] = sentences.map((s, i) => {
       const userInput = inputSentences[i] || ''
       const wordResults = checkSentence(s.text, userInput)
-      return {
-        sentence: s.text,
-        input: userInput,
-        wordResults,
-        correct: wordResults.every(r => r.correct)
-      }
+      return { sentence: s.text, input: userInput, wordResults, correct: wordResults.every(r => r.correct) }
     })
-
     const score = newResults.filter(r => r.correct).length
     await supabase.from('dictation_sessions').insert({
       profile_id: profile.id,
@@ -269,7 +254,6 @@ export default function DictationPage() {
       time_seconds: 0,
       results: newResults,
     })
-
     const today = new Date().toISOString().slice(0, 10)
     const lastDate = profile.last_session_date
     const yesterday = new Date(Date.now() - 86400000).toISOString().slice(0, 10)
@@ -278,18 +262,14 @@ export default function DictationPage() {
       : lastDate === yesterday
       ? (profile.streak || 0) + 1
       : 1
-
     await supabase.from('profiles').update({
       total_sessions: (profile.total_sessions || 0) + 1,
       streak: newStreak,
       last_session_date: today
     }).eq('id', profile.id)
-
     setWeeklyCount(c => c + 1)
     setResults(newResults)
     setPhase('done')
-
-    // Зареди обясненията за Premium
     fetchExplanations(newResults)
   }
 
@@ -316,41 +296,30 @@ export default function DictationPage() {
   if (phase === 'pick') return (
     <main className="min-h-screen bg-orange-50 p-6">
       <div className="max-w-md mx-auto">
-        <button onClick={() => router.push('/dashboard')} className="text-orange-400 mb-6 flex items-center gap-2">
-          ← Назад
-        </button>
+        <button onClick={() => router.push('/dashboard')} className="text-orange-400 mb-6 flex items-center gap-2">← Назад</button>
         <h1 className="text-2xl font-bold text-gray-700 mb-2">Избери диктовка</h1>
-
         {!profile?.is_premium && (
           <div className="bg-orange-100 rounded-2xl p-3 mb-4 flex items-center justify-between">
             <p className="text-orange-700 text-sm">Безплатни диктовки тази седмица:</p>
             <p className="text-orange-700 font-bold">{weeklyCount}/{FREE_WEEKLY_LIMIT}</p>
           </div>
         )}
-
         <div className="bg-white rounded-2xl p-4 shadow mb-6">
           <p className="text-gray-500 text-sm mb-2">Скорост на четене:</p>
           <div className="grid grid-cols-2 gap-2">
             {[{label: '🐢 Бавно', val: 0.7}, {label: '🚶 Нормално', val: 1.0}].map(s => (
-              <button
-                key={s.val}
-                onClick={() => setSpeed(s.val)}
-                className={`py-3 rounded-xl font-bold border-2 transition-all ${speed === s.val ? 'bg-orange-500 text-white border-orange-500' : 'bg-white text-orange-500 border-orange-200'}`}
-              >
+              <button key={s.val} onClick={() => setSpeed(s.val)}
+                className={`py-3 rounded-xl font-bold border-2 transition-all ${speed === s.val ? 'bg-orange-500 text-white border-orange-500' : 'bg-white text-orange-500 border-orange-200'}`}>
                 {s.label}
               </button>
             ))}
           </div>
         </div>
-
         {dictations.length === 0 && <p className="text-gray-400 text-center">Няма диктовки за твоя клас.</p>}
         <div className="flex flex-col gap-4">
           {dictations.map(d => (
-            <button
-              key={d.id}
-              onClick={() => startDictation(d)}
-              className="bg-white rounded-2xl p-6 shadow text-left hover:shadow-md transition-shadow border-2 border-transparent hover:border-orange-300"
-            >
+            <button key={d.id} onClick={() => startDictation(d)}
+              className="bg-white rounded-2xl p-6 shadow text-left hover:shadow-md transition-shadow border-2 border-transparent hover:border-orange-300">
               <h2 className="text-xl font-bold text-gray-700">{d.title}</h2>
               <p className="text-orange-500 mt-1">{(d.sentences as Sentence[]).length} изречения • {d.grade} клас</p>
               {d.is_premium && <span className="text-xs bg-orange-100 text-orange-600 px-2 py-1 rounded-full mt-2 inline-block">⭐ Premium</span>}
@@ -369,13 +338,8 @@ export default function DictationPage() {
         <h2 className="text-2xl font-bold text-gray-700 mt-6 mb-2">{selected.title}</h2>
         <p className="text-gray-500 mb-2">{(selected.sentences as Sentence[]).length} изречения</p>
         <p className="text-gray-500 mb-8">Вземи молив и хартия. Когато си готов, натисни бутона!</p>
-        <button
-          onClick={() => {
-            setPhase('play')
-            setTimeout(() => readSentence(selected.sentences as Sentence[], 0, selected.grade), 300)
-          }}
-          className="w-full bg-orange-500 text-white text-2xl font-bold py-6 rounded-2xl hover:bg-orange-600 transition-colors shadow-lg"
-        >
+        <button onClick={() => { setPhase('play'); setTimeout(() => readSentence(selected.sentences as Sentence[], 0, selected.grade), 300) }}
+          className="w-full bg-orange-500 text-white text-2xl font-bold py-6 rounded-2xl hover:bg-orange-600 transition-colors shadow-lg">
           Готов съм! ✏️
         </button>
         <button onClick={handleBack} className="mt-4 text-orange-400">← Назад</button>
@@ -398,9 +362,7 @@ export default function DictationPage() {
           <div className="w-full bg-orange-100 rounded-full h-3 mb-6">
             <div className="bg-orange-500 h-3 rounded-full transition-all" style={{ width: `${(sentenceIndex / sentences.length) * 100}%` }} />
           </div>
-          <div className="flex justify-center mb-4">
-            <Fox mood={foxMood} size={140} />
-          </div>
+          <div className="flex justify-center mb-4"><Fox mood={foxMood} size={140} /></div>
           <div className="bg-white rounded-3xl p-6 shadow-lg mb-4">
             {speaking && <p className="text-orange-500 font-bold text-lg animate-pulse">🔊 Лисицата чете...</p>}
             {pausing && (
@@ -413,15 +375,11 @@ export default function DictationPage() {
             )}
             {!speaking && !pausing && <p className="text-gray-400">Подготвям се...</p>}
           </div>
-          <button
-            onClick={handleRepeat}
-            disabled={repeatsLeft <= 0 || speaking || repeatLimit === 0}
+          <button onClick={handleRepeat} disabled={repeatsLeft <= 0 || speaking || repeatLimit === 0}
             className={`w-full py-3 rounded-2xl font-bold border-2 transition-all ${
               repeatLimit === 0 ? 'hidden'
               : repeatsLeft <= 0 || speaking ? 'bg-gray-100 text-gray-400 border-gray-200'
-              : 'bg-white border-orange-300 text-orange-500 hover:bg-orange-50'
-            }`}
-          >
+              : 'bg-white border-orange-300 text-orange-500 hover:bg-orange-50'}`}>
             🔁 Повтори {repeatLimit > 0 && `(${repeatsLeft} от ${repeatLimit})`}
           </button>
         </div>
@@ -440,48 +398,29 @@ export default function DictationPage() {
             <h2 className="text-2xl font-bold text-gray-700 mt-4">Диктовката свърши!</h2>
             <p className="text-gray-500 mt-1">Въведи всяко изречение на нов ред</p>
           </div>
-
           {profile?.is_premium && (
             <div className="bg-white rounded-2xl p-4 shadow mb-4">
               <p className="text-gray-500 text-sm mb-3">⭐ Premium: Снимай написаното и лисицата ще го прочете!</p>
-              <input
-                ref={fileInputRef}
-                type="file"
-                accept="image/*"
-                capture="environment"
-                className="hidden"
-                onChange={e => e.target.files?.[0] && handleOCR(e.target.files[0])}
-              />
-              <button
-                onClick={() => fileInputRef.current?.click()}
-                disabled={ocrLoading}
-                className="w-full bg-orange-100 text-orange-600 font-bold py-3 rounded-xl hover:bg-orange-200 transition-colors disabled:opacity-40"
-              >
+              <input ref={fileInputRef} type="file" accept="image/*" capture="environment" className="hidden"
+                onChange={e => e.target.files?.[0] && handleOCR(e.target.files[0])} />
+              <button onClick={() => fileInputRef.current?.click()} disabled={ocrLoading}
+                className="w-full bg-orange-100 text-orange-600 font-bold py-3 rounded-xl hover:bg-orange-200 transition-colors disabled:opacity-40">
                 {ocrLoading ? '📷 Разпознавам...' : '📷 Снимай написаното'}
               </button>
             </div>
           )}
-
           <div className="bg-white rounded-3xl p-6 shadow-lg mb-4">
             <div className="flex justify-between text-sm text-gray-400 mb-2">
               <span>Твоят текст</span>
               <span>{sentences.length} изречения</span>
             </div>
-            <textarea
-              value={fullInput}
-              onChange={e => setFullInput(e.target.value)}
+            <textarea value={fullInput} onChange={e => setFullInput(e.target.value)}
               rows={sentences.length + 2}
               className="w-full border-2 border-orange-200 rounded-2xl p-4 text-lg focus:outline-none focus:border-orange-400 resize-none"
-              placeholder={`Изречение 1\nИзречение 2\n...`}
-              autoFocus
-            />
+              placeholder={`Изречение 1\nИзречение 2\n...`} autoFocus />
           </div>
-
-          <button
-            onClick={handleSubmit}
-            disabled={!fullInput.trim()}
-            className="w-full bg-orange-500 text-white text-xl font-bold py-4 rounded-2xl hover:bg-orange-600 disabled:opacity-40 transition-colors"
-          >
+          <button onClick={handleSubmit} disabled={!fullInput.trim()}
+            className="w-full bg-orange-500 text-white text-xl font-bold py-4 rounded-2xl hover:bg-orange-600 disabled:opacity-40 transition-colors">
             Провери диктовката ✓
           </button>
         </div>
@@ -506,13 +445,11 @@ export default function DictationPage() {
             <p className="text-6xl font-bold text-orange-500">{score}/{sentences.length}</p>
             <p className="text-gray-400">{percent}% верни изречения</p>
           </div>
-
           {loadingExplanations && (
             <div className="bg-orange-50 rounded-2xl p-4 mb-4 text-center">
               <p className="text-orange-500 animate-pulse">🦊 Лисицата анализира грешките...</p>
             </div>
           )}
-
           <div className="bg-white rounded-3xl p-6 shadow-lg mb-6">
             {results.map((r, i) => (
               <div key={i} className="py-3 border-b border-gray-100 last:border-0">
@@ -542,11 +479,8 @@ export default function DictationPage() {
               </div>
             ))}
           </div>
-
-          <button
-            onClick={() => router.push('/dashboard')}
-            className="w-full bg-orange-500 text-white text-xl font-bold py-4 rounded-2xl hover:bg-orange-600 transition-colors"
-          >
+          <button onClick={() => router.push('/dashboard')}
+            className="w-full bg-orange-500 text-white text-xl font-bold py-4 rounded-2xl hover:bg-orange-600 transition-colors">
             Към началото 🏠
           </button>
         </div>
