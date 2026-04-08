@@ -19,7 +19,7 @@ export default function DictationPage() {
   const [profile, setProfile] = useState<Profile | null>(null)
   const [dictations, setDictations] = useState<Dictation[]>([])
   const [selected, setSelected] = useState<Dictation | null>(null)
-  const [phase, setPhase] = useState<'pick' | 'ready' | 'play' | 'write' | 'done'>('pick')
+  const [phase, setPhase] = useState<'pick' | 'ready' | 'play' | 'write' | 'done' | 'limit'>('pick')
   const [sentenceIndex, setSentenceIndex] = useState(0)
   const [repeatsLeft, setRepeatsLeft] = useState(0)
   const [speaking, setSpeaking] = useState(false)
