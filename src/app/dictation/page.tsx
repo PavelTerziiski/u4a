@@ -28,6 +28,8 @@ export default function DictationPage() {
   const [fullInput, setFullInput] = useState('')
   const [results, setResults] = useState<SentenceResult[]>([])
   const [speed, setSpeed] = useState(1.0)
+  const [voiceGender, setVoiceGender] = useState<'female' | 'male'>('female')
+const isMac = typeof navigator !== 'undefined' && /Mac|iPhone|iPad/.test(navigator.userAgent)
   const progressTimer = useRef<NodeJS.Timeout | null>(null)
   const currentAudio = useRef<HTMLAudioElement | null>(null)
 
@@ -66,7 +68,7 @@ export default function DictationPage() {
     fetch('/api/tts', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ text, speed: 0.85 * speed })
+      body: JSON.stringify({ text, speed: 0.85 * speed, voice: voiceGender })
     })
       .then(res => res.json())
       .then(data => {
@@ -100,6 +102,11 @@ export default function DictationPage() {
     const utt = new SpeechSynthesisUtterance(text)
     utt.lang = 'bg-BG'
     utt.rate = 0.85 * speed
+    if (voiceGender === 'female') {
+  const voices = window.speechSynthesis.getVoices()
+  const daria = voices.find(v => v.name.toLowerCase().includes('daria'))
+  if (daria) utt.voice = daria
+}
     const voices = window.speechSynthesis.getVoices()
     const daria = voices.find(v => v.name.toLowerCase().includes('daria'))
     if (daria) utt.voice = daria
@@ -247,7 +254,25 @@ export default function DictationPage() {
             ))}
           </div>
         </div>
+</div>  {/* ← край на скоростта */}
 
+        {/* ДОБАВИ ТУК: */}
+        <div className="bg-white rounded-2xl p-4 shadow mb-6">
+          <p className="text-gray-500 text-sm mb-2">Глас:</p>
+          <div className="grid grid-cols-2 gap-2">
+            {[{label: '👩 Жена', val: 'female'}, {label: '👨 Мъж', val: 'male'}].map(v => (
+              <button
+                key={v.val}
+                onClick={() => setVoiceGender(v.val as 'female' | 'male')}
+                className={`py-3 rounded-xl font-bold border-2 transition-all ${voiceGender === v.val ? 'bg-orange-500 text-white border-orange-500' : 'bg-white text-orange-500 border-orange-200'}`}
+              >
+                {v.label}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {dictations.length === 0 && ...
         {dictations.length === 0 && <p className="text-gray-400 text-center">Няма диктовки за твоя клас.</p>}
         <div className="flex flex-col gap-4">
           {dictations.map(d => (

@@ -1,12 +1,16 @@
 import { NextRequest, NextResponse } from 'next/server'
 
 export async function POST(req: NextRequest) {
-  const { text, speed = 1.0 } = await req.json()
+  const { text, speed = 1.0, voice = 'female' } = await req.json()
 
   const apiKey = process.env.GOOGLE_TTS_API_KEY
   if (!apiKey) {
     return NextResponse.json({ error: 'No API key' }, { status: 500 })
   }
+
+  const voiceConfig = voice === 'male'
+    ? { languageCode: 'bg-BG', name: 'bg-BG-Standard-B', ssmlGender: 'MALE' }
+    : { languageCode: 'bg-BG', name: 'bg-BG-Standard-A', ssmlGender: 'FEMALE' }
 
   const response = await fetch(
     `https://texttospeech.googleapis.com/v1/text:synthesize?key=${apiKey}`,
@@ -15,11 +19,7 @@ export async function POST(req: NextRequest) {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         input: { text },
-        voice: {
-          languageCode: 'bg-BG',
-          name: 'bg-BG-Standard-A',
-          ssmlGender: 'FEMALE'
-        },
+        voice: voiceConfig,
         audioConfig: {
           audioEncoding: 'MP3',
           speakingRate: speed
