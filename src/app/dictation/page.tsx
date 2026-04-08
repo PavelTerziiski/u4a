@@ -29,7 +29,6 @@ export default function DictationPage() {
   const [results, setResults] = useState<SentenceResult[]>([])
   const [speed, setSpeed] = useState(1.0)
   const [voiceGender, setVoiceGender] = useState<'female' | 'male'>('female')
-const isMac = typeof navigator !== 'undefined' && /Mac|iPhone|iPad/.test(navigator.userAgent)
   const progressTimer = useRef<NodeJS.Timeout | null>(null)
   const currentAudio = useRef<HTMLAudioElement | null>(null)
 
@@ -57,6 +56,22 @@ const isMac = typeof navigator !== 'undefined' && /Mac|iPhone|iPad/.test(navigat
     setPauseProgress(0)
   }
 
+  const fallbackToWebSpeech = (text: string, onDone?: () => void) => {
+    const utt = new SpeechSynthesisUtterance(text)
+    utt.lang = 'bg-BG'
+    utt.rate = 0.85 * speed
+    if (voiceGender === 'female') {
+      const voices = window.speechSynthesis.getVoices()
+      const daria = voices.find(v => v.name.toLowerCase().includes('daria'))
+      if (daria) utt.voice = daria
+    }
+    utt.onend = () => {
+      setSpeaking(false)
+      if (onDone) onDone()
+    }
+    window.speechSynthesis.speak(utt)
+  }
+
   const speak = (text: string, onDone?: () => void) => {
     window.speechSynthesis.cancel()
     if (currentAudio.current) {
@@ -81,7 +96,6 @@ const isMac = typeof navigator !== 'undefined' && /Mac|iPhone|iPad/.test(navigat
             if (onDone) onDone()
           }
           audio.onerror = () => {
-            console.error('Audio error, falling back')
             setSpeaking(false)
             fallbackToWebSpeech(text, onDone)
           }
@@ -96,25 +110,6 @@ const isMac = typeof navigator !== 'undefined' && /Mac|iPhone|iPad/.test(navigat
       .catch(() => {
         fallbackToWebSpeech(text, onDone)
       })
-  }
-
-  const fallbackToWebSpeech = (text: string, onDone?: () => void) => {
-    const utt = new SpeechSynthesisUtterance(text)
-    utt.lang = 'bg-BG'
-    utt.rate = 0.85 * speed
-    if (voiceGender === 'female') {
-  const voices = window.speechSynthesis.getVoices()
-  const daria = voices.find(v => v.name.toLowerCase().includes('daria'))
-  if (daria) utt.voice = daria
-}
-    const voices = window.speechSynthesis.getVoices()
-    const daria = voices.find(v => v.name.toLowerCase().includes('daria'))
-    if (daria) utt.voice = daria
-    utt.onend = () => {
-      setSpeaking(false)
-      if (onDone) onDone()
-    }
-    window.speechSynthesis.speak(utt)
   }
 
   const startPause = (text: string, grade: number, onDone: () => void) => {
@@ -254,9 +249,7 @@ const isMac = typeof navigator !== 'undefined' && /Mac|iPhone|iPad/.test(navigat
             ))}
           </div>
         </div>
-</div>  {/* ← край на скоростта */}
 
-        {/* ДОБАВИ ТУК: */}
         <div className="bg-white rounded-2xl p-4 shadow mb-6">
           <p className="text-gray-500 text-sm mb-2">Глас:</p>
           <div className="grid grid-cols-2 gap-2">
@@ -272,7 +265,6 @@ const isMac = typeof navigator !== 'undefined' && /Mac|iPhone|iPad/.test(navigat
           </div>
         </div>
 
-        {dictations.length === 0 && ...
         {dictations.length === 0 && <p className="text-gray-400 text-center">Няма диктовки за твоя клас.</p>}
         <div className="flex flex-col gap-4">
           {dictations.map(d => (
