@@ -9,6 +9,7 @@ export type Profile = {
   streak: number
   total_sessions: number
   is_premium: boolean
+  last_session_date: string | null
   created_at: string
 }
 
