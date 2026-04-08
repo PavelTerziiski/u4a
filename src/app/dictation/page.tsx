@@ -204,7 +204,7 @@ export default function DictationPage() {
   const fetchExplanations = async (newResults: SentenceResult[]) => {
     if (!profile?.is_premium) return
     setLoadingExplanations(true)
-    const wrongResults = newResults.filter(r => !r.correct)
+    // wrongResults not needed
     const newExplanations: Record<number, string> = {}
 
     for (const [i, r] of newResults.entries()) {
