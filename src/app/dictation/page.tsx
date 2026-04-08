@@ -30,8 +30,10 @@ export default function DictationPage() {
   const [results, setResults] = useState<SentenceResult[]>([])
   const [speed, setSpeed] = useState(1.0)
   const [weeklyCount, setWeeklyCount] = useState(0)
+  const [ocrLoading, setOcrLoading] = useState(false)
   const progressTimer = useRef<NodeJS.Timeout | null>(null)
   const currentAudio = useRef<HTMLAudioElement | null>(null)
+  const fileInputRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => {
     const username = localStorage.getItem('u4a_username')
@@ -43,7 +45,6 @@ export default function DictationPage() {
         supabase.from('dictations').select('*').eq('grade', data.grade)
           .then(({ data: d }) => setDictations(d || []))
 
-        // Брои диктовките тази седмица
         const weekStart = new Date()
         weekStart.setDate(weekStart.getDate() - weekStart.getDay())
         weekStart.setHours(0, 0, 0, 0)
@@ -177,6 +178,30 @@ export default function DictationPage() {
     setSelected(null)
   }
 
+  const handleOCR = async (file: File) => {
+    if (!profile?.is_premium) return
+    setOcrLoading(true)
+    try {
+      const reader = new FileReader()
+      reader.onload = async (e) => {
+        const base64 = (e.target?.result as string).split(',')[1]
+        const res = await fetch('/api/ocr', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ image: base64 })
+        })
+        const data = await res.json()
+        if (data.text) {
+          setFullInput(data.text)
+        }
+        setOcrLoading(false)
+      }
+      reader.readAsDataURL(file)
+    } catch {
+      setOcrLoading(false)
+    }
+  }
+
   const checkSentence = (original: string, userInput: string): WordResult[] => {
     const normalize = (s: string) => s.trim().toLowerCase().replace(/[.,!?;:»«–]/g, '')
     const originalWords = original.trim().split(/\s+/)
@@ -214,6 +239,7 @@ export default function DictationPage() {
       time_seconds: 0,
       results: newResults,
     })
+
     const today = new Date().toISOString().slice(0, 10)
     const lastDate = profile.last_session_date
     const yesterday = new Date(Date.now() - 86400000).toISOString().slice(0, 10)
@@ -228,6 +254,7 @@ export default function DictationPage() {
       streak: newStreak,
       last_session_date: today
     }).eq('id', profile.id)
+
     setWeeklyCount(c => c + 1)
     setResults(newResults)
     setPhase('done')
@@ -394,6 +421,27 @@ export default function DictationPage() {
             <h2 className="text-2xl font-bold text-gray-700 mt-4">Диктовката свърши!</h2>
             <p className="text-gray-500 mt-1">Въведи всяко изречение на нов ред</p>
           </div>
+
+          {profile?.is_premium && (
+            <div className="bg-white rounded-2xl p-4 shadow mb-4">
+              <p className="text-gray-500 text-sm mb-3">⭐ Premium: Снимай написаното и лисицата ще го прочете!</p>
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/*"
+                capture="environment"
+                className="hidden"
+                onChange={e => e.target.files?.[0] && handleOCR(e.target.files[0])}
+              />
+              <button
+                onClick={() => fileInputRef.current?.click()}
+                disabled={ocrLoading}
+                className="w-full bg-orange-100 text-orange-600 font-bold py-3 rounded-xl hover:bg-orange-200 transition-colors disabled:opacity-40"
+              >
+                {ocrLoading ? '📷 Разпознавам...' : '📷 Снимай написаното'}
+              </button>
+            </div>
+          )}
 
           <div className="bg-white rounded-3xl p-6 shadow-lg mb-4">
             <div className="flex justify-between text-sm text-gray-400 mb-2">
