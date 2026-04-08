@@ -31,6 +31,8 @@ export default function DictationPage() {
   const [speed, setSpeed] = useState(1.0)
   const [weeklyCount, setWeeklyCount] = useState(0)
   const [ocrLoading, setOcrLoading] = useState(false)
+  const [explanations, setExplanations] = useState<Record<number, string>>({})
+  const [loadingExplanations, setLoadingExplanations] = useState(false)
   const progressTimer = useRef<NodeJS.Timeout | null>(null)
   const currentAudio = useRef<HTMLAudioElement | null>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
@@ -143,12 +145,10 @@ export default function DictationPage() {
 
   const startDictation = (d: Dictation) => {
     if (!profile) return
-
     if (!profile.is_premium && weeklyCount >= FREE_WEEKLY_LIMIT) {
       setPhase('limit')
       return
     }
-
     const grade = d.grade
     setSelected(d)
     setPhase('ready')
@@ -156,6 +156,7 @@ export default function DictationPage() {
     setRepeatsLeft(REPEAT_LIMITS[grade] ?? 0)
     setFoxMood('happy')
     setFullInput('')
+    setExplanations({})
   }
 
   const handleRepeat = () => {
@@ -191,15 +192,44 @@ export default function DictationPage() {
           body: JSON.stringify({ image: base64 })
         })
         const data = await res.json()
-        if (data.text) {
-          setFullInput(data.text)
-        }
+        if (data.text) setFullInput(data.text)
         setOcrLoading(false)
       }
       reader.readAsDataURL(file)
     } catch {
       setOcrLoading(false)
     }
+  }
+
+  const fetchExplanations = async (newResults: SentenceResult[]) => {
+    if (!profile?.is_premium) return
+    setLoadingExplanations(true)
+    const wrongResults = newResults.filter(r => !r.correct)
+    const newExplanations: Record<number, string> = {}
+
+    for (const [i, r] of newResults.entries()) {
+      if (!r.correct) {
+        const wrongWords = r.wordResults.filter(w => !w.correct).map(w => w.word)
+        try {
+          const res = await fetch('/api/explain', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              sentence: r.sentence,
+              userInput: r.input,
+              wrongWords
+            })
+          })
+          const data = await res.json()
+          if (data.explanation) newExplanations[i] = data.explanation
+        } catch {
+          // ignore
+        }
+      }
+    }
+
+    setExplanations(newExplanations)
+    setLoadingExplanations(false)
   }
 
   const checkSentence = (original: string, userInput: string): WordResult[] => {
@@ -258,6 +288,9 @@ export default function DictationPage() {
     setWeeklyCount(c => c + 1)
     setResults(newResults)
     setPhase('done')
+
+    // Зареди обясненията за Premium
+    fetchExplanations(newResults)
   }
 
   // ЛИМИТ
@@ -272,10 +305,7 @@ export default function DictationPage() {
           <p className="text-orange-700 font-bold text-lg mb-2">⭐ Premium — 4.50€/месец</p>
           <p className="text-orange-600 text-sm">Неограничени диктовки + качествен глас + обяснения на грешките</p>
         </div>
-        <button
-          onClick={() => setPhase('pick')}
-          className="w-full bg-white text-orange-500 border-2 border-orange-300 font-bold py-4 rounded-2xl hover:bg-orange-50 transition-colors"
-        >
+        <button onClick={() => setPhase('pick')} className="w-full bg-white text-orange-500 border-2 border-orange-300 font-bold py-4 rounded-2xl hover:bg-orange-50 transition-colors">
           ← Назад
         </button>
       </div>
@@ -348,9 +378,7 @@ export default function DictationPage() {
         >
           Готов съм! ✏️
         </button>
-        <button onClick={handleBack} className="mt-4 text-orange-400">
-          ← Назад
-        </button>
+        <button onClick={handleBack} className="mt-4 text-orange-400">← Назад</button>
       </div>
     </main>
   )
@@ -362,23 +390,17 @@ export default function DictationPage() {
     return (
       <main className="min-h-screen bg-orange-50 flex flex-col items-center justify-center p-6">
         <div className="w-full max-w-md">
-          <button onClick={handleBack} className="text-orange-400 mb-4 flex items-center gap-2">
-            ← Спри диктовката
-          </button>
-
+          <button onClick={handleBack} className="text-orange-400 mb-4 flex items-center gap-2">← Спри диктовката</button>
           <div className="text-center mb-4">
             <p className="text-gray-400 text-sm">{selected.title}</p>
             <p className="text-orange-500 font-bold">Изречение {sentenceIndex + 1} от {sentences.length}</p>
           </div>
-
           <div className="w-full bg-orange-100 rounded-full h-3 mb-6">
             <div className="bg-orange-500 h-3 rounded-full transition-all" style={{ width: `${(sentenceIndex / sentences.length) * 100}%` }} />
           </div>
-
           <div className="flex justify-center mb-4">
             <Fox mood={foxMood} size={140} />
           </div>
-
           <div className="bg-white rounded-3xl p-6 shadow-lg mb-4">
             {speaking && <p className="text-orange-500 font-bold text-lg animate-pulse">🔊 Лисицата чете...</p>}
             {pausing && (
@@ -391,16 +413,13 @@ export default function DictationPage() {
             )}
             {!speaking && !pausing && <p className="text-gray-400">Подготвям се...</p>}
           </div>
-
           <button
             onClick={handleRepeat}
             disabled={repeatsLeft <= 0 || speaking || repeatLimit === 0}
             className={`w-full py-3 rounded-2xl font-bold border-2 transition-all ${
-              repeatLimit === 0
-                ? 'hidden'
-                : repeatsLeft <= 0 || speaking
-                ? 'bg-gray-100 text-gray-400 border-gray-200'
-                : 'bg-white border-orange-300 text-orange-500 hover:bg-orange-50'
+              repeatLimit === 0 ? 'hidden'
+              : repeatsLeft <= 0 || speaking ? 'bg-gray-100 text-gray-400 border-gray-200'
+              : 'bg-white border-orange-300 text-orange-500 hover:bg-orange-50'
             }`}
           >
             🔁 Повтори {repeatLimit > 0 && `(${repeatsLeft} от ${repeatLimit})`}
@@ -488,6 +507,12 @@ export default function DictationPage() {
             <p className="text-gray-400">{percent}% верни изречения</p>
           </div>
 
+          {loadingExplanations && (
+            <div className="bg-orange-50 rounded-2xl p-4 mb-4 text-center">
+              <p className="text-orange-500 animate-pulse">🦊 Лисицата анализира грешките...</p>
+            </div>
+          )}
+
           <div className="bg-white rounded-3xl p-6 shadow-lg mb-6">
             {results.map((r, i) => (
               <div key={i} className="py-3 border-b border-gray-100 last:border-0">
@@ -498,13 +523,21 @@ export default function DictationPage() {
                   </span>
                 </div>
                 {!r.correct && (
-                  <div className="mt-2 flex flex-wrap gap-1">
-                    {r.wordResults.map((wr, j) => (
-                      <span key={j} className={`text-sm px-1 rounded ${wr.correct ? 'text-gray-600' : 'bg-red-100 text-red-600 font-bold'}`}>
-                        {wr.word}
-                      </span>
-                    ))}
-                  </div>
+                  <>
+                    <div className="mt-2 flex flex-wrap gap-1">
+                      {r.wordResults.map((wr, j) => (
+                        <span key={j} className={`text-sm px-1 rounded ${wr.correct ? 'text-gray-600' : 'bg-red-100 text-red-600 font-bold'}`}>
+                          {wr.word}
+                        </span>
+                      ))}
+                    </div>
+                    {explanations[i] && (
+                      <div className="mt-3 bg-orange-50 rounded-xl p-3 border border-orange-200">
+                        <p className="text-xs text-orange-500 font-bold mb-1">🦊 Лисицата обяснява:</p>
+                        <p className="text-sm text-gray-600">{explanations[i]}</p>
+                      </div>
+                    )}
+                  </>
                 )}
               </div>
             ))}
