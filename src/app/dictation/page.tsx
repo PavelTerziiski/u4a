@@ -28,7 +28,7 @@ export default function DictationPage() {
   const [fullInput, setFullInput] = useState('')
   const [results, setResults] = useState<SentenceResult[]>([])
   const [speed, setSpeed] = useState(1.0)
-  const pauseTimer = useRef<NodeJS.Timeout | null>(null)
+  // pauseTimer removed
   const progressTimer = useRef<NodeJS.Timeout | null>(null)
 
   useEffect(() => {
