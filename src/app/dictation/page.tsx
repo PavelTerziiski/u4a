@@ -81,22 +81,22 @@ export default function DictationPage() {
           audio.onerror = () => {
             console.error('Audio error, falling back')
             setSpeaking(false)
-            useFallback(text, onDone)
+            fallbackToWebSpeech(text, onDone)
           }
           audio.play().catch(() => {
             setSpeaking(false)
-            useFallback(text, onDone)
+            fallbackToWebSpeech(text, onDone)
           })
         } else {
-          useFallback(text, onDone)
+          fallbackToWebSpeech(text, onDone)
         }
       })
       .catch(() => {
-        useFallback(text, onDone)
+        fallbackToWebSpeech(text, onDone)
       })
   }
 
-  const useFallback = (text: string, onDone?: () => void) => {
+  const fallbackToWebSpeech = (text: string, onDone?: () => void) => {
     const utt = new SpeechSynthesisUtterance(text)
     utt.lang = 'bg-BG'
     utt.rate = 0.85 * speed
