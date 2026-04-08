@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
 import { Dictation, Profile } from '@/lib/types'
+import Fox, { FoxMood } from '@/components/fox/Fox'
 
 type Result = { word: string; correct: boolean; input: string }
 
@@ -18,6 +19,7 @@ export default function DictationPage() {
   const [results, setResults] = useState<Result[]>([])
   const [speaking, setSpeaking] = useState(false)
   const [startTime, setStartTime] = useState(0)
+  const [foxMood, setFoxMood] = useState<FoxMood>('happy')
 
   useEffect(() => {
     const username = localStorage.getItem('u4a_username')
@@ -36,6 +38,11 @@ export default function DictationPage() {
     const utt = new SpeechSynthesisUtterance(text)
     utt.lang = 'bg-BG'
     utt.rate = 0.85
+
+    const voices = window.speechSynthesis.getVoices()
+    const daria = voices.find(v => v.name.toLowerCase().includes('daria'))
+    if (daria) utt.voice = daria
+
     setSpeaking(true)
     utt.onend = () => setSpeaking(false)
     window.speechSynthesis.speak(utt)
@@ -55,6 +62,8 @@ export default function DictationPage() {
     if (!selected || !profile) return
     const word = selected.words[wordIndex]
     const correct = input.trim().toLowerCase() === word.toLowerCase()
+    setFoxMood(correct ? 'excited' : 'sad')
+    setTimeout(() => setFoxMood('happy'), 1500)
     const newResults = [...results, { word, correct, input: input.trim() }]
     setResults(newResults)
     setInput('')
@@ -80,6 +89,12 @@ export default function DictationPage() {
       setPhase('done')
     }
   }
+
+  const doneMood: FoxMood = (() => {
+    const score = results.filter(r => r.correct).length
+    const percent = selected ? Math.round((score / selected.words.length) * 100) : 0
+    return percent >= 80 ? 'excited' : percent >= 50 ? 'wink' : 'sad'
+  })()
 
   if (phase === 'pick') return (
     <main className="min-h-screen bg-orange-50 p-6">
@@ -124,11 +139,7 @@ export default function DictationPage() {
         </div>
 
         <div className="flex justify-center mb-6">
-          <img
-            src="/images/fox.png"
-            alt="Лисица"
-            className={`w-32 h-32 object-contain transition-transform ${speaking ? 'scale-110' : 'scale-100'}`}
-          />
+          <Fox mood={foxMood} size={128} />
         </div>
 
         <div className="flex justify-center mb-8">
@@ -171,12 +182,8 @@ export default function DictationPage() {
       <main className="min-h-screen bg-orange-50 flex flex-col items-center justify-center p-6">
         <div className="w-full max-w-md">
           <div className="text-center mb-6">
-            <img
-              src="/images/fox.png"
-              alt="Лисица"
-              className="w-32 h-32 object-contain mx-auto mb-4"
-            />
-            <h1 className="text-3xl font-bold text-gray-700 mb-2">
+            <Fox mood={doneMood} size={128} />
+            <h1 className="text-3xl font-bold text-gray-700 mb-2 mt-4">
               {percent >= 80 ? '🎉 Браво!' : percent >= 50 ? '👍 Добре!' : '💪 Продължавай!'}
             </h1>
             <p className="text-6xl font-bold text-orange-500">{score}/{selected.words.length}</p>

@@ -25,3 +25,28 @@ body {
     text-wrap: balance;
   }
 }
+
+@keyframes celebrate {
+  0%   { transform: scale(1) rotate(0deg); }
+  25%  { transform: scale(1.2) rotate(-10deg); }
+  50%  { transform: scale(1.2) rotate(10deg); }
+  75%  { transform: scale(1.1) rotate(-5deg); }
+  100% { transform: scale(1) rotate(0deg); }
+}
+
+@keyframes sad {
+  0%   { transform: rotate(0deg); }
+  25%  { transform: rotate(-8deg) translateY(4px); }
+  75%  { transform: rotate(8deg) translateY(4px); }
+  100% { transform: rotate(0deg); }
+}
+
+@keyframes think {
+  0%   { transform: translateY(0px); }
+  50%  { transform: translateY(-8px); }
+  100% { transform: translateY(0px); }
+}
+
+.animate-celebrate { animation: celebrate 0.6s ease-in-out 3; }
+.animate-sad       { animation: sad 0.5s ease-in-out 3; }
+.animate-think     { animation: think 1s ease-in-out 2; }
