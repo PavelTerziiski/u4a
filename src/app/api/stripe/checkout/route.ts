@@ -23,7 +23,7 @@ export async function POST(req: NextRequest) {
         username,
       },
       success_url: `${process.env.NEXT_PUBLIC_APP_URL}/voice-setup`,
-      cancel_url: `${process.env.NEXT_PUBLIC_APP_URL}/dashboard?premium=cancelled`,
+      cancel_url: `${process.env.NEXT_PUBLIC_APP_URL}/payment-cancelled`,
     })
 
     return NextResponse.json({ url: session.url })
