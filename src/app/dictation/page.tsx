@@ -510,25 +510,7 @@ export default function DictationPage() {
             <p className="text-6xl font-bold text-orange-500">{score}/{sentences.length}</p>
             <p className="text-gray-400">{percent}% верни изречения</p>
           </div>
-          {ocrImage && ocrWords.length > 0 && results.length > 0 && (
-            <div className="bg-white rounded-3xl p-4 shadow-lg mb-4">
-              <p className="text-sm text-gray-500 mb-3">📸 Корекции върху твоя лист:</p>
-              <AnnotatedImage
-                imageBase64={ocrImage}
-                words={ocrWords.map(w => ({
-                  ...w,
-                  errorType: (() => {
-                    const allWords = results.flatMap(r => r.wordResults)
-                    const match = allWords.find(wr => 
-                      wr.word.toLowerCase().includes(w.word.toLowerCase()) ||
-                      w.word.toLowerCase().includes(wr.word.toLowerCase())
-                    )
-                    return match?.errorType || 'none'
-                  })()
-                }))}
-              />
-            </div>
-          )}
+
           {loadingExplanations && (
             <div className="bg-orange-50 rounded-2xl p-4 mb-4 text-center">
               <p className="text-orange-500 animate-pulse">🦊 Лисицата анализира грешките...</p>
