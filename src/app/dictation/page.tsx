@@ -1,6 +1,5 @@
 'use client'
 import ReactMarkdown from 'react-markdown'
-import AnnotatedImage from '@/components/ui/AnnotatedImage'
 
 import { useEffect, useState, useRef } from 'react'
 import { useRouter } from 'next/navigation'
@@ -36,8 +35,6 @@ export default function DictationPage() {
   const [explanations, setExplanations] = useState<Record<number, string>>({})
   const [loadingExplanations, setLoadingExplanations] = useState(false)
   const [checkoutLoading, setCheckoutLoading] = useState(false)
-  const [ocrImage, setOcrImage] = useState<string | null>(null)
-  const [ocrWords, setOcrWords] = useState<{word: string; x: number; y: number; w: number; h: number; line: number}[]>([])
   const progressTimer = useRef<NodeJS.Timeout | null>(null)
   const currentAudio = useRef<HTMLAudioElement | null>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
@@ -203,7 +200,6 @@ export default function DictationPage() {
           canvas.width = w; canvas.height = h
           canvas.getContext('2d')!.drawImage(img, 0, 0, w, h)
           const base64 = canvas.toDataURL('image/jpeg', 0.5).split(',')[1]
-          setOcrImage(base64)
           const res = await fetch('/api/ocr', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -211,7 +207,6 @@ export default function DictationPage() {
           })
           const data = await res.json()
           if (data.text) setFullInput(data.text)
-          if (data.words) setOcrWords(data.words)
           setOcrLoading(false)
         }
         img.src = e.target?.result as string
