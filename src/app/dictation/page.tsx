@@ -77,11 +77,15 @@ export default function DictationPage() {
       currentAudio.current = null
     }
     setSpeaking(true)
-    fetch('/api/tts', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ text, speed: 0.85 * speed, voice: 'male' })
-    })
+    fetch(profile?.is_premium ? '/api/tts-azure' : '/api/tts', {
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify(
+    profile?.is_premium 
+      ? { text, voice: 'kalina' } 
+      : { text, speed: 0.85 * speed, voice: 'male' }
+  )
+})
       .then(res => res.json())
       .then(data => {
         if (data.audio) {
