@@ -44,7 +44,7 @@ export default function ScanDictationPage() {
         canvas.getContext('2d')!.drawImage(img, 0, 0, w, h)
         const base64 = canvas.toDataURL('image/jpeg', 0.5).split(',')[1]
 
-        const res = await fetch('/api/ocr', {
+        const res = await fetch('/api/ocr-scan', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ image: base64 })
@@ -82,11 +82,13 @@ export default function ScanDictationPage() {
       audio.onended = () => {
         setSpeaking(false)
         currentAudio.current = null
-        // Пауза след изречение
+        // Пауза след изречение — по-дълга като в нормалната диктовка
         setPausing(true)
         setPauseProgress(0)
         let step = 0
-        const steps = 30
+        const steps = 50
+        const pauseMs = Math.max(3000, text.length * 60)
+        const stepMs = pauseMs / steps
         progressTimer.current = setInterval(() => {
           step++
           setPauseProgress(Math.round((step / steps) * 100))
@@ -96,7 +98,7 @@ export default function ScanDictationPage() {
             setPauseProgress(0)
             onDone()
           }
-        }, 100)
+        }, stepMs)
       }
       audio.play()
     } else {
@@ -178,6 +180,14 @@ export default function ScanDictationPage() {
             </div>
           )}
         </div>
+        <button onClick={() => {
+          if (currentAudio.current) { currentAudio.current.pause(); currentAudio.current = null }
+          clearInterval(progressTimer.current!)
+          setSpeaking(false); setPausing(false)
+          router.push('/dictation')
+        }} className="mt-4 w-full bg-white text-orange-500 border-2 border-orange-300 font-bold py-3 rounded-2xl hover:bg-orange-50 transition-colors">
+          ← Спри диктовката
+        </button>
       </div>
     </main>
   )
