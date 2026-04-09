@@ -136,8 +136,11 @@ export default function ScanDictationPage() {
           className="w-full bg-orange-500 text-white font-bold py-4 rounded-2xl hover:bg-orange-600 transition-colors disabled:opacity-50 text-lg mb-3">
           {scanning ? '📷 Разпознавам...' : '📷 Снимай или качи'}
         </button>
-        <button onClick={() => router.push('/dictation')}
-          className="w-full bg-white text-orange-500 border-2 border-orange-300 font-bold py-3 rounded-2xl hover:bg-orange-50 transition-colors">
+        <button onClick={() => {
+          if (currentAudio.current) { currentAudio.current.pause(); currentAudio.current = null }
+          clearInterval(progressTimer.current!)
+          router.push('/dictation')
+        }} className="w-full bg-white text-orange-500 border-2 border-orange-300 font-bold py-3 rounded-2xl hover:bg-orange-50 transition-colors">
           ← Назад
         </button>
       </div>
