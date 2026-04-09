@@ -188,15 +188,28 @@ export default function DictationPage() {
     try {
       const reader = new FileReader()
       reader.onload = async (e) => {
-        const base64 = (e.target?.result as string).split(',')[1]
-        const res = await fetch('/api/ocr', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ image: base64 })
-        })
-        const data = await res.json()
-        if (data.text) setFullInput(data.text)
-        setOcrLoading(false)
+        const img = new Image()
+        img.onload = async () => {
+          const canvas = document.createElement('canvas')
+          const maxSize = 800
+          let w = img.width, h = img.height
+          if (w > maxSize || h > maxSize) {
+            if (w > h) { h = Math.round(h * maxSize / w); w = maxSize }
+            else { w = Math.round(w * maxSize / h); h = maxSize }
+          }
+          canvas.width = w; canvas.height = h
+          canvas.getContext('2d')!.drawImage(img, 0, 0, w, h)
+          const base64 = canvas.toDataURL('image/jpeg', 0.5).split(',')[1]
+          const res = await fetch('/api/ocr', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ image: base64 })
+          })
+          const data = await res.json()
+          if (data.text) setFullInput(data.text)
+          setOcrLoading(false)
+        }
+        img.src = e.target?.result as string
       }
       reader.readAsDataURL(file)
     } catch {
