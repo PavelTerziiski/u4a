@@ -117,6 +117,7 @@ export default function ScanDictationPage() {
       setPhase('done')
       return
     }
+    setPhase('play')
     setSentenceIndex(index)
     speakWithPauses(sentences[index], () => readAll(index + 1))
   }
