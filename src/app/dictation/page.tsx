@@ -1,4 +1,5 @@
 'use client'
+import ReactMarkdown from 'react-markdown'
 
 import { useEffect, useState, useRef } from 'react'
 import { useRouter } from 'next/navigation'
@@ -513,7 +514,7 @@ export default function DictationPage() {
                     {explanations[i] && (
                       <div className="mt-3 bg-orange-50 rounded-xl p-3 border border-orange-200">
                         <p className="text-xs text-orange-500 font-bold mb-1">🦊 Лисицата обяснява:</p>
-                        <p className="text-sm text-gray-600">{explanations[i]}</p>
+                        <div className="text-sm text-gray-600 prose prose-sm max-w-none"><ReactMarkdown>{explanations[i]}</ReactMarkdown></div>
                       </div>
                     )}
                   </>
