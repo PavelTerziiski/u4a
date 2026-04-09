@@ -37,7 +37,7 @@ export default function DictationPage() {
   const [loadingExplanations, setLoadingExplanations] = useState(false)
   const [checkoutLoading, setCheckoutLoading] = useState(false)
   const [ocrImage, setOcrImage] = useState<string | null>(null)
-  const [ocrWords, setOcrWords] = useState<any[]>([])
+  const [ocrWords, setOcrWords] = useState<{word: string; x: number; y: number; w: number; h: number; line: number}[]>([])
   const progressTimer = useRef<NodeJS.Timeout | null>(null)
   const currentAudio = useRef<HTMLAudioElement | null>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
