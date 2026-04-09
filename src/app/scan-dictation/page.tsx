@@ -92,7 +92,7 @@ export default function ScanDictationPage() {
         setPauseProgress(0)
         let step = 0
         const steps = 50
-        const pauseMs = Math.max(3000, text.length * 60)
+        const pauseMs = Math.max(3000, Math.round((text.length / (1.4 / speedRef.current)) * 1000))
         const stepMs = pauseMs / steps
         progressTimer.current = setInterval(() => {
           step++
