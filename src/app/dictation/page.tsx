@@ -449,7 +449,7 @@ export default function DictationPage() {
             <div className="bg-white rounded-2xl p-4 shadow mb-4">
               <p className="text-gray-500 text-sm mb-3">⭐ Premium: Снимай написаното и лисицата ще го прочете!</p>
               <input ref={fileInputRef} type="file" accept="image/*" capture="environment" className="hidden"
-                onChange={e => e.target.files?.[0] && handleOCR(e.target.files[0])} />
+                onChange={e => { if (e.target.files?.[0]) { handleOCR(e.target.files[0]); e.target.value = '' } }} />
               <button onClick={() => fileInputRef.current?.click()} disabled={ocrLoading}
                 className="w-full bg-orange-100 text-orange-600 font-bold py-3 rounded-xl hover:bg-orange-200 transition-colors disabled:opacity-40">
                 {ocrLoading ? '📷 Разпознавам...' : '📷 Снимай написаното'}
