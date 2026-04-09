@@ -3,7 +3,7 @@ import { NextRequest, NextResponse } from 'next/server'
 export async function POST(req: NextRequest) {
   try {
     const { text, voice = 'kalina', speed = 0.85 } = await req.json()
-  const ratePercent = Math.round(speed * 100) + '%'
+  const ratePercent = speed <= 0.75 ? 'slow' : speed >= 1.1 ? 'fast' : 'medium'
 
     const voiceName = voice === 'borisslav' 
       ? 'bg-BG-BorislavNeural' 
