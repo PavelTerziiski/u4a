@@ -7,7 +7,7 @@ import { Dictation, Profile } from '@/lib/types'
 import Fox, { FoxMood } from '@/components/fox/Fox'
 
 type Sentence = { id: number; text: string }
-type WordResult = { word: string; correct: boolean; input: string }
+type WordResult = { word: string; correct: boolean; input: string; errorType: 'none' | 'spelling' | 'punctuation' | 'capitalization' }
 type SentenceResult = { sentence: string; input: string; wordResults: WordResult[]; correct: boolean }
 
 const REPEAT_LIMITS: Record<number, number> = { 2: 4, 3: 3, 4: 2, 5: 1 }
@@ -231,13 +231,27 @@ export default function DictationPage() {
 
   const checkSentence = (original: string, userInput: string): WordResult[] => {
     const normalize = (s: string) => s.trim().toLowerCase().replace(/[.,!?;:»«–]/g, '')
+    const onlyPunct = (s: string) => s.replace(/[^.,!?;:»«–]/g, '')
+    const onlyLetters = (s: string) => s.replace(/[.,!?;:»«–]/g, '')
     const originalWords = original.trim().split(/\s+/)
     const inputWords = userInput.trim().split(/\s+/)
-    return originalWords.map((word, i) => ({
-      word,
-      input: inputWords[i] || '',
-      correct: normalize(word) === normalize(inputWords[i] || '')
-    }))
+    return originalWords.map((word, i) => {
+      const input = inputWords[i] || ''
+      const correct = normalize(word) === normalize(input)
+      let errorType: WordResult['errorType'] = 'none'
+      if (!correct) {
+        const wordLetters = onlyLetters(word)
+        const inputLetters = onlyLetters(input)
+        if (wordLetters.toLowerCase() === inputLetters.toLowerCase() && onlyPunct(word) !== onlyPunct(input)) {
+          errorType = 'punctuation'
+        } else if (wordLetters.toLowerCase() === inputLetters.toLowerCase() && word[0] !== input[0]) {
+          errorType = 'capitalization'
+        } else {
+          errorType = 'spelling'
+        }
+      }
+      return { word, input, correct, errorType }
+    })
   }
 
   const handleSubmit = async () => {
@@ -491,7 +505,7 @@ export default function DictationPage() {
                   <>
                     <div className="mt-2 flex flex-wrap gap-1">
                       {r.wordResults.map((wr, j) => (
-                        <span key={j} className={`text-sm px-1 rounded ${wr.correct ? 'text-gray-600' : 'bg-red-100 text-red-600 font-bold'}`}>
+                        <span key={j} className={`text-sm px-1 rounded ${wr.correct ? 'text-gray-600' : wr.errorType === 'punctuation' ? 'bg-orange-100 text-orange-600 font-bold' : wr.errorType === 'capitalization' ? 'bg-yellow-100 text-yellow-600 font-bold' : 'bg-red-100 text-red-600 font-bold'}`}>
                           {wr.word}
                         </span>
                       ))}
