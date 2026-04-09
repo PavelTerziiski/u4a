@@ -11,6 +11,7 @@ export type Profile = {
   is_premium: boolean
   last_session_date: string | null
   created_at: string
+  preferred_voice?: string
 }
 
 export type Dictation = {
