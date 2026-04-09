@@ -76,7 +76,7 @@ export default function ScanDictationPage() {
     const res = await fetch('/api/tts-azure', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ text, voice, speed: 0.85 * speed })
+      body: JSON.stringify({ text, voice, speed })
     })
     const data = await res.json()
     
