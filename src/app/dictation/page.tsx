@@ -82,7 +82,7 @@ export default function DictationPage() {
   headers: { 'Content-Type': 'application/json' },
   body: JSON.stringify(
     profile?.is_premium 
-      ? { text, voice: 'kalina' } 
+      ? { text, voice: profile?.preferred_voice || 'kalina' } 
       : { text, speed: 0.85 * speed, voice: 'male' }
   )
 })
