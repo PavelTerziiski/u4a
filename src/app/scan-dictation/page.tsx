@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useRef } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
 import { Profile } from '@/lib/types'
@@ -20,12 +20,12 @@ export default function ScanDictationPage() {
   const currentAudio = useRef<HTMLAudioElement | null>(null)
   const progressTimer = useRef<NodeJS.Timeout | null>(null)
 
-  useState(() => {
+  useEffect(() => {
     const username = localStorage.getItem('u4a_username')
     if (!username) { router.push('/login'); return }
     supabase.from('profiles').select('*').eq('username', username).single()
       .then(({ data }) => { if (data) setProfile(data) })
-  })
+  }, [])
 
   const handleScan = async (file: File) => {
     setScanning(true)
