@@ -357,6 +357,12 @@ export default function DictationPage() {
     <main className="min-h-screen bg-orange-50 p-6">
       <div className="max-w-md mx-auto">
         <button onClick={() => router.push('/dashboard')} className="text-orange-400 mb-6 flex items-center gap-2">← Назад</button>
+        {profile?.is_premium && (
+          <button onClick={() => router.push('/scan-dictation')}
+            className="w-full bg-white border-2 border-orange-300 text-orange-500 font-bold py-3 rounded-2xl hover:bg-orange-50 transition-colors mb-4 flex items-center justify-center gap-2">
+            📷 Снимай текст и лисицата го чете
+          </button>
+        )}
         <h1 className="text-2xl font-bold text-gray-700 mb-2">Избери диктовка</h1>
         {!profile?.is_premium && (
           <div className="bg-orange-100 rounded-2xl p-3 mb-4 flex items-center justify-between">
