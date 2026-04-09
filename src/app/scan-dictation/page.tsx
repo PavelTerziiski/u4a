@@ -17,6 +17,7 @@ export default function ScanDictationPage() {
   const [speed, setSpeed] = useState(1.0)
   const [repeatsLeft, setRepeatsLeft] = useState(3)
   const lastSentence = useRef<string>('')
+  const speedRef = useRef(1.0)
   const [pausing, setPausing] = useState(false)
   const [pauseProgress, setPauseProgress] = useState(0)
   const fileInputRef = useRef<HTMLInputElement>(null)
@@ -76,7 +77,7 @@ export default function ScanDictationPage() {
     const res = await fetch('/api/tts-azure', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ text, voice, speed })
+      body: JSON.stringify({ text, voice, speed: speedRef.current })
     })
     const data = await res.json()
     
@@ -160,7 +161,7 @@ export default function ScanDictationPage() {
         </div>
         <div className="grid grid-cols-2 gap-2 mb-4">
           {[{label: '🐢 Бавно', val: 0.7}, {label: '🚶 Нормално', val: 1.0}].map(s => (
-            <button key={s.val} onClick={() => setSpeed(s.val)}
+            <button key={s.val} onClick={() => { setSpeed(s.val); speedRef.current = s.val }}
               className={`py-2 rounded-xl font-bold border-2 transition-all text-sm ${speed === s.val ? 'bg-orange-500 text-white border-orange-500' : 'bg-white text-orange-500 border-orange-200'}`}>
               {s.label}
             </button>
@@ -197,7 +198,7 @@ export default function ScanDictationPage() {
         </div>
         <div className="mt-4 grid grid-cols-2 gap-2">
           {[{label: '🐢 Бавно', val: 0.7}, {label: '🚶 Нормално', val: 1.0}].map(s => (
-            <button key={s.val} onClick={() => setSpeed(s.val)}
+            <button key={s.val} onClick={() => { setSpeed(s.val); speedRef.current = s.val }}
               className={`py-2 rounded-xl font-bold border-2 transition-all text-sm ${speed === s.val ? 'bg-orange-500 text-white border-orange-500' : 'bg-white text-orange-500 border-orange-200'}`}>
               {s.label}
             </button>
