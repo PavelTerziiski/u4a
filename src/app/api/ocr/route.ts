@@ -17,7 +17,7 @@ export async function POST(req: NextRequest) {
     },
     body: JSON.stringify({
       model: 'claude-opus-4-6',
-      max_tokens: 1024,
+      max_tokens: 2048,
       messages: [{
         role: 'user',
         content: [
@@ -31,7 +31,17 @@ export async function POST(req: NextRequest) {
           },
           {
             type: 'text',
-            text: 'Това е снимка от учебник по български език. Извади само текста за диктовка — изреченията. Върни само изреченията, всяко на нов ред, без номерация, без обяснения, без допълнителен текст.'
+            text: `Това е снимка на ръкописен текст на дете. 
+Върни JSON в следния формат — само JSON, без обяснения:
+{
+  "text": "пълният разпознат текст, всяко изречение на нов ред",
+  "words": [
+    {"word": "думата", "x": 0.1, "y": 0.05, "w": 0.08, "h": 0.03, "line": 0}
+  ]
+}
+Координатите x, y, w, h са относителни (0-1) спрямо размера на снимката.
+x, y е горният ляв ъгъл на думата. w е ширината, h е височината.
+line е номерът на реда (0, 1, 2...).`
           }
         ]
       }]
@@ -39,7 +49,13 @@ export async function POST(req: NextRequest) {
   })
 
   const data = await response.json()
-  const text = data.content?.[0]?.text || ''
-
-  return NextResponse.json({ text })
+  const raw = data.content?.[0]?.text || ''
+  
+  try {
+    const clean = raw.replace(/```json|```/g, '').trim()
+    const parsed = JSON.parse(clean)
+    return NextResponse.json({ text: parsed.text, words: parsed.words })
+  } catch {
+    return NextResponse.json({ text: raw, words: [] })
+  }
 }
