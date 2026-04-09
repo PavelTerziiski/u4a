@@ -206,10 +206,13 @@ export default function ScanDictationPage() {
           ))}
         </div>
         <button onClick={() => {
-          if (speaking || repeatsLeft <= 0) return
+          if (repeatsLeft <= 0) return
+          if (currentAudio.current) { currentAudio.current.pause(); currentAudio.current = null }
+          clearInterval(progressTimer.current!)
+          setSpeaking(false); setPausing(false); setPauseProgress(0)
           setRepeatsLeft(r => r - 1)
-          speakWithPauses(lastSentence.current, () => {})
-        }} disabled={speaking || repeatsLeft <= 0}
+          speakWithPauses(lastSentence.current, () => readAll(sentenceIndex + 1))
+        }} disabled={repeatsLeft <= 0}
           className="mt-2 w-full bg-white text-orange-500 border-2 border-orange-300 font-bold py-3 rounded-2xl hover:bg-orange-50 transition-colors disabled:opacity-40">
           🔁 Повтори ({repeatsLeft} пъти)
         </button>
