@@ -231,21 +231,25 @@ export default function DictationPage() {
   }
 
   const checkSentence = (original: string, userInput: string): WordResult[] => {
-    const normalize = (s: string) => s.trim().toLowerCase().replace(/[.,!?;:»«–]/g, '')
     const onlyPunct = (s: string) => s.replace(/[^.,!?;:»«–]/g, '')
     const onlyLetters = (s: string) => s.replace(/[.,!?;:»«–]/g, '')
     const originalWords = original.trim().split(/\s+/)
     const inputWords = userInput.trim().split(/\s+/)
     return originalWords.map((word, i) => {
       const input = inputWords[i] || ''
-      const correct = normalize(word) === normalize(input)
+      const wordLetters = onlyLetters(word).toLowerCase()
+      const inputLetters = onlyLetters(input).toLowerCase()
+      const wordPunct = onlyPunct(word)
+      const inputPunct = onlyPunct(input)
+      const lettersMatch = wordLetters === inputLetters
+      const punctMatch = wordPunct === inputPunct
+      const caseMatch = onlyLetters(word)[0] === onlyLetters(input)[0]
+      const correct = lettersMatch && punctMatch && caseMatch
       let errorType: WordResult['errorType'] = 'none'
       if (!correct) {
-        const wordLetters = onlyLetters(word)
-        const inputLetters = onlyLetters(input)
-        if (wordLetters.toLowerCase() === inputLetters.toLowerCase() && onlyPunct(word) !== onlyPunct(input)) {
+        if (lettersMatch && !punctMatch) {
           errorType = 'punctuation'
-        } else if (wordLetters.toLowerCase() === inputLetters.toLowerCase() && word[0] !== input[0]) {
+        } else if (lettersMatch && punctMatch && !caseMatch) {
           errorType = 'capitalization'
         } else {
           errorType = 'spelling'
