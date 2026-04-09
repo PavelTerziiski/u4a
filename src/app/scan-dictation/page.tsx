@@ -14,6 +14,9 @@ export default function ScanDictationPage() {
   const [sentences, setSentences] = useState<string[]>([])
   const [sentenceIndex, setSentenceIndex] = useState(0)
   const [speaking, setSpeaking] = useState(false)
+  const [speed, setSpeed] = useState(1.0)
+  const [repeatsLeft, setRepeatsLeft] = useState(3)
+  const lastSentence = useRef<string>('')
   const [pausing, setPausing] = useState(false)
   const [pauseProgress, setPauseProgress] = useState(0)
   const fileInputRef = useRef<HTMLInputElement>(null)
@@ -67,12 +70,13 @@ export default function ScanDictationPage() {
 
   const speakWithPauses = async (text: string, onDone: () => void) => {
     setSpeaking(true)
+    lastSentence.current = text
     const voice = profile?.preferred_voice || 'kalina'
     
     const res = await fetch('/api/tts-azure', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ text, voice })
+      body: JSON.stringify({ text, voice, speed: 0.85 * speed })
     })
     const data = await res.json()
     
@@ -151,7 +155,15 @@ export default function ScanDictationPage() {
             <p key={i} className="text-gray-600 text-sm mb-1">{i + 1}. {s}</p>
           ))}
         </div>
-        <button onClick={() => readAll(0)}
+        <div className="grid grid-cols-2 gap-2 mb-4">
+          {[{label: '🐢 Бавно', val: 0.7}, {label: '🚶 Нормално', val: 1.0}].map(s => (
+            <button key={s.val} onClick={() => setSpeed(s.val)}
+              className={`py-2 rounded-xl font-bold border-2 transition-all text-sm ${speed === s.val ? 'bg-orange-500 text-white border-orange-500' : 'bg-white text-orange-500 border-orange-200'}`}>
+              {s.label}
+            </button>
+          ))}
+        </div>
+        <button onClick={() => { setRepeatsLeft(3); readAll(0) }}
           className="w-full bg-orange-500 text-white text-xl font-bold py-5 rounded-2xl hover:bg-orange-600 transition-colors shadow-lg">
           Готов съм! ✏️
         </button>
@@ -180,12 +192,28 @@ export default function ScanDictationPage() {
             </div>
           )}
         </div>
+        <div className="mt-4 grid grid-cols-2 gap-2">
+          {[{label: '🐢 Бавно', val: 0.7}, {label: '🚶 Нормално', val: 1.0}].map(s => (
+            <button key={s.val} onClick={() => setSpeed(s.val)}
+              className={`py-2 rounded-xl font-bold border-2 transition-all text-sm ${speed === s.val ? 'bg-orange-500 text-white border-orange-500' : 'bg-white text-orange-500 border-orange-200'}`}>
+              {s.label}
+            </button>
+          ))}
+        </div>
+        <button onClick={() => {
+          if (speaking || repeatsLeft <= 0) return
+          setRepeatsLeft(r => r - 1)
+          speakWithPauses(lastSentence.current, () => {})
+        }} disabled={speaking || repeatsLeft <= 0}
+          className="mt-2 w-full bg-white text-orange-500 border-2 border-orange-300 font-bold py-3 rounded-2xl hover:bg-orange-50 transition-colors disabled:opacity-40">
+          🔁 Повтори ({repeatsLeft} пъти)
+        </button>
         <button onClick={() => {
           if (currentAudio.current) { currentAudio.current.pause(); currentAudio.current = null }
           clearInterval(progressTimer.current!)
           setSpeaking(false); setPausing(false)
           router.push('/dictation')
-        }} className="mt-4 w-full bg-white text-orange-500 border-2 border-orange-300 font-bold py-3 rounded-2xl hover:bg-orange-50 transition-colors">
+        }} className="mt-2 w-full bg-white text-orange-500 border-2 border-orange-300 font-bold py-3 rounded-2xl hover:bg-orange-50 transition-colors">
           ← Спри диктовката
         </button>
       </div>
