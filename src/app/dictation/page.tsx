@@ -1,5 +1,6 @@
 'use client'
 import ReactMarkdown from 'react-markdown'
+import AnnotatedImage from '@/components/ui/AnnotatedImage'
 
 import { useEffect, useState, useRef } from 'react'
 import { useRouter } from 'next/navigation'
@@ -35,6 +36,8 @@ export default function DictationPage() {
   const [explanations, setExplanations] = useState<Record<number, string>>({})
   const [loadingExplanations, setLoadingExplanations] = useState(false)
   const [checkoutLoading, setCheckoutLoading] = useState(false)
+  const [ocrImage, setOcrImage] = useState<string | null>(null)
+  const [ocrWords, setOcrWords] = useState<any[]>([])
   const progressTimer = useRef<NodeJS.Timeout | null>(null)
   const currentAudio = useRef<HTMLAudioElement | null>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
@@ -200,6 +203,7 @@ export default function DictationPage() {
           canvas.width = w; canvas.height = h
           canvas.getContext('2d')!.drawImage(img, 0, 0, w, h)
           const base64 = canvas.toDataURL('image/jpeg', 0.5).split(',')[1]
+          setOcrImage(base64)
           const res = await fetch('/api/ocr', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -207,6 +211,7 @@ export default function DictationPage() {
           })
           const data = await res.json()
           if (data.text) setFullInput(data.text)
+          if (data.words) setOcrWords(data.words)
           setOcrLoading(false)
         }
         img.src = e.target?.result as string
@@ -505,6 +510,25 @@ export default function DictationPage() {
             <p className="text-6xl font-bold text-orange-500">{score}/{sentences.length}</p>
             <p className="text-gray-400">{percent}% верни изречения</p>
           </div>
+          {ocrImage && ocrWords.length > 0 && results.length > 0 && (
+            <div className="bg-white rounded-3xl p-4 shadow-lg mb-4">
+              <p className="text-sm text-gray-500 mb-3">📸 Корекции върху твоя лист:</p>
+              <AnnotatedImage
+                imageBase64={ocrImage}
+                words={ocrWords.map(w => ({
+                  ...w,
+                  errorType: (() => {
+                    const allWords = results.flatMap(r => r.wordResults)
+                    const match = allWords.find(wr => 
+                      wr.word.toLowerCase().includes(w.word.toLowerCase()) ||
+                      w.word.toLowerCase().includes(wr.word.toLowerCase())
+                    )
+                    return match?.errorType || 'none'
+                  })()
+                }))}
+              />
+            </div>
+          )}
           {loadingExplanations && (
             <div className="bg-orange-50 rounded-2xl p-4 mb-4 text-center">
               <p className="text-orange-500 animate-pulse">🦊 Лисицата анализира грешките...</p>
