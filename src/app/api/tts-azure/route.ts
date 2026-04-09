@@ -3,6 +3,7 @@ import { NextRequest, NextResponse } from 'next/server'
 export async function POST(req: NextRequest) {
   try {
     const { text, voice = 'kalina', speed = 0.85 } = await req.json()
+  const ratePercent = Math.round(speed * 100) + '%'
 
     const voiceName = voice === 'borisslav' 
       ? 'bg-BG-BorislavNeural' 
@@ -11,7 +12,7 @@ export async function POST(req: NextRequest) {
     const ssml = `
       <speak version="1.0" xmlns="http://www.w3.org/2001/10/synthesis" xml:lang="bg-BG">
         <voice name="${voiceName}">
-          <prosody rate="${speed}">
+          <prosody rate="${ratePercent}">
             ${text}
           </prosody>
         </voice>
