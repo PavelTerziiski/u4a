@@ -397,6 +397,7 @@ export default function Dashboard() {
         .leaf-7 { left: 12%; width: 32px; height: 32px; animation-duration: 16s; animation-delay: 10s; }
         .leaf-8 { left: 90%; width: 42px; height: 42px; animation-duration: 9s; animation-delay: 5s; }
         .leaf-9 { left: 44%; width: 34px; height: 34px; animation-duration: 15s; animation-delay: 2s; }
+        .leaf-10 { left: 62%; width: 40px; height: 40px; animation-duration: 11s; animation-delay: 7s; }
 
         .fade-up { animation: fadeUp 0.4s ease both; }
         .fade-up-1 { animation-delay: 0.05s; }
@@ -409,28 +410,17 @@ export default function Dashboard() {
       <div className="u4a-dash">
         <div className="u4a-dash-overlay"></div>
         {/* Падащи листа */}
-        <div className="falling-leaf leaf-1"><img src="/leaves/red.png" alt="" /></div>
-        <div className="falling-leaf leaf-2"><img src="/leaves/yellow.png" alt="" /></div>
-        <div className="falling-leaf leaf-3"><img src="/leaves/green.png" alt="" /></div>
-        <div className="falling-leaf leaf-4"><img src="/leaves/puhche1.png" alt="" /></div>
-        <div className="falling-leaf leaf-5"><img src="/leaves/red.png" alt="" /></div>
-        <div className="falling-leaf leaf-6"><img src="/leaves/puhche2.png" alt="" /></div>
-        <div className="falling-leaf leaf-7"><img src="/leaves/yellow.png" alt="" /></div>
-        <div className="falling-leaf leaf-8"><img src="/leaves/puhche3.png" alt="" /></div>
-        <div className="falling-leaf leaf-9"><img src="/leaves/green.png" alt="" /></div>
-        {/* Декоративни елементи */}
-        <div className="deco deco-1">🍃</div>
-        <div className="deco deco-2">⭐</div>
-        <div className="deco deco-3">🌿</div>
-        <div className="deco deco-4">✨</div>
-        <div className="deco deco-5">🍀</div>
-        <div className="deco deco-6">🌸</div>
-        <div className="deco deco-7">💫</div>
-        <div className="dot dot-1"></div>
-        <div className="dot dot-2"></div>
-        <div className="dot dot-3"></div>
-        <div className="dot dot-4"></div>
-        <div className="dot dot-5"></div>
+        <div className="falling-leaf leaf-1"><img src="/leaves/vec_red.png" alt="" /></div>
+        <div className="falling-leaf leaf-2"><img src="/leaves/vec_yellow.png" alt="" /></div>
+        <div className="falling-leaf leaf-3"><img src="/leaves/vec_green.png" alt="" /></div>
+        <div className="falling-leaf leaf-4"><img src="/leaves/vec_puhche1.png" alt="" /></div>
+        <div className="falling-leaf leaf-5"><img src="/leaves/vec_rasp.png" alt="" /></div>
+        <div className="falling-leaf leaf-6"><img src="/leaves/vec_puhche2.png" alt="" /></div>
+        <div className="falling-leaf leaf-7"><img src="/leaves/vec_brown.png" alt="" /></div>
+        <div className="falling-leaf leaf-8"><img src="/leaves/vec_green2.png" alt="" /></div>
+        <div className="falling-leaf leaf-9"><img src="/leaves/vec_strwb.png" alt="" /></div>
+        <div className="falling-leaf leaf-10"><img src="/leaves/vec_blckbr.png" alt="" /></div>
+
         <div className="dash-header">
           <div className="dash-logo">u4a 🦊</div>
           <div className="header-actions">
