@@ -133,14 +133,13 @@ export default function Dashboard() {
           display: flex;
           align-items: center;
           justify-content: space-between;
-          position: sticky;
+          position: fixed;
           top: 0;
+          left: 0;
+          right: 0;
           z-index: 10;
           box-shadow: 0 2px 12px rgba(249,115,22,0.08);
-          margin-top: 0;
         }
-
-        * { margin: 0; padding: 0; box-sizing: border-box; }
 
         .dash-logo {
           font-family: 'Russo One', sans-serif;
@@ -178,7 +177,7 @@ export default function Dashboard() {
         .dash-content {
           max-width: 480px;
           margin: 0 auto;
-          padding: 20px 16px 100px;
+          padding: 76px 16px 100px;
           font-family: 'Nunito', sans-serif;
         }
 
