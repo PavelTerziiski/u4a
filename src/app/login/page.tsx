@@ -1,13 +1,13 @@
 'use client'
-
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
 import Link from 'next/link'
+import '../dashboard/dashboard.css'
 
 export default function Login() {
   const router = useRouter()
-  const [username, setUsername] = useState('')
+  const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
@@ -19,11 +19,11 @@ export default function Login() {
       const { data, error } = await supabase
         .from('profiles')
         .select('*')
-        .eq('username', username)
+        .eq('email', email.toLowerCase().trim())
         .eq('password_hash', btoa(password))
         .single()
-      if (error || !data) throw new Error('Грешно име или парола')
-      localStorage.setItem('u4a_username', username)
+      if (error || !data) throw new Error('Грешен имейл или парола')
+      localStorage.setItem('u4a_username', data.username)
       router.push('/dashboard')
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Грешка')
@@ -33,21 +33,47 @@ export default function Login() {
   }
 
   return (
-    <main className="min-h-screen bg-orange-50 flex flex-col items-center justify-center p-6">
-      <div className="w-full max-w-md">
-        <div className="flex justify-center mb-6">
-          <img src="/images/fox.png" alt="Лисица" className="w-32 h-32 object-contain" />
-        </div>
-        <h1 className="text-4xl font-bold text-orange-500 text-center mb-2">u4a</h1>
-        <p className="text-center text-orange-700 mb-8">Влез в профила си</p>
+    <div className="u4a-dash" style={{minHeight:'100vh'}}>
+      <div className="u4a-dash-overlay"></div>
 
-        <div className="bg-white rounded-3xl p-8 shadow-lg">
+      <div className="falling-leaf leaf-1"><img src="/leaves/vec_red.png" alt="" /></div>
+      <div className="falling-leaf leaf-2"><img src="/leaves/vec_yellow.png" alt="" /></div>
+      <div className="falling-leaf leaf-3"><img src="/leaves/vec_green.png" alt="" /></div>
+      <div className="falling-leaf leaf-4"><img src="/leaves/vec_puhche1.png" alt="" /></div>
+      <div className="falling-leaf leaf-5"><img src="/leaves/vec_rasp.png" alt="" /></div>
+      <div className="falling-leaf leaf-6"><img src="/leaves/vec_puhche2.png" alt="" /></div>
+      <div className="falling-leaf leaf-7"><img src="/leaves/vec_brown.png" alt="" /></div>
+      <div className="falling-leaf leaf-8"><img src="/leaves/vec_green2.png" alt="" /></div>
+      <div className="falling-leaf leaf-9"><img src="/leaves/vec_strwb.png" alt="" /></div>
+      <div className="falling-leaf leaf-10"><img src="/leaves/vec_blckbr.png" alt="" /></div>
+
+      <div style={{
+        display: 'flex', flexDirection: 'column', alignItems: 'center',
+        justifyContent: 'center', minHeight: '100vh', padding: '24px'
+      }}>
+        <img src="/logo.png" style={{height: 80, objectFit: 'contain', marginBottom: 8}} alt="u4a" />
+        <p style={{
+          fontFamily: 'Nunito, sans-serif', fontWeight: 700,
+          color: '#92400E', fontSize: '1rem', marginBottom: 32
+        }}>Влез в горската школа 🌰</p>
+
+        <div className="greeting-card" style={{width: '100%', maxWidth: 420}}>
+          <div style={{fontFamily: 'Russo One, sans-serif', fontSize: '1.1rem', color: '#92400E', marginBottom: 20, textAlign: 'center'}}>
+            Добре дошъл обратно! 🦊
+          </div>
+
           <input
-            type="text"
-            placeholder="Потребителско име"
-            value={username}
-            onChange={e => setUsername(e.target.value)}
-            className="w-full border-2 border-orange-200 rounded-2xl p-4 text-lg mb-4 focus:outline-none focus:border-orange-400"
+            type="email"
+            placeholder="Имейл адрес"
+            value={email}
+            onChange={e => setEmail(e.target.value)}
+            style={{
+              width: '100%', padding: '12px 16px', borderRadius: 12,
+              border: '2px solid #FED7AA', fontFamily: 'Nunito, sans-serif',
+              fontWeight: 700, fontSize: '1rem', color: '#92400E',
+              background: '#FFFBF5', outline: 'none',
+              boxSizing: 'border-box', marginBottom: 12
+            }}
           />
           <input
             type="password"
@@ -55,25 +81,44 @@ export default function Login() {
             value={password}
             onChange={e => setPassword(e.target.value)}
             onKeyDown={e => e.key === 'Enter' && handleLogin()}
-            className="w-full border-2 border-orange-200 rounded-2xl p-4 text-lg mb-6 focus:outline-none focus:border-orange-400"
+            style={{
+              width: '100%', padding: '12px 16px', borderRadius: 12,
+              border: '2px solid #FED7AA', fontFamily: 'Nunito, sans-serif',
+              fontWeight: 700, fontSize: '1rem', color: '#92400E',
+              background: '#FFFBF5', outline: 'none',
+              boxSizing: 'border-box', marginBottom: 16
+            }}
           />
-          {error && <p className="text-red-500 text-center mb-4">{error}</p>}
+
+          {error && (
+            <div style={{
+              background: '#FEE2E2', border: '1.5px solid #FECACA',
+              borderRadius: 10, padding: '8px 12px', marginBottom: 12,
+              fontFamily: 'Nunito, sans-serif', fontWeight: 700,
+              fontSize: '0.85rem', color: '#DC2626', textAlign: 'center'
+            }}>{error}</div>
+          )}
+
           <button
             onClick={handleLogin}
-            disabled={!username || !password || loading}
-            className="w-full bg-orange-500 text-white text-xl font-bold py-4 rounded-2xl hover:bg-orange-600 transition-colors disabled:opacity-40"
+            disabled={!email || !password || loading}
+            className="main-btn"
+            style={{opacity: !email || !password || loading ? 0.5 : 1}}
           >
-            {loading ? '...' : 'Влез! 🚀'}
+            {loading ? '⏳ Влизам...' : '🚀 Влез!'}
           </button>
         </div>
 
-        <p className="text-center text-gray-500 mt-6">
+        <p style={{
+          fontFamily: 'Nunito, sans-serif', fontWeight: 700,
+          color: '#92400E', fontSize: '0.9rem', marginTop: 20
+        }}>
           Нямаш профил?{' '}
-          <Link href="/register" className="text-orange-500 font-bold hover:underline">
+          <Link href="/register" style={{color: '#F97316', fontWeight: 800}}>
             Създай сега
           </Link>
         </p>
       </div>
-    </main>
+    </div>
   )
 }
