@@ -37,7 +37,7 @@ export default function Dashboard() {
   return (
     <>
       <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Russo+One&family=Nunito:wght@400;600;700;800&display=swap&subset=cyrillic');
+        @import url('https://fonts.googleapis.com/css2?family=Russo+One&family=Nunito:wght@700;800;900&display=swap&subset=cyrillic');
         
         .u4a-dash {
           min-height: 100vh;
@@ -134,7 +134,10 @@ export default function Dashboard() {
           top: 0;
           z-index: 10;
           box-shadow: 0 2px 12px rgba(249,115,22,0.08);
+          margin-top: 0;
         }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
 
         .dash-logo {
           font-family: 'Russo One', sans-serif;
@@ -374,20 +377,26 @@ export default function Dashboard() {
         .falling-leaf {
           position: fixed;
           pointer-events: none;
-          z-index: 0;
-          font-size: 1.2rem;
+          z-index: 2;
           animation: fall linear infinite;
           opacity: 0;
         }
 
-        .leaf-1 { left: 8%; animation-duration: 8s; animation-delay: 0s; font-size: 1rem; }
-        .leaf-2 { left: 22%; animation-duration: 11s; animation-delay: 2s; font-size: 1.4rem; }
-        .leaf-3 { left: 38%; animation-duration: 9s; animation-delay: 5s; font-size: 0.9rem; }
-        .leaf-4 { left: 55%; animation-duration: 13s; animation-delay: 1s; font-size: 1.2rem; }
-        .leaf-5 { left: 70%; animation-duration: 10s; animation-delay: 7s; font-size: 1rem; }
-        .leaf-6 { left: 85%; animation-duration: 12s; animation-delay: 3s; font-size: 1.3rem; }
-        .leaf-7 { left: 15%; animation-duration: 15s; animation-delay: 9s; font-size: 0.8rem; }
-        .leaf-8 { left: 92%; animation-duration: 8s; animation-delay: 4s; font-size: 1.1rem; }
+        .falling-leaf img {
+          width: 100%;
+          height: 100%;
+          object-fit: contain;
+        }
+
+        .leaf-1 { left: 5%; width: 48px; height: 48px; animation-duration: 9s; animation-delay: 0s; }
+        .leaf-2 { left: 18%; width: 36px; height: 36px; animation-duration: 12s; animation-delay: 3s; }
+        .leaf-3 { left: 35%; width: 44px; height: 44px; animation-duration: 10s; animation-delay: 6s; }
+        .leaf-4 { left: 52%; width: 40px; height: 40px; animation-duration: 14s; animation-delay: 1s; }
+        .leaf-5 { left: 68%; width: 38px; height: 38px; animation-duration: 11s; animation-delay: 8s; }
+        .leaf-6 { left: 80%; width: 46px; height: 46px; animation-duration: 13s; animation-delay: 4s; }
+        .leaf-7 { left: 12%; width: 32px; height: 32px; animation-duration: 16s; animation-delay: 10s; }
+        .leaf-8 { left: 90%; width: 42px; height: 42px; animation-duration: 9s; animation-delay: 5s; }
+        .leaf-9 { left: 44%; width: 34px; height: 34px; animation-duration: 15s; animation-delay: 2s; }
 
         .fade-up { animation: fadeUp 0.4s ease both; }
         .fade-up-1 { animation-delay: 0.05s; }
@@ -400,14 +409,15 @@ export default function Dashboard() {
       <div className="u4a-dash">
         <div className="u4a-dash-overlay"></div>
         {/* Падащи листа */}
-        <div className="falling-leaf leaf-1">🍃</div>
-        <div className="falling-leaf leaf-2">🍂</div>
-        <div className="falling-leaf leaf-3">🍃</div>
-        <div className="falling-leaf leaf-4">🍂</div>
-        <div className="falling-leaf leaf-5">🍃</div>
-        <div className="falling-leaf leaf-6">🍂</div>
-        <div className="falling-leaf leaf-7">🍃</div>
-        <div className="falling-leaf leaf-8">🍂</div>
+        <div className="falling-leaf leaf-1"><img src="/leaves/red.png" alt="" /></div>
+        <div className="falling-leaf leaf-2"><img src="/leaves/yellow.png" alt="" /></div>
+        <div className="falling-leaf leaf-3"><img src="/leaves/green.png" alt="" /></div>
+        <div className="falling-leaf leaf-4"><img src="/leaves/puhche1.png" alt="" /></div>
+        <div className="falling-leaf leaf-5"><img src="/leaves/red.png" alt="" /></div>
+        <div className="falling-leaf leaf-6"><img src="/leaves/puhche2.png" alt="" /></div>
+        <div className="falling-leaf leaf-7"><img src="/leaves/yellow.png" alt="" /></div>
+        <div className="falling-leaf leaf-8"><img src="/leaves/puhche3.png" alt="" /></div>
+        <div className="falling-leaf leaf-9"><img src="/leaves/green.png" alt="" /></div>
         {/* Декоративни елементи */}
         <div className="deco deco-1">🍃</div>
         <div className="deco deco-2">⭐</div>
@@ -491,11 +501,7 @@ export default function Dashboard() {
             </button>
           </div>
 
-          <div className="fade-up fade-up-5">
-            <button className="secondary-btn" onClick={() => router.push('/voice-setup')}>
-              ⚙️ Настройки
-            </button>
-          </div>
+
         </div>
 
         <div className="bottom-nav">
