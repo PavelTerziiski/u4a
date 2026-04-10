@@ -68,6 +68,43 @@ export default function Dashboard() {
           pointer-events: none;
         }
 
+        .deco {
+          position: fixed;
+          pointer-events: none;
+          z-index: 0;
+          user-select: none;
+          opacity: 0.5;
+        }
+
+        .deco-1 { top: 8%; left: 4%; font-size: 2rem; animation: float1 6s ease-in-out infinite; }
+        .deco-2 { top: 15%; right: 6%; font-size: 1.5rem; animation: float2 8s ease-in-out infinite; }
+        .deco-3 { top: 35%; left: 2%; font-size: 1.8rem; animation: float1 7s ease-in-out infinite 1s; }
+        .deco-4 { top: 55%; right: 3%; font-size: 2.2rem; animation: float2 9s ease-in-out infinite 0.5s; }
+        .deco-5 { bottom: 25%; left: 5%; font-size: 1.4rem; animation: float1 5s ease-in-out infinite 2s; }
+        .deco-6 { bottom: 15%; right: 7%; font-size: 1.6rem; animation: float2 7s ease-in-out infinite 1.5s; }
+        .deco-7 { top: 70%; left: 8%; font-size: 1.2rem; animation: float1 6s ease-in-out infinite 0.8s; }
+
+        .dot {
+          position: fixed;
+          border-radius: 50%;
+          pointer-events: none;
+          z-index: 0;
+        }
+        .dot-1 { top: 20%; left: 12%; width: 8px; height: 8px; background: #C084FC; opacity: 0.4; animation: float2 7s ease-in-out infinite; }
+        .dot-2 { top: 40%; right: 10%; width: 6px; height: 6px; background: #FB923C; opacity: 0.5; animation: float1 5s ease-in-out infinite 1s; }
+        .dot-3 { bottom: 35%; left: 15%; width: 10px; height: 10px; background: #4ADE80; opacity: 0.35; animation: float2 8s ease-in-out infinite 2s; }
+        .dot-4 { top: 60%; right: 15%; width: 7px; height: 7px; background: #F472B6; opacity: 0.4; animation: float1 6s ease-in-out infinite 0.5s; }
+        .dot-5 { top: 30%; left: 20%; width: 5px; height: 5px; background: #60A5FA; opacity: 0.45; animation: float2 9s ease-in-out infinite 1.5s; }
+
+        @keyframes float1 {
+          0%, 100% { transform: translateY(0px) rotate(0deg); }
+          50% { transform: translateY(-12px) rotate(5deg); }
+        }
+        @keyframes float2 {
+          0%, 100% { transform: translateY(0px) rotate(0deg); }
+          50% { transform: translateY(10px) rotate(-5deg); }
+        }
+
         .dash-header {
           background: white;
           border-bottom: 2px solid #FED7AA;
@@ -159,7 +196,8 @@ export default function Dashboard() {
           display: inline-flex;
           align-items: center;
           gap: 5px;
-          background: rgba(255,255,255,0.2);
+          background: rgba(192,132,252,0.25);
+          border: 1px solid rgba(192,132,252,0.3);
           border-radius: 99px;
           padding: 4px 12px;
           font-size: 0.85rem;
@@ -317,6 +355,19 @@ export default function Dashboard() {
       `}</style>
 
       <div className="u4a-dash">
+        {/* Декоративни елементи */}
+        <div className="deco deco-1">🍃</div>
+        <div className="deco deco-2">⭐</div>
+        <div className="deco deco-3">🌿</div>
+        <div className="deco deco-4">✨</div>
+        <div className="deco deco-5">🍀</div>
+        <div className="deco deco-6">🌸</div>
+        <div className="deco deco-7">💫</div>
+        <div className="dot dot-1"></div>
+        <div className="dot dot-2"></div>
+        <div className="dot dot-3"></div>
+        <div className="dot dot-4"></div>
+        <div className="dot dot-5"></div>
         <div className="dash-header">
           <div className="dash-logo">u4a 🦊</div>
           <div className="header-actions">
