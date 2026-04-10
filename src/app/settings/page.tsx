@@ -302,19 +302,19 @@ export default function Settings() {
       {/* Bottom Nav */}
       <div className="bottom-nav">
         <div className="nav-item" onClick={() => router.push('/dashboard')}>
-          <img src="/icons/home.png" style={{width:48,height:48,marginBottom:2}} />
+          <span style={{background:"white",borderRadius:"50%",width:44,height:44,display:"flex",alignItems:"center",justifyContent:"center",marginBottom:2,boxShadow:"0 2px 8px rgba(0,0,0,0.15)"}}><img src="/icons/home.png" style={{width:26,height:26,objectFit:"contain"}} /></span>
           Начало
         </div>
         <div className="nav-item" onClick={() => router.push('/dictation')}>
-          <img src="/icons/dictations.png" style={{width:48,height:48,marginBottom:2}} />
+          <span style={{background:"white",borderRadius:"50%",width:44,height:44,display:"flex",alignItems:"center",justifyContent:"center",marginBottom:2,boxShadow:"0 2px 8px rgba(0,0,0,0.15)"}}><img src="/icons/dictations.png" style={{width:26,height:26,objectFit:"contain"}} /></span>
           Диктовки
         </div>
         <div className="nav-item">
-          <img src="/icons/friends.png" style={{width:48,height:48,marginBottom:2}} />
+          <span style={{background:"white",borderRadius:"50%",width:44,height:44,display:"flex",alignItems:"center",justifyContent:"center",marginBottom:2,boxShadow:"0 2px 8px rgba(0,0,0,0.15)"}}><img src="/icons/friends.png" style={{width:26,height:26,objectFit:"contain"}} /></span>
           Приятели
         </div>
         <div className="nav-item active">
-          <img src="/icons/settings.png" style={{width:48,height:48,marginBottom:2}} />
+          <span style={{background:"white",borderRadius:"50%",width:44,height:44,display:"flex",alignItems:"center",justifyContent:"center",marginBottom:2,boxShadow:"0 2px 8px rgba(0,0,0,0.15)"}}><img src="/icons/settings.png" style={{width:26,height:26,objectFit:"contain"}} /></span>
           Настройки
         </div>
       </div>
