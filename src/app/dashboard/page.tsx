@@ -26,6 +26,16 @@ export default function Dashboard() {
       })
   }, [])
 
+  const handleUpgrade = async () => {
+    const res = await fetch('/api/stripe/checkout', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ userId: profile?.id, username: profile?.username })
+    })
+    const data = await res.json()
+    if (data.url) window.location.href = data.url
+  }
+
   if (loading) return (
     <main className="min-h-screen flex items-center justify-center" style={{ background: 'linear-gradient(135deg, #FFF8F0 0%, #FEF3E2 100%)' }}>
       <div className="text-center">
@@ -101,7 +111,7 @@ export default function Dashboard() {
                 <div className="premium-title">Стани Premium</div>
                 <div className="premium-sub">Неограничени диктовки · Калина & Борислав · 4.50€/мес</div>
               </div>
-              <button onClick={() => router.push('/dictation')} style={{
+              <button onClick={handleUpgrade} style={{
                 background: '#F97316', color: 'white', border: 'none',
                 borderRadius: '10px', padding: '7px 12px',
                 fontFamily: 'Nunito, sans-serif', fontWeight: 800,

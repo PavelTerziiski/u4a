@@ -22,7 +22,7 @@ export async function POST(req: NextRequest) {
         userId,
         username,
       },
-      success_url: `${process.env.NEXT_PUBLIC_APP_URL}/voice-setup`,
+      success_url: `${process.env.NEXT_PUBLIC_APP_URL}/dashboard`,
       cancel_url: `${process.env.NEXT_PUBLIC_APP_URL}/payment-cancelled`,
     })
 

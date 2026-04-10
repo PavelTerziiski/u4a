@@ -70,6 +70,16 @@ export default function Settings() {
     }
   }
 
+  const handleUpgrade = async () => {
+    const res = await fetch('/api/stripe/checkout', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ userId: profile?.id, username: profile?.username })
+    })
+    const data = await res.json()
+    if (data.url) window.location.href = data.url
+  }
+
   const handleSave = async () => {
     if (!profile) return
     setSaving(true)
@@ -274,6 +284,12 @@ export default function Settings() {
             }}>
               ⭐ Отключи Premium и избери тези гласове · 4.50€/мес
             </div>
+            <button onClick={handleUpgrade} style={{
+              background: '#F97316', color: 'white', border: 'none',
+              borderRadius: 12, padding: '10px 0', width: '100%',
+              fontFamily: 'Nunito, sans-serif', fontWeight: 800,
+              fontSize: '0.95rem', cursor: 'pointer', marginTop: 8
+            }}>⭐ Стани Premium · 4.50€/мес</button>
           )}
         </div>
 
