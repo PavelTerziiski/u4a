@@ -6,14 +6,14 @@ import { Profile } from '@/lib/types'
 import '../dashboard/dashboard.css'
 
 const AVATARS = [
-  { id: 1, file: 'fox.png', name: 'Лисица' },
-  { id: 2, file: 'bear.png', name: 'Мечка' },
-  { id: 3, file: 'owl.png', name: 'Бухал' },
-  { id: 4, file: 'squirrel.png', name: 'Катерица' },
-  { id: 5, file: 'deer.png', name: 'Елен' },
-  { id: 6, file: 'rabbit.png', name: 'Заек' },
-  { id: 7, file: 'hedgehog.png', name: 'Таралеж' },
-  { id: 8, file: 'wolf.png', name: 'Вълк' },
+  { id: 1, file: 'fox.png', name: 'Лисиче' },
+  { id: 2, file: 'bear.png', name: 'Мече' },
+  { id: 3, file: 'owl.png', name: 'Бухалче' },
+  { id: 4, file: 'squirrel.png', name: 'Катеричка' },
+  { id: 5, file: 'deer.png', name: 'Еленче' },
+  { id: 6, file: 'rabbit.png', name: 'Зайче' },
+  { id: 7, file: 'hedgehog.png', name: 'Ежко Бежко' },
+  { id: 8, file: 'wolf.png', name: 'Вълче' },
 ]
 
 export default function Settings() {
@@ -53,7 +53,7 @@ export default function Settings() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          text: voice === 'borisslav' ? 'Здравей! Аз съм Твоят Горски Учител и ще те науча да пишеш без грешки.' : 'Здравей, мило дете! Аз съм твоят горски учител. Готов ли си да учим днес?',
+          text: voice === 'borisslav' ? 'Здравей! Аз съм Твоят Горски Учител и ще те науча да пишеш без грешки.' : 'Здравей, мило дете! Аз съм твоят горски учител. Готово ли си да учим днес?',
           voice,
           speed: 1
         })
@@ -92,7 +92,6 @@ export default function Settings() {
       })
       .eq('id', profile.id)
     setSaving(false)
-    console.log("SAVE ERROR:", error)
     if (!error) {
       setSavedMsg('Запазено! ✅')
       setTimeout(() => setSavedMsg(''), 2500)
@@ -113,7 +112,6 @@ export default function Settings() {
     <div className="u4a-dash">
       <div className="u4a-dash-overlay"></div>
 
-      {/* Падащи листа */}
       <div className="falling-leaf leaf-1"><img src="/leaves/vec_red.png" alt="" /></div>
       <div className="falling-leaf leaf-2"><img src="/leaves/vec_yellow.png" alt="" /></div>
       <div className="falling-leaf leaf-3"><img src="/leaves/vec_green.png" alt="" /></div>
@@ -125,7 +123,6 @@ export default function Settings() {
       <div className="falling-leaf leaf-9"><img src="/leaves/vec_strwb.png" alt="" /></div>
       <div className="falling-leaf leaf-10"><img src="/leaves/vec_blckbr.png" alt="" /></div>
 
-      {/* Header */}
       <div className="dash-header">
         <button className="icon-btn" onClick={() => router.push('/dashboard')} title="Назад">←</button>
         <div className="dash-logo">Настройки ⚙️</div>
@@ -134,10 +131,9 @@ export default function Settings() {
 
       <div className="dash-content" style={{ paddingBottom: 100 }}>
 
-        {/* Секция: Показвано Име */}
         <div className="greeting-card fade-up" style={{ marginBottom: 16 }}>
           <div style={{ fontFamily: 'Russo One, sans-serif', fontSize: '1rem', color: '#92400E', marginBottom: 10 }}>
-            <img src="/icons/pencil.png" style={{width:36,height:36,display:"inline",verticalAlign:"middle",marginRight:8}} />Показвано име
+            ✏️ Показвано име
           </div>
           <input
             type="text"
@@ -145,17 +141,10 @@ export default function Settings() {
             onChange={e => setDisplayName(e.target.value)}
             maxLength={20}
             style={{
-              width: '100%',
-              padding: '10px 14px',
-              borderRadius: 12,
-              border: '2px solid #FED7AA',
-              fontFamily: 'Nunito, sans-serif',
-              fontWeight: 700,
-              fontSize: '1rem',
-              color: '#92400E',
-              background: '#FFFBF5',
-              outline: 'none',
-              boxSizing: 'border-box'
+              width: '100%', padding: '10px 14px', borderRadius: 12,
+              border: '2px solid #FED7AA', fontFamily: 'Nunito, sans-serif',
+              fontWeight: 700, fontSize: '1rem', color: '#92400E',
+              background: '#FFFBF5', outline: 'none', boxSizing: 'border-box'
             }}
           />
           <div style={{ fontSize: '0.75rem', color: '#D97706', marginTop: 6, fontFamily: 'Nunito, sans-serif' }}>
@@ -163,28 +152,20 @@ export default function Settings() {
           </div>
         </div>
 
-        {/* Секция: Аватар */}
         <div className="greeting-card fade-up fade-up-1" style={{ marginBottom: 16 }}>
           <div style={{ fontFamily: 'Russo One, sans-serif', fontSize: '1rem', color: '#92400E', marginBottom: 12 }}>
-            <img src="/icons/paw-prints.png" style={{width:36,height:36,display:"inline",verticalAlign:"middle",marginRight:8}} />Избери аватар
+            🐾 Избери аватар
           </div>
-          <div style={{
-            display: 'grid',
-            gridTemplateColumns: 'repeat(4, 1fr)',
-            gap: 10
-          }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 10 }}>
             {AVATARS.map(av => (
               <div
                 key={av.id}
                 onClick={() => setSelectedAvatar(av.id)}
                 style={{
-                  borderRadius: 14,
-                  padding: 6,
+                  borderRadius: 14, padding: 6,
                   border: selectedAvatar === av.id ? '3px solid #F97316' : '3px solid transparent',
                   background: selectedAvatar === av.id ? '#FFF7ED' : 'rgba(255,255,255,0.5)',
-                  cursor: 'pointer',
-                  textAlign: 'center',
-                  transition: 'all 0.15s'
+                  cursor: 'pointer', textAlign: 'center', transition: 'all 0.15s'
                 }}
               >
                 <img src={`/avatars/${av.file}`} alt={av.name} style={{ width: '100%', borderRadius: 10 }} />
@@ -196,19 +177,16 @@ export default function Settings() {
           </div>
         </div>
 
-        {/* Секция: Глас */}
         <div className="greeting-card fade-up fade-up-2" style={{ marginBottom: 16 }}>
           <div style={{ fontFamily: 'Russo One, sans-serif', fontSize: '1rem', color: '#92400E', marginBottom: 12 }}>
-            <img src="/icons/Mic.png" style={{width:36,height:36,display:"inline",verticalAlign:"middle",marginRight:8}} />Глас на лисицата
+            🎙️ Глас на лисицата
           </div>
 
-          {/* Госпожа Лисица */}
           <div
             onClick={() => profile?.is_premium && setSelectedVoice('kalina')}
             style={{
               display: 'flex', alignItems: 'center', gap: 12,
-              padding: '12px 14px',
-              borderRadius: 14,
+              padding: '12px 14px', borderRadius: 14,
               border: selectedVoice === 'kalina' ? '2.5px solid #F97316' : '2px solid #FED7AA',
               background: selectedVoice === 'kalina' ? '#FFF7ED' : 'rgba(255,255,255,0.5)',
               marginBottom: 10,
@@ -238,13 +216,11 @@ export default function Settings() {
             )}
           </div>
 
-          {/* Господин Бухал */}
           <div
             onClick={() => profile?.is_premium && setSelectedVoice('borisslav')}
             style={{
               display: 'flex', alignItems: 'center', gap: 12,
-              padding: '12px 14px',
-              borderRadius: 14,
+              padding: '12px 14px', borderRadius: 14,
               border: selectedVoice === 'borisslav' ? '2.5px solid #F97316' : '2px solid #FED7AA',
               background: selectedVoice === 'borisslav' ? '#FFF7ED' : 'rgba(255,255,255,0.5)',
               marginBottom: 10,
@@ -275,25 +251,25 @@ export default function Settings() {
           </div>
 
           {!profile?.is_premium && (
-            <div style={{
-              background: 'linear-gradient(135deg, #FFF7ED, #FFEDD5)',
-              border: '1.5px solid #FED7AA',
-              borderRadius: 12, padding: '10px 14px',
-              fontFamily: 'Nunito, sans-serif', fontSize: '0.82rem',
-              color: '#92400E', fontWeight: 700, textAlign: 'center'
-            }}>
-              ⭐ Отключи Premium и избери тези гласове · 4.50€/мес
-            </div>
-            <button onClick={handleUpgrade} style={{
-              background: '#F97316', color: 'white', border: 'none',
-              borderRadius: 12, padding: '10px 0', width: '100%',
-              fontFamily: 'Nunito, sans-serif', fontWeight: 800,
-              fontSize: '0.95rem', cursor: 'pointer', marginTop: 8
-            }}>⭐ Стани Premium · 4.50€/мес</button>
+            <>
+              <div style={{
+                background: 'linear-gradient(135deg, #FFF7ED, #FFEDD5)',
+                border: '1.5px solid #FED7AA', borderRadius: 12,
+                padding: '10px 14px', fontFamily: 'Nunito, sans-serif',
+                fontSize: '0.82rem', color: '#92400E', fontWeight: 700, textAlign: 'center'
+              }}>
+                ⭐ Отключи Premium и избери тези гласове · 4.50€/мес
+              </div>
+              <button onClick={handleUpgrade} style={{
+                background: '#F97316', color: 'white', border: 'none',
+                borderRadius: 12, padding: '10px 0', width: '100%',
+                fontFamily: 'Nunito, sans-serif', fontWeight: 800,
+                fontSize: '0.95rem', cursor: 'pointer', marginTop: 8
+              }}>⭐ Стани Premium · 4.50€/мес</button>
+            </>
           )}
         </div>
 
-        {/* Бутон Запази */}
         <button
           className="main-btn fade-up fade-up-3"
           onClick={handleSave}
@@ -307,7 +283,7 @@ export default function Settings() {
           <div style={{
             textAlign: 'center', fontFamily: 'Nunito, sans-serif',
             fontWeight: 800, fontSize: '1rem', color: '#16A34A',
-            marginTop: 12, animation: 'fadeUp 0.3s ease'
+            marginTop: 12
           }}>
             {savedMsg}
           </div>
@@ -315,22 +291,29 @@ export default function Settings() {
 
       </div>
 
-      {/* Bottom Nav */}
       <div className="bottom-nav">
         <div className="nav-item" onClick={() => router.push('/dashboard')}>
-          <span style={{background:"white",borderRadius:"50%",width:96,height:96,display:"flex",alignItems:"center",justifyContent:"center",marginBottom:2,boxShadow:"0 2px 8px rgba(0,0,0,0.15)"}}><img src="/icons/home.png" style={{width:60,height:60,objectFit:"contain"}} /></span>
+          <span style={{background:'white',borderRadius:'50%',width:72,height:72,display:'flex',alignItems:'center',justifyContent:'center',marginBottom:2,boxShadow:'0 2px 8px rgba(0,0,0,0.15)'}}>
+            <img src="/icons/home.png" style={{width:44,height:44,objectFit:'contain'}} />
+          </span>
           Начало
         </div>
         <div className="nav-item" onClick={() => router.push('/dictation')}>
-          <span style={{background:"white",borderRadius:"50%",width:96,height:96,display:"flex",alignItems:"center",justifyContent:"center",marginBottom:2,boxShadow:"0 2px 8px rgba(0,0,0,0.15)"}}><img src="/icons/dictations.png" style={{width:60,height:60,objectFit:"contain"}} /></span>
+          <span style={{background:'white',borderRadius:'50%',width:72,height:72,display:'flex',alignItems:'center',justifyContent:'center',marginBottom:2,boxShadow:'0 2px 8px rgba(0,0,0,0.15)'}}>
+            <img src="/icons/dictations.png" style={{width:44,height:44,objectFit:'contain'}} />
+          </span>
           Диктовки
         </div>
         <div className="nav-item">
-          <span style={{background:"white",borderRadius:"50%",width:96,height:96,display:"flex",alignItems:"center",justifyContent:"center",marginBottom:2,boxShadow:"0 2px 8px rgba(0,0,0,0.15)"}}><img src="/icons/friends.png" style={{width:60,height:60,objectFit:"contain"}} /></span>
+          <span style={{background:'white',borderRadius:'50%',width:72,height:72,display:'flex',alignItems:'center',justifyContent:'center',marginBottom:2,boxShadow:'0 2px 8px rgba(0,0,0,0.15)'}}>
+            <img src="/icons/friends.png" style={{width:44,height:44,objectFit:'contain'}} />
+          </span>
           Приятели
         </div>
         <div className="nav-item active">
-          <span style={{background:"white",borderRadius:"50%",width:96,height:96,display:"flex",alignItems:"center",justifyContent:"center",marginBottom:2,boxShadow:"0 2px 8px rgba(0,0,0,0.15)"}}><img src="/icons/settings.png" style={{width:60,height:60,objectFit:"contain"}} /></span>
+          <span style={{background:'white',borderRadius:'50%',width:72,height:72,display:'flex',alignItems:'center',justifyContent:'center',marginBottom:2,boxShadow:'0 2px 8px rgba(0,0,0,0.15)'}}>
+            <img src="/icons/settings.png" style={{width:44,height:44,objectFit:'contain'}} />
+          </span>
           Настройки
         </div>
       </div>
