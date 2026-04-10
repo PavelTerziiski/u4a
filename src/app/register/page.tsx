@@ -2,6 +2,7 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
+import '../dashboard/dashboard.css'
 
 const FOX_NAMES = ['Лисиче', 'Лисан', 'Лиско', 'Фокси', 'свое']
 const GRADES = [2, 3, 4, 5]
@@ -57,21 +58,22 @@ export default function Register() {
   return (
     <>
       <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@400;600;700;800&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Russo+One&family=Nunito:wght@400;600;700;800&display=swap');
 
         .reg-page {
           min-height: 100vh;
-          background: linear-gradient(160deg, #FFF8F0 0%, #FEF3E2 50%, #FFF0E0 100%);
           display: flex;
           flex-direction: column;
           align-items: center;
           justify-content: center;
           padding: 24px 16px;
           font-family: 'Nunito', sans-serif;
+          position: relative;
+          z-index: 1;
         }
 
         .reg-title {
-          font-family: 'Fredoka One', cursive;
+          font-family: 'Russo One', sans-serif;
           font-size: 2.5rem;
           color: #F97316;
           text-align: center;
@@ -87,18 +89,19 @@ export default function Register() {
         }
 
         .reg-card {
-          background: white;
+          background: linear-gradient(135deg, #F97316, #EA580C);
           border-radius: 28px;
           padding: 28px 24px;
           width: 100%;
           max-width: 440px;
-          box-shadow: 0 8px 32px rgba(249,115,22,0.12);
+          box-shadow: 0 8px 32px rgba(249,115,22,0.3);
+          color: white;
         }
 
         .reg-step-title {
-          font-family: 'Fredoka One', cursive;
+          font-family: 'Russo One', sans-serif;
           font-size: 1.5rem;
-          color: #1C1917;
+          color: white;
           text-align: center;
           margin-bottom: 20px;
         }
@@ -115,7 +118,7 @@ export default function Register() {
           outline: none;
           transition: border-color 0.2s;
           box-sizing: border-box;
-          color: #1C1917;
+          color: white;
         }
 
         .reg-input:focus { border-color: #F97316; }
@@ -124,7 +127,7 @@ export default function Register() {
           width: 100%;
           background: linear-gradient(135deg, #F97316, #EA580C);
           color: white;
-          font-family: 'Fredoka One', cursive;
+          font-family: 'Russo One', sans-serif;
           font-size: 1.2rem;
           padding: 16px;
           border-radius: 16px;
@@ -207,7 +210,7 @@ export default function Register() {
           border-radius: 16px;
           border: 2px solid #FED7AA;
           background: white;
-          font-family: 'Fredoka One', cursive;
+          font-family: 'Russo One', sans-serif;
           font-size: 1.4rem;
           color: #9CA3AF;
           cursor: pointer;
@@ -286,12 +289,24 @@ export default function Register() {
         }
       `}</style>
 
+      <div className="u4a-dash" style={{minHeight:'100vh'}}>
+        <div className="u4a-dash-overlay"></div>
+        <div className="falling-leaf leaf-1"><img src="/leaves/vec_red.png" alt="" /></div>
+        <div className="falling-leaf leaf-2"><img src="/leaves/vec_yellow.png" alt="" /></div>
+        <div className="falling-leaf leaf-3"><img src="/leaves/vec_green.png" alt="" /></div>
+        <div className="falling-leaf leaf-4"><img src="/leaves/vec_puhche1.png" alt="" /></div>
+        <div className="falling-leaf leaf-5"><img src="/leaves/vec_rasp.png" alt="" /></div>
+        <div className="falling-leaf leaf-6"><img src="/leaves/vec_puhche2.png" alt="" /></div>
+        <div className="falling-leaf leaf-7"><img src="/leaves/vec_brown.png" alt="" /></div>
+        <div className="falling-leaf leaf-8"><img src="/leaves/vec_green2.png" alt="" /></div>
+        <div className="falling-leaf leaf-9"><img src="/leaves/vec_strwb.png" alt="" /></div>
+        <div className="falling-leaf leaf-10"><img src="/leaves/vec_blckbr.png" alt="" /></div>
       <div className="reg-page">
         <button className="reg-btn-back" style={{ alignSelf: 'flex-start', maxWidth: 440, width: '100%' }} onClick={() => step === 1 ? router.push('/') : setStep(s => s - 1)}>
           ← Назад
         </button>
 
-        <div className="reg-title">u4a 🦊</div>
+        <img src="/logo.png" style={{height:80,objectFit:"contain",marginBottom:4}} alt="u4a" />
         <div className="reg-sub">Създай своя горски профил</div>
 
         <div className="steps">
@@ -427,6 +442,7 @@ export default function Register() {
           )}
 
         </div>
+      </div>
       </div>
     </>
   )
