@@ -78,18 +78,18 @@ export default function Dashboard() {
             )}
             <button onClick={() => { localStorage.removeItem('u4a_username'); router.push('/') }} style={{
               background: '#EF4444', color: 'white', border: 'none',
-              borderRadius: 99, padding: '5px 12px',
-              fontFamily: 'Nunito, sans-serif', fontWeight: 800,
-              fontSize: '0.75rem', cursor: 'pointer', letterSpacing: 1
-            }}>OFF</button>
+              borderRadius: '50%', width: 36, height: 36,
+              fontSize: '1.1rem', cursor: 'pointer',
+              display: 'flex', alignItems: 'center', justifyContent: 'center'
+            }}>⏻</button>
           </div>
         </div>
 
         <div className="dash-content">
           <div className="greeting-card fade-up" style={{display:"flex",alignItems:"center",gap:14}}>
-            <img src={`/avatars/${['fox','bear','owl','squirrel','deer','rabbit','hedgehog','wolf'][(profile?.avatar_id || 1) - 1]}.png`} style={{width:70,height:70,borderRadius:'50%',border:'3px solid #FED7AA',flexShrink:0}} />
+            <img src={`/avatars/${['fox','bear','owl','squirrel','deer','rabbit','hedgehog','wolf'][(profile?.avatar_id || 1) - 1]}.png`} style={{width:90,height:90,borderRadius:'50%',border:'4px solid #FED7AA',flexShrink:0,objectFit:'cover',background:'#FFF7ED'}} />
             <div style={{flex:1}}>
-            <div className="greeting-name">Здравей, {profile?.username}! 👋</div>
+            <div className="greeting-name">Здравей, {profile?.username}!</div>
             <div className="greeting-sub">Лисицата ти се казва <strong>{profile?.fox_name}</strong></div>
             <div className="streak-badge">
               🔥 {profile?.streak} дни поред · {profile?.grade} клас
@@ -117,7 +117,7 @@ export default function Dashboard() {
               <div style={{ fontSize: '1.8rem' }}>⭐</div>
               <div style={{ flex: 1 }}>
                 <div className="premium-title">Стани Premium</div>
-                <div className="premium-sub">Неограничени диктовки · Калина & Борислав · 4.50€/мес</div>
+                <div className="premium-sub">Неограничени диктовки · Госпожа Лисица & Господин Бухал · 4.50€/мес</div>
               </div>
               <button onClick={handleUpgrade} style={{
                 background: '#F97316', color: 'white', border: 'none',
