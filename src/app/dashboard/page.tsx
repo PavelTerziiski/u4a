@@ -36,7 +36,7 @@ export default function Dashboard() {
 
   return (
     <>
-      <style>{`
+      <style style={{display:"block",height:0,overflow:"hidden"}}>{`
         @import url('https://fonts.googleapis.com/css2?family=Russo+One&family=Nunito:wght@700;800;900&display=swap&subset=cyrillic');
         
         html, body { margin: 0 !important; padding: 0 !important; }
