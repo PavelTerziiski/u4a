@@ -1,0 +1,16 @@
+{
+  "name": "u4a — Диктовки за деца",
+  "short_name": "u4a",
+  "description": "Диктовки за деца 2-5 клас",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#FFF8F0",
+  "theme_color": "#F97316",
+  "icons": [
+    {
+      "src": "/favicon.ico",
+      "sizes": "any",
+      "type": "image/x-icon"
+    }
+  ]
+}
