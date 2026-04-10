@@ -1,44 +1,66 @@
+'use client'
 import Link from 'next/link'
+import './dashboard/dashboard.css'
 
 export default function Home() {
   return (
-    <main className="min-h-screen bg-orange-50 flex flex-col items-center justify-center p-8">
-      <div className="text-center max-w-md">
-        <h1 className="text-6xl font-bold text-orange-500 mb-2">u4a</h1>
-        <p className="text-xl text-orange-700 mb-8">
-          Диктовки за деца 2–5 клас
-        </p>
+    <div className="u4a-dash" style={{ minHeight: '100vh' }}>
+      <div className="u4a-dash-overlay"></div>
 
-        <div className="flex justify-center mb-6">
-          <img
-            src="/images/fox.png"
-            alt="Лисицата помощник"
-            style={{ width: 220, height: 220, objectFit: 'contain' }}
-          />
-        </div>
+      <div className="falling-leaf leaf-1"><img src="/leaves/vec_red.png" alt="" /></div>
+      <div className="falling-leaf leaf-2"><img src="/leaves/vec_yellow.png" alt="" /></div>
+      <div className="falling-leaf leaf-3"><img src="/leaves/vec_green.png" alt="" /></div>
+      <div className="falling-leaf leaf-4"><img src="/leaves/vec_puhche1.png" alt="" /></div>
+      <div className="falling-leaf leaf-5"><img src="/leaves/vec_rasp.png" alt="" /></div>
+      <div className="falling-leaf leaf-6"><img src="/leaves/vec_puhche2.png" alt="" /></div>
+      <div className="falling-leaf leaf-7"><img src="/leaves/vec_brown.png" alt="" /></div>
+      <div className="falling-leaf leaf-8"><img src="/leaves/vec_green2.png" alt="" /></div>
+      <div className="falling-leaf leaf-9"><img src="/leaves/vec_strwb.png" alt="" /></div>
+      <div className="falling-leaf leaf-10"><img src="/leaves/vec_blckbr.png" alt="" /></div>
 
-        <div className="bg-white rounded-3xl p-6 shadow-lg mb-8">
-          <p className="text-gray-600 text-lg">
-            Здравей! Аз съм твоята лисица помощник.
+      <div style={{
+        display: 'flex', flexDirection: 'column', alignItems: 'center',
+        justifyContent: 'center', minHeight: '100vh', padding: '24px'
+      }}>
+        <img src="/fox-logo.png" style={{ height: 160, objectFit: 'contain', marginBottom: 8 }} alt="u4a" />
+
+        <p style={{
+          fontFamily: 'Nunito, sans-serif', fontWeight: 700,
+          color: '#92400E', fontSize: '1.1rem', marginBottom: 32,
+          textAlign: 'center'
+        }}>Диктовки за деца 2–5 клас 🌰</p>
+
+        <div className="greeting-card" style={{ width: '100%', maxWidth: 400, marginBottom: 16, textAlign: 'center' }}>
+          <div style={{ fontSize: '1.5rem', marginBottom: 8 }}>🦊</div>
+          <div style={{
+            fontFamily: 'Nunito, sans-serif', fontWeight: 700,
+            color: '#92400E', fontSize: '1rem', lineHeight: 1.6
+          }}>
+            Здравей! Аз съм твоята горска лисица.<br/>
             Заедно ще учим правопис! 🎉
-          </p>
+          </div>
         </div>
 
-        <div className="flex flex-col gap-4">
-          <Link
-            href="/register"
-            className="bg-orange-500 text-white text-xl font-bold py-4 px-8 rounded-2xl hover:bg-orange-600 transition-colors"
-          >
-            Започни сега! 🚀
+        <div style={{ width: '100%', maxWidth: 400, display: 'flex', flexDirection: 'column', gap: 12 }}>
+          <Link href="/register" style={{ textDecoration: 'none' }}>
+            <button className="main-btn" style={{ width: '100%' }}>
+              🚀 Започни сега!
+            </button>
           </Link>
-          <Link
-            href="/login"
-            className="bg-white text-orange-500 text-xl font-bold py-4 px-8 rounded-2xl border-2 border-orange-500 hover:bg-orange-50 transition-colors"
-          >
-            Вече имам профил
+          <Link href="/login" style={{ textDecoration: 'none' }}>
+            <button className="secondary-btn" style={{ width: '100%', textAlign: 'center' }}>
+              Вече имам профил
+            </button>
           </Link>
+        </div>
+
+        <div style={{
+          marginTop: 24, fontFamily: 'Nunito, sans-serif',
+          fontSize: '0.72rem', color: '#D97706', textAlign: 'center'
+        }}>
+          🔒 Данните ти са защитени и никога не се споделят с трети страни.
         </div>
       </div>
-    </main>
+    </div>
   )
 }
