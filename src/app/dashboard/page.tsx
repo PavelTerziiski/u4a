@@ -87,7 +87,7 @@ export default function Dashboard() {
 
         <div className="dash-content">
           <div className="greeting-card fade-up" style={{display:"flex",alignItems:"center",gap:14}}>
-            <img src={`/avatars/${['fox','bear','owl','squirrel','deer','rabbit','hedgehog','wolf'][(profile?.avatar_id || 1) - 1]}.png`} style={{width:90,height:90,borderRadius:'50%',border:'4px solid #FED7AA',flexShrink:0,objectFit:'cover',objectPosition:'center 10%',background:'#FFF7ED'}} />
+            <img src={`/avatars/${['fox','bear','owl','squirrel','deer','rabbit','hedgehog','wolf'][(profile?.avatar_id || 1) - 1]}.png`} style={{width:90,height:90,borderRadius:'50%',border:'4px solid #FED7AA',flexShrink:0,objectFit:'cover',objectPosition:'center 10%',background:'#FFF7ED',transform:'scale(1.15)',transformOrigin:'center 10%'}} />
             <div style={{flex:1}}>
             <div className="greeting-name">Здравей, {profile?.username}!</div>
             <div className="greeting-sub">Лисицата ти се казва <strong>{profile?.fox_name}</strong></div>
