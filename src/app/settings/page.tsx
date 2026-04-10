@@ -125,7 +125,7 @@ export default function Settings() {
 
       <div className="dash-header">
         <button className="icon-btn" onClick={() => router.push('/dashboard')} title="Назад">←</button>
-        <div className="dash-logo">Настройки ⚙️</div>
+        <div className="dash-logo" style={{display:"flex",alignItems:"center",gap:8}}><img src="/logo.png" style={{height:28,objectFit:"contain"}} /><span>Настройки ⚙️</span></div>
         <div style={{ width: 40 }}></div>
       </div>
 

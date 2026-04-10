@@ -65,7 +65,7 @@ export default function Dashboard() {
       <div className="falling-leaf leaf-10"><img src="/leaves/vec_blckbr.png" alt="" /></div>
 
       <div className="dash-header">
-        <div className="dash-logo">u4a 🦊</div>
+        <img src="/logo.png" style={{height:36,objectFit:"contain"}} />
         <div className="header-actions">
           {profile?.is_premium && (
             <div style={{
