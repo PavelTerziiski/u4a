@@ -51,7 +51,7 @@ export default function Login() {
         display: 'flex', flexDirection: 'column', alignItems: 'center',
         justifyContent: 'center', minHeight: '100vh', padding: '24px'
       }}>
-        <img src="/fox-logo.png" style={{ height: 100, objectFit: 'contain', marginBottom: 4 }} alt="u4a" />
+        <img src="/fox-logo.png" style={{ height: 150, objectFit: 'contain', marginBottom: 4 }} alt="u4a" />
         <p style={{
           fontFamily: 'Nunito, sans-serif', fontWeight: 700,
           color: '#92400E', fontSize: '1rem', marginBottom: 28
