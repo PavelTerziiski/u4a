@@ -37,8 +37,6 @@ export default function Dashboard() {
 
   return (
     <>
-      
-
       <div className="u4a-dash">
         <div className="u4a-dash-overlay"></div>
         {/* Падащи листа */}
@@ -68,7 +66,6 @@ export default function Dashboard() {
                 fontFamily: 'Nunito, sans-serif'
               }}>⭐ Premium</div>
             )}
-            <button className="icon-btn" onClick={() => router.push('/voice-setup')} title="Настройки">⚙️</button>
             <button className="icon-btn" onClick={() => { localStorage.removeItem('u4a_username'); router.push('/') }} title="Излез">👋</button>
           </div>
         </div>
@@ -122,8 +119,6 @@ export default function Dashboard() {
               📷 Снимай текст и лисицата го чете
             </button>
           </div>
-
-
         </div>
 
         <div className="bottom-nav">
@@ -139,7 +134,7 @@ export default function Dashboard() {
             <span className="nav-icon">👥</span>
             Приятели
           </div>
-          <div className="nav-item" onClick={() => router.push('/voice-setup')}>
+          <div className="nav-item" onClick={() => router.push('/settings')}>
             <span className="nav-icon">⚙️</span>
             Настройки
           </div>
