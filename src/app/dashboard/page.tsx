@@ -123,19 +123,19 @@ export default function Dashboard() {
 
         <div className="bottom-nav">
           <div className="nav-item active">
-            <span style={{background:"white",borderRadius:"50%",width:54,height:54,display:"flex",alignItems:"center",justifyContent:"center",marginBottom:2,boxShadow:"0 2px 8px rgba(0,0,0,0.15)"}}><img src="/icons/home.png" style={{width:34,height:34,objectFit:"contain"}} /></span>
+            <span style={{background:"white",borderRadius:"50%",width:96,height:96,display:"flex",alignItems:"center",justifyContent:"center",marginBottom:2,boxShadow:"0 2px 8px rgba(0,0,0,0.15)"}}><img src="/icons/home.png" style={{width:60,height:60,objectFit:"contain"}} /></span>
             Начало
           </div>
           <div className="nav-item" onClick={() => router.push('/dictation')}>
-            <span style={{background:"white",borderRadius:"50%",width:54,height:54,display:"flex",alignItems:"center",justifyContent:"center",marginBottom:2,boxShadow:"0 2px 8px rgba(0,0,0,0.15)"}}><img src="/icons/dictations.png" style={{width:34,height:34,objectFit:"contain"}} /></span>
+            <span style={{background:"white",borderRadius:"50%",width:96,height:96,display:"flex",alignItems:"center",justifyContent:"center",marginBottom:2,boxShadow:"0 2px 8px rgba(0,0,0,0.15)"}}><img src="/icons/dictations.png" style={{width:60,height:60,objectFit:"contain"}} /></span>
             Диктовки
           </div>
           <div className="nav-item">
-            <span style={{background:"white",borderRadius:"50%",width:54,height:54,display:"flex",alignItems:"center",justifyContent:"center",marginBottom:2,boxShadow:"0 2px 8px rgba(0,0,0,0.15)"}}><img src="/icons/friends.png" style={{width:34,height:34,objectFit:"contain"}} /></span>
+            <span style={{background:"white",borderRadius:"50%",width:96,height:96,display:"flex",alignItems:"center",justifyContent:"center",marginBottom:2,boxShadow:"0 2px 8px rgba(0,0,0,0.15)"}}><img src="/icons/friends.png" style={{width:60,height:60,objectFit:"contain"}} /></span>
             Приятели
           </div>
           <div className="nav-item" onClick={() => router.push('/settings')}>
-            <span style={{background:"white",borderRadius:"50%",width:54,height:54,display:"flex",alignItems:"center",justifyContent:"center",marginBottom:2,boxShadow:"0 2px 8px rgba(0,0,0,0.15)"}}><img src="/icons/settings.png" style={{width:34,height:34,objectFit:"contain"}} /></span>
+            <span style={{background:"white",borderRadius:"50%",width:96,height:96,display:"flex",alignItems:"center",justifyContent:"center",marginBottom:2,boxShadow:"0 2px 8px rgba(0,0,0,0.15)"}}><img src="/icons/settings.png" style={{width:60,height:60,objectFit:"contain"}} /></span>
             Настройки
           </div>
         </div>
