@@ -58,7 +58,9 @@ export default function Settings() {
           speed: 1
         })
       })
-      const blob = await res.blob()
+      const data = await res.json()
+      const audioBuffer = Uint8Array.from(atob(data.audio), c => c.charCodeAt(0))
+      const blob = new Blob([audioBuffer], { type: 'audio/mpeg' })
       const url = URL.createObjectURL(blob)
       const audio = new Audio(url)
       audio.onended = () => setPlayingVoice(null)
@@ -80,6 +82,7 @@ export default function Settings() {
       })
       .eq('id', profile.id)
     setSaving(false)
+    console.log("SAVE ERROR:", error)
     if (!error) {
       setSavedMsg('Запазено! ✅')
       setTimeout(() => setSavedMsg(''), 2500)
