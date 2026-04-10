@@ -54,7 +54,7 @@ export default function Friends() {
       <div className="falling-leaf leaf-10"><img src="/leaves/vec_blckbr.png" alt="" /></div>
 
       <div className="dash-header">
-        <img src="/logo.png" style={{ height: 52, objectFit: 'contain' }} />
+        <img src="/logo-letters.png" style={{ height: 36, objectFit: 'contain' }} />
         <div style={{ width: 40 }}></div>
       </div>
 
