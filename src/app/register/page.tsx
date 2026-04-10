@@ -20,6 +20,7 @@ const AVATARS = [
 export default function Register() {
   const router = useRouter()
   const [step, setStep] = useState(1)
+  const [email, setEmail] = useState('')
   const [username, setUsername] = useState('')
   const [password, setPassword] = useState('')
   const [foxName, setFoxName] = useState('')
@@ -36,6 +37,7 @@ export default function Register() {
     try {
       const { error } = await supabase.from('profiles').insert({
         username,
+        email: email.toLowerCase().trim(),
         password_hash: btoa(password),
         fox_name: finalFoxName,
         grade,
@@ -307,8 +309,14 @@ export default function Register() {
               <input
                 className="reg-input"
                 type="text"
-                placeholder="Потребителско име"
-                value={username}
+                placeholder="Имейл адрес"
+                value={email}
+            onChange={e => setEmail(e.target.value)}
+          />
+          <input
+            type="text"
+            placeholder="Потребителско име"
+            value={username}
                 onChange={e => setUsername(e.target.value)}
               />
               <input
@@ -317,12 +325,12 @@ export default function Register() {
                 placeholder="Парола"
                 value={password}
                 onChange={e => setPassword(e.target.value)}
-                onKeyDown={e => e.key === 'Enter' && username && password && setStep(2)}
+                onKeyDown={e => e.key === 'Enter' && email && username && password && setStep(2)}
               />
               <button
                 className="reg-btn"
                 onClick={() => setStep(2)}
-                disabled={!username || !password}
+                disabled={!email || !username || !password}
               >
                 Напред →
               </button>
