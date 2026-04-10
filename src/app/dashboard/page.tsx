@@ -37,13 +37,31 @@ export default function Dashboard() {
   return (
     <>
       <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@400;600;700;800&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Russo+One&family=Nunito:wght@400;600;700;800&display=swap&subset=cyrillic');
         
         .u4a-dash {
           min-height: 100vh;
           background: linear-gradient(160deg, #FFF8F0 0%, #FEF3E2 50%, #FFF0E0 100%);
+          background-image: url('/forest-pattern.png');
+          background-size: 480px;
+          background-repeat: repeat;
+          background-blend-mode: soft-light;
+          opacity-layer: 0.08;
           position: relative;
           overflow-x: hidden;
+        }
+
+        .u4a-dash-overlay {
+          position: fixed;
+          inset: 0;
+          background: linear-gradient(160deg, rgba(255,248,240,0.92) 0%, rgba(254,243,226,0.92) 50%, rgba(255,240,224,0.92) 100%);
+          pointer-events: none;
+          z-index: 0;
+        }
+
+        .u4a-dash > *:not(.u4a-dash-overlay) {
+          position: relative;
+          z-index: 1;
         }
 
         .u4a-dash::before {
@@ -119,7 +137,7 @@ export default function Dashboard() {
         }
 
         .dash-logo {
-          font-family: 'Fredoka One', cursive;
+          font-family: 'Russo One', sans-serif;
           font-size: 1.8rem;
           color: #F97316;
           letter-spacing: -0.5px;
@@ -181,7 +199,7 @@ export default function Dashboard() {
         }
 
         .greeting-name {
-          font-family: 'Fredoka One', cursive;
+          font-family: 'Russo One', sans-serif;
           font-size: 1.6rem;
           margin-bottom: 2px;
         }
@@ -233,7 +251,7 @@ export default function Dashboard() {
         .stat-card.green { border-color: #BBF7D0; }
 
         .stat-number {
-          font-family: 'Fredoka One', cursive;
+          font-family: 'Russo One', sans-serif;
           font-size: 2.2rem;
           color: #F97316;
           line-height: 1;
@@ -268,7 +286,7 @@ export default function Dashboard() {
           width: 100%;
           background: linear-gradient(135deg, #F97316 0%, #EA580C 100%);
           color: white;
-          font-family: 'Fredoka One', cursive;
+          font-family: 'Russo One', sans-serif;
           font-size: 1.3rem;
           padding: 18px;
           border-radius: 20px;
@@ -346,6 +364,31 @@ export default function Dashboard() {
           to { opacity: 1; transform: translateY(0); }
         }
 
+        @keyframes fall {
+          0% { transform: translateY(-60px) rotate(0deg); opacity: 0; }
+          10% { opacity: 0.7; }
+          90% { opacity: 0.5; }
+          100% { transform: translateY(110vh) rotate(360deg); opacity: 0; }
+        }
+
+        .falling-leaf {
+          position: fixed;
+          pointer-events: none;
+          z-index: 0;
+          font-size: 1.2rem;
+          animation: fall linear infinite;
+          opacity: 0;
+        }
+
+        .leaf-1 { left: 8%; animation-duration: 8s; animation-delay: 0s; font-size: 1rem; }
+        .leaf-2 { left: 22%; animation-duration: 11s; animation-delay: 2s; font-size: 1.4rem; }
+        .leaf-3 { left: 38%; animation-duration: 9s; animation-delay: 5s; font-size: 0.9rem; }
+        .leaf-4 { left: 55%; animation-duration: 13s; animation-delay: 1s; font-size: 1.2rem; }
+        .leaf-5 { left: 70%; animation-duration: 10s; animation-delay: 7s; font-size: 1rem; }
+        .leaf-6 { left: 85%; animation-duration: 12s; animation-delay: 3s; font-size: 1.3rem; }
+        .leaf-7 { left: 15%; animation-duration: 15s; animation-delay: 9s; font-size: 0.8rem; }
+        .leaf-8 { left: 92%; animation-duration: 8s; animation-delay: 4s; font-size: 1.1rem; }
+
         .fade-up { animation: fadeUp 0.4s ease both; }
         .fade-up-1 { animation-delay: 0.05s; }
         .fade-up-2 { animation-delay: 0.1s; }
@@ -355,6 +398,16 @@ export default function Dashboard() {
       `}</style>
 
       <div className="u4a-dash">
+        <div className="u4a-dash-overlay"></div>
+        {/* Падащи листа */}
+        <div className="falling-leaf leaf-1">🍃</div>
+        <div className="falling-leaf leaf-2">🍂</div>
+        <div className="falling-leaf leaf-3">🍃</div>
+        <div className="falling-leaf leaf-4">🍂</div>
+        <div className="falling-leaf leaf-5">🍃</div>
+        <div className="falling-leaf leaf-6">🍂</div>
+        <div className="falling-leaf leaf-7">🍃</div>
+        <div className="falling-leaf leaf-8">🍂</div>
         {/* Декоративни елементи */}
         <div className="deco deco-1">🍃</div>
         <div className="deco deco-2">⭐</div>
