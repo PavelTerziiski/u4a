@@ -6,7 +6,7 @@ import '../dashboard/dashboard.css'
 
 export default function Friends() {
   const router = useRouter()
-  const [profile, setProfile] = useState<any>(null)
+  const [_profile, setProfile] = useState<any | null>(null)
   const [sessions, setSessions] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
 
@@ -16,7 +16,7 @@ export default function Friends() {
     supabase.from('profiles').select('*').eq('username', username).single()
       .then(async ({ data }) => {
         if (!data) { router.push('/login'); return }
-        setProfile(data)
+        setProfile(data as any)
         const { data: sess } = await supabase
           .from('dictation_sessions').select('*')
           .eq('profile_id', data.id)
