@@ -1,12 +1,21 @@
 'use client'
-
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
 
-const FOX_NAMES = ['Лисиче', 'Лисан', 'Лиско', 'Фокси']
+const FOX_NAMES = ['Лисиче', 'Лисан', 'Лиско', 'Фокси', 'свое']
 const GRADES = [2, 3, 4, 5]
-const AVATARS = ['🦊', '🐱', '🐶', '🐸', '🐼', '🐨']
+
+const AVATARS = [
+  { id: 1, file: 'fox.png', name: 'Лисица' },
+  { id: 2, file: 'bear.png', name: 'Мечок' },
+  { id: 3, file: 'owl.png', name: 'Бухал' },
+  { id: 4, file: 'squirrel.png', name: 'Катерица' },
+  { id: 5, file: 'deer.png', name: 'Еленче' },
+  { id: 6, file: 'rabbit.png', name: 'Зайче' },
+  { id: 7, file: 'hedgehog.png', name: 'Таралеж' },
+  { id: 8, file: 'wolf.png', name: 'Вълче' },
+]
 
 export default function Register() {
   const router = useRouter()
@@ -44,167 +53,372 @@ export default function Register() {
   }
 
   return (
-    <main className="min-h-screen bg-orange-50 flex flex-col items-center justify-center p-6">
-      <div className="w-full max-w-md">
-        <button onClick={() => router.push('/')} className="text-orange-400 mb-4 flex items-center gap-2">
-  ← Назад
-</button>
-        <h1 className="text-4xl font-bold text-orange-500 text-center mb-2">u4a</h1>
-        <p className="text-center text-orange-700 mb-8">Създай своя профил</p>
+    <>
+      <style>{`
+        @import url('https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@400;600;700;800&display=swap');
 
-        {step === 1 && (
-          <div className="bg-white rounded-3xl p-8 shadow-lg">
-            <h2 className="text-2xl font-bold text-gray-700 mb-6 text-center">Как се казваш?</h2>
-            <input
-              type="text"
-              placeholder="Потребителско име"
-              value={username}
-              onChange={e => setUsername(e.target.value)}
-              className="w-full border-2 border-orange-200 rounded-2xl p-4 text-lg mb-4 focus:outline-none focus:border-orange-400"
-            />
-            <input
-              type="password"
-              placeholder="Парола"
-              value={password}
-              onChange={e => setPassword(e.target.value)}
-              className="w-full border-2 border-orange-200 rounded-2xl p-4 text-lg mb-6 focus:outline-none focus:border-orange-400"
-            />
-            <button
-              onClick={() => username && password && setStep(2)}
-              className="w-full bg-orange-500 text-white text-xl font-bold py-4 rounded-2xl hover:bg-orange-600 transition-colors disabled:opacity-40"
-              disabled={!username || !password}
-            >
-              Напред →
-            </button>
-          </div>
-        )}
+        .reg-page {
+          min-height: 100vh;
+          background: linear-gradient(160deg, #FFF8F0 0%, #FEF3E2 50%, #FFF0E0 100%);
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          justify-content: center;
+          padding: 24px 16px;
+          font-family: 'Nunito', sans-serif;
+        }
 
-        {step === 2 && (
-          <div className="bg-white rounded-3xl p-8 shadow-lg">
-            <h2 className="text-2xl font-bold text-gray-700 mb-6 text-center">В кой клас си?</h2>
-            <div className="grid grid-cols-2 gap-4 mb-6">
-              {GRADES.map(g => (
-                <button
-                  key={g}
-                  onClick={() => setGrade(g)}
-                  className={`py-6 rounded-2xl text-2xl font-bold border-2 transition-all ${
-                    grade === g
-                      ? 'bg-orange-500 text-white border-orange-500 scale-105'
-                      : 'bg-white text-orange-500 border-orange-200 hover:border-orange-400'
-                  }`}
-                >
-                  {g} клас
-                </button>
-              ))}
-            </div>
-            <div className="flex gap-3">
-              <button onClick={() => setStep(1)} className="flex-1 py-4 rounded-2xl border-2 border-orange-200 text-orange-500 font-bold hover:bg-orange-50">
-                ← Назад
-              </button>
-              <button
-                onClick={() => grade && setStep(3)}
-                disabled={!grade}
-                className="flex-1 py-4 rounded-2xl bg-orange-500 text-white font-bold hover:bg-orange-600 disabled:opacity-40"
-              >
-                Напред →
-              </button>
-            </div>
-          </div>
-        )}
+        .reg-title {
+          font-family: 'Fredoka One', cursive;
+          font-size: 2.5rem;
+          color: #F97316;
+          text-align: center;
+          margin-bottom: 4px;
+        }
 
-        {step === 3 && (
-          <div className="bg-white rounded-3xl p-8 shadow-lg">
-            <h2 className="text-2xl font-bold text-gray-700 mb-6 text-center">Избери аватар</h2>
-            <div className="grid grid-cols-3 gap-4 mb-6">
-              {AVATARS.map((avatar, i) => (
-                <button
-                  key={i}
-                  onClick={() => setAvatarId(i + 1)}
-                  className={`py-6 rounded-2xl text-4xl border-2 transition-all ${
-                    avatarId === i + 1
-                      ? 'bg-orange-100 border-orange-500 scale-105'
-                      : 'bg-white border-orange-200 hover:border-orange-400'
-                  }`}
-                >
-                  {avatar}
-                </button>
-              ))}
-            </div>
-            <div className="flex gap-3">
-              <button onClick={() => setStep(2)} className="flex-1 py-4 rounded-2xl border-2 border-orange-200 text-orange-500 font-bold hover:bg-orange-50">
-                ← Назад
-              </button>
-              <button
-                onClick={() => avatarId && setStep(4)}
-                disabled={!avatarId}
-                className="flex-1 py-4 rounded-2xl bg-orange-500 text-white font-bold hover:bg-orange-600 disabled:opacity-40"
-              >
-                Напред →
-              </button>
-            </div>
-          </div>
-        )}
+        .reg-sub {
+          color: #C2410C;
+          text-align: center;
+          font-weight: 600;
+          margin-bottom: 24px;
+          font-size: 1rem;
+        }
 
-        {step === 4 && (
-          <div className="bg-white rounded-3xl p-8 shadow-lg">
-            <h2 className="text-2xl font-bold text-gray-700 mb-2 text-center">Как ще се казва</h2>
-            <h2 className="text-2xl font-bold text-orange-500 mb-6 text-center">твоята лисица?</h2>
-            <div className="grid grid-cols-2 gap-4 mb-4">
-              {FOX_NAMES.map(name => (
-                <button
-                  key={name}
-                  onClick={() => setFoxName(name)}
-                  className={`py-5 rounded-2xl text-lg font-bold border-2 transition-all ${
-                    foxName === name
-                      ? 'bg-orange-500 text-white border-orange-500 scale-105'
-                      : 'bg-white text-orange-500 border-orange-200 hover:border-orange-400'
-                  }`}
-                >
-                  {name}
-                </button>
-              ))}
-              <button
-                onClick={() => setFoxName('свое')}
-                className={`col-span-2 py-5 rounded-2xl text-lg font-bold border-2 transition-all ${
-                  foxName === 'свое'
-                    ? 'bg-orange-500 text-white border-orange-500'
-                    : 'bg-white text-orange-500 border-orange-200 hover:border-orange-400'
-                }`}
-              >
-                Свое име ✏️
-              </button>
-            </div>
-            {foxName === 'свое' && (
-              <input
-                type="text"
-                placeholder="Напиши името..."
-                value={customFoxName}
-                onChange={e => setCustomFoxName(e.target.value)}
-                className="w-full border-2 border-orange-200 rounded-2xl p-4 text-lg mb-4 focus:outline-none focus:border-orange-400"
-              />
-            )}
-            {error && <p className="text-red-500 text-center mb-4">{error}</p>}
-            <div className="flex gap-3">
-              <button onClick={() => setStep(3)} className="flex-1 py-4 rounded-2xl border-2 border-orange-200 text-orange-500 font-bold hover:bg-orange-50">
-                ← Назад
-              </button>
-              <button
-                onClick={handleRegister}
-                disabled={!foxName || (foxName === 'свое' && !customFoxName) || loading}
-                className="flex-1 py-4 rounded-2xl bg-orange-500 text-white font-bold hover:bg-orange-600 disabled:opacity-40"
-              >
-                {loading ? '...' : 'Готово! 🎉'}
-              </button>
-            </div>
-          </div>
-        )}
+        .reg-card {
+          background: white;
+          border-radius: 28px;
+          padding: 28px 24px;
+          width: 100%;
+          max-width: 440px;
+          box-shadow: 0 8px 32px rgba(249,115,22,0.12);
+        }
 
-        <div className="flex justify-center gap-2 mt-6">
-          {[1,2,3,4].map(s => (
-            <div key={s} className={`w-3 h-3 rounded-full transition-all ${step >= s ? 'bg-orange-500' : 'bg-orange-200'}`} />
+        .reg-step-title {
+          font-family: 'Fredoka One', cursive;
+          font-size: 1.5rem;
+          color: #1C1917;
+          text-align: center;
+          margin-bottom: 20px;
+        }
+
+        .reg-input {
+          width: 100%;
+          border: 2px solid #FED7AA;
+          border-radius: 16px;
+          padding: 14px 16px;
+          font-size: 1rem;
+          font-family: 'Nunito', sans-serif;
+          font-weight: 600;
+          margin-bottom: 12px;
+          outline: none;
+          transition: border-color 0.2s;
+          box-sizing: border-box;
+          color: #1C1917;
+        }
+
+        .reg-input:focus { border-color: #F97316; }
+
+        .reg-btn {
+          width: 100%;
+          background: linear-gradient(135deg, #F97316, #EA580C);
+          color: white;
+          font-family: 'Fredoka One', cursive;
+          font-size: 1.2rem;
+          padding: 16px;
+          border-radius: 16px;
+          border: none;
+          cursor: pointer;
+          box-shadow: 0 4px 16px rgba(249,115,22,0.3);
+          transition: all 0.2s;
+          margin-top: 8px;
+        }
+
+        .reg-btn:hover { transform: translateY(-1px); box-shadow: 0 6px 20px rgba(249,115,22,0.4); }
+        .reg-btn:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
+
+        .reg-btn-back {
+          background: none;
+          border: none;
+          color: #FB923C;
+          font-family: 'Nunito', sans-serif;
+          font-weight: 700;
+          cursor: pointer;
+          margin-bottom: 16px;
+          font-size: 0.95rem;
+          display: flex;
+          align-items: center;
+          gap: 4px;
+        }
+
+        /* Avatar grid */
+        .avatar-grid {
+          display: grid;
+          grid-template-columns: repeat(4, 1fr);
+          gap: 10px;
+          margin-bottom: 20px;
+        }
+
+        .avatar-item {
+          cursor: pointer;
+          border-radius: 16px;
+          overflow: hidden;
+          border: 3px solid transparent;
+          transition: all 0.2s;
+          aspect-ratio: 1;
+          position: relative;
+        }
+
+        .avatar-item:hover { transform: scale(1.05); border-color: #FED7AA; }
+        .avatar-item.selected { border-color: #F97316; box-shadow: 0 0 0 3px rgba(249,115,22,0.2); }
+
+        .avatar-item img {
+          width: 100%;
+          height: 100%;
+          object-fit: cover;
+          display: block;
+        }
+
+        .avatar-name {
+          position: absolute;
+          bottom: 0;
+          left: 0;
+          right: 0;
+          background: linear-gradient(transparent, rgba(0,0,0,0.6));
+          color: white;
+          font-size: 0.6rem;
+          font-weight: 800;
+          text-align: center;
+          padding: 4px 2px 3px;
+          font-family: 'Nunito', sans-serif;
+        }
+
+        /* Grade buttons */
+        .grade-grid {
+          display: grid;
+          grid-template-columns: repeat(4, 1fr);
+          gap: 10px;
+          margin-bottom: 20px;
+        }
+
+        .grade-btn {
+          padding: 16px 8px;
+          border-radius: 16px;
+          border: 2px solid #FED7AA;
+          background: white;
+          font-family: 'Fredoka One', cursive;
+          font-size: 1.4rem;
+          color: #9CA3AF;
+          cursor: pointer;
+          transition: all 0.2s;
+          text-align: center;
+        }
+
+        .grade-btn .grade-label {
+          font-family: 'Nunito', sans-serif;
+          font-size: 0.65rem;
+          font-weight: 700;
+          display: block;
+          margin-top: 2px;
+        }
+
+        .grade-btn:hover { border-color: #F97316; color: #F97316; }
+        .grade-btn.selected { background: linear-gradient(135deg, #F97316, #EA580C); border-color: transparent; color: white; box-shadow: 0 4px 12px rgba(249,115,22,0.3); }
+
+        /* Fox name chips */
+        .name-chips {
+          display: flex;
+          flex-wrap: wrap;
+          gap: 8px;
+          margin-bottom: 12px;
+        }
+
+        .name-chip {
+          padding: 8px 16px;
+          border-radius: 99px;
+          border: 2px solid #FED7AA;
+          background: white;
+          font-family: 'Nunito', sans-serif;
+          font-weight: 700;
+          font-size: 0.95rem;
+          color: #9CA3AF;
+          cursor: pointer;
+          transition: all 0.2s;
+        }
+
+        .name-chip:hover { border-color: #F97316; color: #F97316; }
+        .name-chip.selected { background: #FFF7ED; border-color: #F97316; color: #EA580C; }
+
+        /* Steps indicator */
+        .steps {
+          display: flex;
+          justify-content: center;
+          gap: 6px;
+          margin-bottom: 20px;
+        }
+
+        .step-dot {
+          width: 8px;
+          height: 8px;
+          border-radius: 50%;
+          background: #FED7AA;
+          transition: all 0.3s;
+        }
+
+        .step-dot.active {
+          background: #F97316;
+          width: 24px;
+          border-radius: 4px;
+        }
+
+        .step-dot.done { background: #22C55E; }
+
+        .error-msg {
+          background: #FEF2F2;
+          border: 1px solid #FECACA;
+          color: #DC2626;
+          border-radius: 12px;
+          padding: 10px 14px;
+          font-size: 0.85rem;
+          font-weight: 600;
+          margin-top: 8px;
+        }
+      `}</style>
+
+      <div className="reg-page">
+        <button className="reg-btn-back" style={{ alignSelf: 'flex-start', maxWidth: 440, width: '100%' }} onClick={() => step === 1 ? router.push('/') : setStep(s => s - 1)}>
+          ← Назад
+        </button>
+
+        <div className="reg-title">u4a 🦊</div>
+        <div className="reg-sub">Създай своя горски профил</div>
+
+        <div className="steps">
+          {[1, 2, 3, 4].map(s => (
+            <div key={s} className={`step-dot ${s < step ? 'done' : s === step ? 'active' : ''}`} />
           ))}
         </div>
+
+        <div className="reg-card">
+
+          {/* Step 1 — Username & Password */}
+          {step === 1 && (
+            <>
+              <div className="reg-step-title">Как се казваш? 👋</div>
+              <input
+                className="reg-input"
+                type="text"
+                placeholder="Потребителско име"
+                value={username}
+                onChange={e => setUsername(e.target.value)}
+              />
+              <input
+                className="reg-input"
+                type="password"
+                placeholder="Парола"
+                value={password}
+                onChange={e => setPassword(e.target.value)}
+                onKeyDown={e => e.key === 'Enter' && username && password && setStep(2)}
+              />
+              <button
+                className="reg-btn"
+                onClick={() => setStep(2)}
+                disabled={!username || !password}
+              >
+                Напред →
+              </button>
+            </>
+          )}
+
+          {/* Step 2 — Avatar */}
+          {step === 2 && (
+            <>
+              <div className="reg-step-title">Избери своя герой 🌲</div>
+              <div className="avatar-grid">
+                {AVATARS.map(av => (
+                  <div
+                    key={av.id}
+                    className={`avatar-item ${avatarId === av.id ? 'selected' : ''}`}
+                    onClick={() => setAvatarId(av.id)}
+                  >
+                    <img src={`/avatars/${av.file}`} alt={av.name} />
+                    <div className="avatar-name">{av.name}</div>
+                  </div>
+                ))}
+              </div>
+              <button
+                className="reg-btn"
+                onClick={() => setStep(3)}
+                disabled={!avatarId}
+              >
+                Напред →
+              </button>
+            </>
+          )}
+
+          {/* Step 3 — Grade */}
+          {step === 3 && (
+            <>
+              <div className="reg-step-title">В кой клас си? 📚</div>
+              <div className="grade-grid">
+                {GRADES.map(g => (
+                  <div
+                    key={g}
+                    className={`grade-btn ${grade === g ? 'selected' : ''}`}
+                    onClick={() => setGrade(g)}
+                  >
+                    {g}
+                    <span className="grade-label">клас</span>
+                  </div>
+                ))}
+              </div>
+              <button
+                className="reg-btn"
+                onClick={() => setStep(4)}
+                disabled={!grade}
+              >
+                Напред →
+              </button>
+            </>
+          )}
+
+          {/* Step 4 — Fox name */}
+          {step === 4 && (
+            <>
+              <div className="reg-step-title">Как да се казва лисицата? 🦊</div>
+              <div className="name-chips">
+                {FOX_NAMES.map(name => (
+                  <div
+                    key={name}
+                    className={`name-chip ${foxName === name ? 'selected' : ''}`}
+                    onClick={() => setFoxName(name)}
+                  >
+                    {name === 'свое' ? '✏️ Свое' : name}
+                  </div>
+                ))}
+              </div>
+              {foxName === 'свое' && (
+                <input
+                  className="reg-input"
+                  type="text"
+                  placeholder="Напиши име..."
+                  value={customFoxName}
+                  onChange={e => setCustomFoxName(e.target.value)}
+                  autoFocus
+                />
+              )}
+              {error && <div className="error-msg">{error}</div>}
+              <button
+                className="reg-btn"
+                onClick={handleRegister}
+                disabled={loading || !foxName || (foxName === 'свое' && !customFoxName)}
+              >
+                {loading ? '⏳ Създавам...' : '🌲 Влез в гората!'}
+              </button>
+            </>
+          )}
+
+        </div>
       </div>
-    </main>
+    </>
   )
 }
