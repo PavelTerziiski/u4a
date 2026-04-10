@@ -252,14 +252,7 @@ export default function Settings() {
 
           {!profile?.is_premium && (
             <>
-              <div style={{
-                background: 'linear-gradient(135deg, #FFF7ED, #FFEDD5)',
-                border: '1.5px solid #FED7AA', borderRadius: 12,
-                padding: '10px 14px', fontFamily: 'Nunito, sans-serif',
-                fontSize: '0.82rem', color: '#92400E', fontWeight: 700, textAlign: 'center'
-              }}>
-                🌰 Отключи Premium и избери тези гласове · 4.50€/мес
-              </div>
+
               <button onClick={handleUpgrade} style={{
                 background: '#F97316', color: 'white', border: 'none',
                 borderRadius: 12, padding: '10px 0', width: '100%',
