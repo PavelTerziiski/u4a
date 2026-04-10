@@ -192,7 +192,7 @@ export default function Settings() {
             🎙️ Глас на лисицата
           </div>
 
-          {/* Калина */}
+          {/* Госпожа Лисица */}
           <div
             onClick={() => profile?.is_premium && setSelectedVoice('kalina')}
             style={{
@@ -206,10 +206,10 @@ export default function Settings() {
               opacity: profile?.is_premium ? 1 : 0.6
             }}
           >
-            <div style={{ fontSize: '1.8rem' }}>👧</div>
+            <div style={{ fontSize: '1.8rem' }}>🦊</div>
             <div style={{ flex: 1 }}>
-              <div style={{ fontFamily: 'Nunito, sans-serif', fontWeight: 800, color: '#92400E', fontSize: '0.95rem' }}>Калина</div>
-              <div style={{ fontFamily: 'Nunito, sans-serif', fontSize: '0.75rem', color: '#D97706' }}>Женски глас · Premium</div>
+              <div style={{ fontFamily: 'Nunito, sans-serif', fontWeight: 800, color: '#92400E', fontSize: '0.95rem' }}>Госпожа Лисица</div>
+              <div style={{ fontFamily: 'Nunito, sans-serif', fontSize: '0.75rem', color: '#D97706' }}>Женски глас · топъл и приказен</div>
             </div>
             {profile?.is_premium ? (
               <button
@@ -228,7 +228,7 @@ export default function Settings() {
             )}
           </div>
 
-          {/* Борислав */}
+          {/* Господин Бухал */}
           <div
             onClick={() => profile?.is_premium && setSelectedVoice('borisslav')}
             style={{
@@ -242,10 +242,10 @@ export default function Settings() {
               opacity: profile?.is_premium ? 1 : 0.6
             }}
           >
-            <div style={{ fontSize: '1.8rem' }}>👦</div>
+            <div style={{ fontSize: '1.8rem' }}>🦉</div>
             <div style={{ flex: 1 }}>
-              <div style={{ fontFamily: 'Nunito, sans-serif', fontWeight: 800, color: '#92400E', fontSize: '0.95rem' }}>Борислав</div>
-              <div style={{ fontFamily: 'Nunito, sans-serif', fontSize: '0.75rem', color: '#D97706' }}>Мъжки глас · Premium</div>
+              <div style={{ fontFamily: 'Nunito, sans-serif', fontWeight: 800, color: '#92400E', fontSize: '0.95rem' }}>Господин Бухал</div>
+              <div style={{ fontFamily: 'Nunito, sans-serif', fontSize: '0.75rem', color: '#D97706' }}>Мъжки глас · мъдър и спокоен</div>
             </div>
             {profile?.is_premium ? (
               <button
