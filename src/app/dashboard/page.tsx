@@ -39,8 +39,7 @@ export default function Dashboard() {
     <>
       
 
-      <div className="u4a-dash">
-        <div className="u4a-dash-overlay"></div>
+      <div className="u4a-dash" style={{display:'flex', flexDirection:'column', minHeight:'100vh'}}>
         {/* Падащи листа */}
         <div className="falling-leaf leaf-1"><img src="/leaves/vec_red.png" alt="" /></div>
         <div className="falling-leaf leaf-2"><img src="/leaves/vec_yellow.png" alt="" /></div>
