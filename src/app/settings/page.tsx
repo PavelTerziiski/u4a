@@ -127,7 +127,7 @@ export default function Settings() {
         {/* Секция: Показвано Име */}
         <div className="greeting-card fade-up" style={{ marginBottom: 16 }}>
           <div style={{ fontFamily: 'Russo One, sans-serif', fontSize: '1rem', color: '#92400E', marginBottom: 10 }}>
-            ✏️ Показвано име
+            <img src="/icons/pencil.png" style={{width:36,height:36,display:"inline",verticalAlign:"middle",marginRight:8}} />Показвано име
           </div>
           <input
             type="text"
@@ -156,7 +156,7 @@ export default function Settings() {
         {/* Секция: Аватар */}
         <div className="greeting-card fade-up fade-up-1" style={{ marginBottom: 16 }}>
           <div style={{ fontFamily: 'Russo One, sans-serif', fontSize: '1rem', color: '#92400E', marginBottom: 12 }}>
-            🐾 Избери аватар
+            <img src="/icons/paw-prints.png" style={{width:36,height:36,display:"inline",verticalAlign:"middle",marginRight:8}} />Избери аватар
           </div>
           <div style={{
             display: 'grid',
@@ -189,7 +189,7 @@ export default function Settings() {
         {/* Секция: Глас */}
         <div className="greeting-card fade-up fade-up-2" style={{ marginBottom: 16 }}>
           <div style={{ fontFamily: 'Russo One, sans-serif', fontSize: '1rem', color: '#92400E', marginBottom: 12 }}>
-            🎙️ Глас на лисицата
+            <img src="/icons/Mic.png" style={{width:36,height:36,display:"inline",verticalAlign:"middle",marginRight:8}} />Глас на лисицата
           </div>
 
           {/* Госпожа Лисица */}
@@ -302,19 +302,19 @@ export default function Settings() {
       {/* Bottom Nav */}
       <div className="bottom-nav">
         <div className="nav-item" onClick={() => router.push('/dashboard')}>
-          <span className="nav-icon">🏠</span>
+          <img src="/icons/home.png" style={{width:48,height:48,marginBottom:2}} />
           Начало
         </div>
         <div className="nav-item" onClick={() => router.push('/dictation')}>
-          <span className="nav-icon">📝</span>
+          <img src="/icons/dictations.png" style={{width:48,height:48,marginBottom:2}} />
           Диктовки
         </div>
         <div className="nav-item">
-          <span className="nav-icon">👥</span>
+          <img src="/icons/friends.png" style={{width:48,height:48,marginBottom:2}} />
           Приятели
         </div>
         <div className="nav-item active">
-          <span className="nav-icon">⚙️</span>
+          <img src="/icons/settings.png" style={{width:48,height:48,marginBottom:2}} />
           Настройки
         </div>
       </div>

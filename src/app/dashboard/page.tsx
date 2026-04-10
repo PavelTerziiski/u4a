@@ -123,19 +123,19 @@ export default function Dashboard() {
 
         <div className="bottom-nav">
           <div className="nav-item active">
-            <span className="nav-icon">🏠</span>
+            <img src="/icons/home.png" style={{width:48,height:48,marginBottom:2}} />
             Начало
           </div>
           <div className="nav-item" onClick={() => router.push('/dictation')}>
-            <span className="nav-icon">📝</span>
+            <img src="/icons/dictations.png" style={{width:48,height:48,marginBottom:2}} />
             Диктовки
           </div>
           <div className="nav-item">
-            <span className="nav-icon">👥</span>
+            <img src="/icons/friends.png" style={{width:48,height:48,marginBottom:2}} />
             Приятели
           </div>
           <div className="nav-item" onClick={() => router.push('/settings')}>
-            <span className="nav-icon">⚙️</span>
+            <img src="/icons/settings.png" style={{width:48,height:48,marginBottom:2}} />
             Настройки
           </div>
         </div>
