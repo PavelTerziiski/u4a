@@ -306,7 +306,7 @@ export default function Register() {
           ← Назад
         </button>
 
-        <img src="/logo.png" style={{height:80,objectFit:"contain",marginBottom:4}} alt="u4a" />
+        <img src="/fox-logo.png" style={{height:100,objectFit:"contain",marginBottom:4}} alt="u4a" />
         <div className="reg-sub">Създай своя горски профил</div>
 
         <div className="steps">
