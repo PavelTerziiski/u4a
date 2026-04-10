@@ -74,7 +74,7 @@ export default function Dashboard() {
                 fontWeight: 800,
                 color: '#92400E',
                 fontFamily: 'Nunito, sans-serif'
-              }}>⭐ Premium</div>
+              }}>🌰 Premium</div>
             )}
             <button onClick={() => { localStorage.removeItem('u4a_username'); router.push('/') }} style={{
               background: '#EF4444', color: 'white', border: 'none',
@@ -87,7 +87,7 @@ export default function Dashboard() {
 
         <div className="dash-content">
           <div className="greeting-card fade-up" style={{display:"flex",alignItems:"center",gap:14}}>
-            <img src={`/avatars/${['fox','bear','owl','squirrel','deer','rabbit','hedgehog','wolf'][(profile?.avatar_id || 1) - 1]}.png`} style={{width:90,height:90,borderRadius:'50%',border:'4px solid #FED7AA',flexShrink:0,objectFit:'cover',objectPosition:'center 10%',background:'#FFF7ED',transform:'scale(1.15)',transformOrigin:'center 10%'}} />
+            <img src={`/avatars/${['fox','bear','owl','squirrel','deer','rabbit','hedgehog','wolf'][(profile?.avatar_id || 1) - 1]}.png`} style={{width:90,height:90,borderRadius:'50%',border:'4px solid #FED7AA',flexShrink:0,objectFit:'cover',objectPosition:'center 10%',background:'#FFF7ED',transform:'scale(1.35)',transformOrigin:'center 10%'}} />
             <div style={{flex:1}}>
             <div className="greeting-name">Здравей, {profile?.username}!</div>
             <div className="greeting-sub">Лисицата ти се казва <strong>{profile?.fox_name}</strong></div>
@@ -114,7 +114,7 @@ export default function Dashboard() {
 
           {!profile?.is_premium && (
             <div className="premium-banner fade-up fade-up-3">
-              <div style={{ fontSize: '1.8rem' }}>⭐</div>
+              <svg width="28" height="28" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg"><ellipse cx="16" cy="13" rx="10" ry="7" fill="#8B5E3C"/><ellipse cx="16" cy="12" rx="10" ry="6" fill="#A0522D"/><rect x="13" y="6" width="6" height="4" rx="1" fill="#5C3D1E"/><rect x="14.5" y="2" width="3" height="5" rx="1.5" fill="#5C3D1E"/><ellipse cx="16" cy="20" rx="7" ry="9" fill="#C8860A"/><ellipse cx="16" cy="20" rx="6" ry="8" fill="#E6A817"/></svg>
               <div style={{ flex: 1 }}>
                 <div className="premium-title">Стани Premium</div>
                 <div className="premium-sub">Неограничени диктовки · Госпожа Лисица & Господин Бухал · 4.50€/мес</div>

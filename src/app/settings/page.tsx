@@ -258,14 +258,14 @@ export default function Settings() {
                 padding: '10px 14px', fontFamily: 'Nunito, sans-serif',
                 fontSize: '0.82rem', color: '#92400E', fontWeight: 700, textAlign: 'center'
               }}>
-                ⭐ Отключи Premium и избери тези гласове · 4.50€/мес
+                🌰 Отключи Premium и избери тези гласове · 4.50€/мес
               </div>
               <button onClick={handleUpgrade} style={{
                 background: '#F97316', color: 'white', border: 'none',
                 borderRadius: 12, padding: '10px 0', width: '100%',
                 fontFamily: 'Nunito, sans-serif', fontWeight: 800,
                 fontSize: '0.95rem', cursor: 'pointer', marginTop: 8
-              }}>⭐ Стани Premium · 4.50€/мес</button>
+              }}>🌰 Стани Premium · 4.50€/мес</button>
             </>
           )}
         </div>
