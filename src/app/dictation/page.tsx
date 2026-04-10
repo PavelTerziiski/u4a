@@ -329,7 +329,8 @@ export default function DictationPage() {
 
   // ЛИМИТ
   if (phase === 'limit') return (
-    <main className="min-h-screen flex flex-col items-center justify-center p-6" style={{backgroundImage:"url(/forest-pattern.png)",backgroundSize:"cover",backgroundAttachment:"fixed"}}>
+    <main className="u4a-dash min-h-screen flex flex-col items-center justify-center p-6">
+      <div className="u4a-dash-overlay"></div>
       <div className="w-full max-w-md text-center">
         <Fox mood="sad" size={160} />
         <h2 className="text-2xl font-bold text-gray-700 mt-6 mb-2">Достигна седмичния лимит</h2>
@@ -355,7 +356,8 @@ export default function DictationPage() {
 
   // ИЗБОР
   if (phase === 'pick') return (
-    <main className="min-h-screen p-6" style={{backgroundImage:"url(/forest-pattern.png)",backgroundSize:"cover",backgroundAttachment:"fixed"}}>
+    <main className="u4a-dash min-h-screen p-6">
+      <div className="u4a-dash-overlay"></div>
       <div className="max-w-md mx-auto">
         <button onClick={() => router.push('/dashboard')} className="text-orange-400 mb-6 flex items-center gap-2">← Назад</button>
         {profile?.is_premium && (
@@ -399,7 +401,8 @@ export default function DictationPage() {
 
   // ГОТОВ
   if (phase === 'ready' && selected) return (
-    <main className="min-h-screen flex flex-col items-center justify-center p-6" style={{backgroundImage:"url(/forest-pattern.png)",backgroundSize:"cover",backgroundAttachment:"fixed"}}>
+    <main className="u4a-dash min-h-screen flex flex-col items-center justify-center p-6">
+      <div className="u4a-dash-overlay"></div>
       <div className="w-full max-w-md text-center">
         <Fox mood="happy" size={160} />
         <h2 className="text-2xl font-bold text-gray-700 mt-6 mb-2">{selected.title}</h2>
@@ -419,7 +422,8 @@ export default function DictationPage() {
     const sentences = selected.sentences as Sentence[]
     const repeatLimit = REPEAT_LIMITS[selected.grade] ?? 0
     return (
-      <main className="min-h-screen flex flex-col items-center justify-center p-6" style={{backgroundImage:"url(/forest-pattern.png)",backgroundSize:"cover",backgroundAttachment:"fixed"}}>
+      <main className="u4a-dash min-h-screen flex flex-col items-center justify-center p-6">
+      <div className="u4a-dash-overlay"></div>
         <div className="w-full max-w-md">
           <button onClick={handleBack} className="text-orange-400 mb-4 flex items-center gap-2">← Спри диктовката</button>
           <div className="text-center mb-4">
@@ -458,7 +462,8 @@ export default function DictationPage() {
   if (phase === 'write' && selected) {
     const sentences = selected.sentences as Sentence[]
     return (
-      <main className="min-h-screen flex flex-col items-center justify-center p-6" style={{backgroundImage:"url(/forest-pattern.png)",backgroundSize:"cover",backgroundAttachment:"fixed"}}>
+      <main className="u4a-dash min-h-screen flex flex-col items-center justify-center p-6">
+      <div className="u4a-dash-overlay"></div>
         <div className="w-full max-w-lg">
           <div className="text-center mb-6">
             <Fox mood="pointing" size={120} />
@@ -502,7 +507,8 @@ export default function DictationPage() {
     const percent = Math.round((score / sentences.length) * 100)
     const mood: FoxMood = percent >= 80 ? 'excited' : percent >= 50 ? 'wink' : 'sad'
     return (
-      <main className="min-h-screen flex flex-col items-center justify-center p-6" style={{backgroundImage:"url(/forest-pattern.png)",backgroundSize:"cover",backgroundAttachment:"fixed"}}>
+      <main className="u4a-dash min-h-screen flex flex-col items-center justify-center p-6">
+      <div className="u4a-dash-overlay"></div>
         <div className="w-full max-w-lg">
           <div className="text-center mb-6">
             <Fox mood={mood} size={128} />
