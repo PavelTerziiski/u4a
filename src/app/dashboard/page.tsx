@@ -163,7 +163,7 @@ export default function Dashboard() {
           </span>
           Диктовки
         </div>
-        <div className="nav-item">
+        <div className="nav-item" onClick={() => router.push('/friends')}>
           <span style={{background:'white',borderRadius:'50%',width:56,height:56,display:'flex',alignItems:'center',justifyContent:'center',marginBottom:2,boxShadow:'0 2px 8px rgba(0,0,0,0.15)'}}>
             <img src="/icons/friends.png" style={{width:36,height:36,objectFit:'contain'}} />
           </span>
