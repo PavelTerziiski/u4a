@@ -100,7 +100,7 @@ export default function Friends() {
         </div>
 
         <div className="greeting-card fade-up fade-up-1" style={{ textAlign: 'center', opacity: 0.85 }}>
-          <img src="/icons/friends2.png" style={{width:120,height:120,objectFit:'contain',marginBottom:8}} />
+          <div style={{display:"flex",justifyContent:"center",width:"100%",marginBottom:8}}><img src="/icons/friends2.png" style={{width:140,height:140,objectFit:"contain"}} /></div>
           <div style={{ fontFamily: 'Russo One, sans-serif', fontSize: '1rem', color: '#92400E', marginBottom: 8 }}>Приятели — скоро!</div>
           <div style={{ fontFamily: 'Nunito, sans-serif', fontSize: '0.88rem', color: '#92400E', lineHeight: 1.5 }}>
             Скоро ще можеш да последваш свой приятел, който също като теб прави диктовки, и да следиш неговия резултат. 🌰🦊
