@@ -40,9 +40,6 @@ export default function Dashboard() {
       
 
       <div className="u4a-dash">
-        <div className="dash-header">
-          HEADER_PLACEHOLDER
-        </div>
         <div className="u4a-dash-overlay"></div>
         {/* Падащи листа */}
         <div className="falling-leaf leaf-1"><img src="/leaves/vec_red.png" alt="" /></div>
