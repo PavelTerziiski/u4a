@@ -81,13 +81,13 @@ export default function Dashboard() {
               borderRadius: '50%', width: 36, height: 36,
               fontSize: '1.1rem', cursor: 'pointer',
               display: 'flex', alignItems: 'center', justifyContent: 'center'
-            }}>⏻</button>
+            }}><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round"><path d="M12 2v6"/><path d="M6.3 5.3a9 9 0 1 0 11.4 0"/></svg></button>
           </div>
         </div>
 
         <div className="dash-content">
           <div className="greeting-card fade-up" style={{display:"flex",alignItems:"center",gap:14}}>
-            <img src={`/avatars/${['fox','bear','owl','squirrel','deer','rabbit','hedgehog','wolf'][(profile?.avatar_id || 1) - 1]}.png`} style={{width:90,height:90,borderRadius:'50%',border:'4px solid #FED7AA',flexShrink:0,objectFit:'cover',background:'#FFF7ED'}} />
+            <img src={`/avatars/${['fox','bear','owl','squirrel','deer','rabbit','hedgehog','wolf'][(profile?.avatar_id || 1) - 1]}.png`} style={{width:90,height:90,borderRadius:'50%',border:'4px solid #FED7AA',flexShrink:0,objectFit:'cover',objectPosition:'center 10%',background:'#FFF7ED'}} />
             <div style={{flex:1}}>
             <div className="greeting-name">Здравей, {profile?.username}!</div>
             <div className="greeting-sub">Лисицата ти се казва <strong>{profile?.fox_name}</strong></div>
