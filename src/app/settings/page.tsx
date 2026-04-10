@@ -53,7 +53,7 @@ export default function Settings() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          text: voice === 'borisslav' ? 'Здравей! Аз съм Борислав и ще те науча да пишеш без грешки.' : 'Здравей, приятелю! Готова ли си да учим заедно днес?',
+          text: voice === 'borisslav' ? 'Здравей! Аз съм Твоят Горски Учител и ще те науча да пишеш без грешки.' : 'Здравей, мило дете! Аз съм твоят горски учител. Готов ли си да учим днес?',
           voice,
           speed: 1
         })
