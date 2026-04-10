@@ -308,15 +308,16 @@ export default function Register() {
               <div className="reg-step-title">Как се казваш? 👋</div>
               <input
                 className="reg-input"
-                type="text"
+                type="email"
                 placeholder="Имейл адрес"
                 value={email}
-            onChange={e => setEmail(e.target.value)}
-          />
-          <input
-            type="text"
-            placeholder="Потребителско име"
-            value={username}
+                onChange={e => setEmail(e.target.value)}
+              />
+              <input
+                className="reg-input"
+                type="text"
+                placeholder="Потребителско име (показва се на другите)"
+                value={username}
                 onChange={e => setUsername(e.target.value)}
               />
               <input
