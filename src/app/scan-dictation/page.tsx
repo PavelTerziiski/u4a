@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
+import '../dashboard/dashboard.css'
 import { Profile } from '@/lib/types'
 import Fox from '@/components/fox/Fox'
 
@@ -123,7 +124,8 @@ export default function ScanDictationPage() {
   }
 
   if (phase === 'scan') return (
-    <main className="min-h-screen bg-orange-50 flex flex-col items-center justify-center p-6">
+    <main className="u4a-dash min-h-screen flex flex-col items-center justify-center p-6">
+      <div className="u4a-dash-overlay"></div>
       <div className="w-full max-w-md text-center">
         <Fox mood="happy" size={140} />
         <h1 className="text-2xl font-bold text-gray-700 mt-6 mb-2">Снимай текста</h1>
@@ -150,7 +152,8 @@ export default function ScanDictationPage() {
   )
 
   if (phase === 'ready') return (
-    <main className="min-h-screen bg-orange-50 flex flex-col items-center justify-center p-6">
+    <main className="u4a-dash min-h-screen flex flex-col items-center justify-center p-6">
+      <div className="u4a-dash-overlay"></div>
       <div className="w-full max-w-md text-center">
         <Fox mood="excited" size={140} />
         <h1 className="text-2xl font-bold text-gray-700 mt-6 mb-2">Готово!</h1>
@@ -178,7 +181,8 @@ export default function ScanDictationPage() {
   )
 
   if (phase === 'play') return (
-    <main className="min-h-screen bg-orange-50 flex flex-col items-center justify-center p-6">
+    <main className="u4a-dash min-h-screen flex flex-col items-center justify-center p-6">
+      <div className="u4a-dash-overlay"></div>
       <div className="w-full max-w-md text-center">
         <div className="w-full bg-orange-100 rounded-full h-3 mb-6">
           <div className="bg-orange-500 h-3 rounded-full transition-all"
@@ -229,7 +233,8 @@ export default function ScanDictationPage() {
   )
 
   return (
-    <main className="min-h-screen bg-orange-50 flex flex-col items-center justify-center p-6">
+    <main className="u4a-dash min-h-screen flex flex-col items-center justify-center p-6">
+      <div className="u4a-dash-overlay"></div>
       <div className="w-full max-w-md text-center">
         <Fox mood="excited" size={140} />
         <h1 className="text-2xl font-bold text-gray-700 mt-6 mb-4">Диктовката свърши! 🎉</h1>
