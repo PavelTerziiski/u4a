@@ -76,16 +76,24 @@ export default function Dashboard() {
                 fontFamily: 'Nunito, sans-serif'
               }}>⭐ Premium</div>
             )}
-            <button className="icon-btn" onClick={() => { localStorage.removeItem('u4a_username'); router.push('/') }} title="Излез">👋</button>
+            <button onClick={() => { localStorage.removeItem('u4a_username'); router.push('/') }} style={{
+              background: '#EF4444', color: 'white', border: 'none',
+              borderRadius: 99, padding: '5px 12px',
+              fontFamily: 'Nunito, sans-serif', fontWeight: 800,
+              fontSize: '0.75rem', cursor: 'pointer', letterSpacing: 1
+            }}>OFF</button>
           </div>
         </div>
 
         <div className="dash-content">
-          <div className="greeting-card fade-up">
+          <div className="greeting-card fade-up" style={{display:"flex",alignItems:"center",gap:14}}>
+            <img src={`/avatars/${['fox','bear','owl','squirrel','deer','rabbit','hedgehog','wolf'][(profile?.avatar_id || 1) - 1]}.png`} style={{width:70,height:70,borderRadius:'50%',border:'3px solid #FED7AA',flexShrink:0}} />
+            <div style={{flex:1}}>
             <div className="greeting-name">Здравей, {profile?.username}! 👋</div>
             <div className="greeting-sub">Лисицата ти се казва <strong>{profile?.fox_name}</strong></div>
             <div className="streak-badge">
               🔥 {profile?.streak} дни поред · {profile?.grade} клас
+            </div>
             </div>
           </div>
 
