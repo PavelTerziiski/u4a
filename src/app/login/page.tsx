@@ -33,7 +33,7 @@ export default function Login() {
   }
 
   return (
-    <div className="u4a-dash" style={{minHeight:'100vh'}}>
+    <div className="u4a-dash" style={{ minHeight: '100vh' }}>
       <div className="u4a-dash-overlay"></div>
 
       <div className="falling-leaf leaf-1"><img src="/leaves/vec_red.png" alt="" /></div>
@@ -51,14 +51,17 @@ export default function Login() {
         display: 'flex', flexDirection: 'column', alignItems: 'center',
         justifyContent: 'center', minHeight: '100vh', padding: '24px'
       }}>
-        <img src="/logo.png" style={{height: 80, objectFit: 'contain', marginBottom: 8}} alt="u4a" />
+        <img src="/logo.png" style={{ height: 90, objectFit: 'contain', marginBottom: 4 }} alt="u4a" />
         <p style={{
           fontFamily: 'Nunito, sans-serif', fontWeight: 700,
-          color: '#92400E', fontSize: '1rem', marginBottom: 32
+          color: '#92400E', fontSize: '1rem', marginBottom: 28
         }}>Влез в горската школа 🌰</p>
 
-        <div className="greeting-card" style={{width: '100%', maxWidth: 420}}>
-          <div style={{fontFamily: 'Russo One, sans-serif', fontSize: '1.1rem', color: '#92400E', marginBottom: 20, textAlign: 'center'}}>
+        <div className="greeting-card" style={{ width: '100%', maxWidth: 400 }}>
+          <div style={{
+            fontFamily: 'Russo One, sans-serif', fontSize: '1.2rem',
+            color: '#92400E', marginBottom: 20, textAlign: 'center'
+          }}>
             Добре дошъл обратно! 🦊
           </div>
 
@@ -86,7 +89,7 @@ export default function Login() {
               border: '2px solid #FED7AA', fontFamily: 'Nunito, sans-serif',
               fontWeight: 700, fontSize: '1rem', color: '#92400E',
               background: '#FFFBF5', outline: 'none',
-              boxSizing: 'border-box', marginBottom: 16
+              boxSizing: 'border-box', marginBottom: 20
             }}
           />
 
@@ -103,10 +106,20 @@ export default function Login() {
             onClick={handleLogin}
             disabled={!email || !password || loading}
             className="main-btn"
-            style={{opacity: !email || !password || loading ? 0.5 : 1}}
+            style={{ opacity: !email || !password || loading ? 0.5 : 1, marginBottom: 16 }}
           >
             {loading ? '⏳ Влизам...' : '🚀 Влез!'}
           </button>
+
+          <div style={{
+            textAlign: 'center',
+            fontFamily: 'Nunito, sans-serif',
+            fontSize: '0.72rem',
+            color: '#D97706',
+            lineHeight: 1.6
+          }}>
+            🔒 Данните ти са защитени и никога не се споделят с трети страни.
+          </div>
         </div>
 
         <p style={{
@@ -114,7 +127,7 @@ export default function Login() {
           color: '#92400E', fontSize: '0.9rem', marginTop: 20
         }}>
           Нямаш профил?{' '}
-          <Link href="/register" style={{color: '#F97316', fontWeight: 800}}>
+          <Link href="/register" style={{ color: '#F97316', fontWeight: 800 }}>
             Създай сега
           </Link>
         </p>
