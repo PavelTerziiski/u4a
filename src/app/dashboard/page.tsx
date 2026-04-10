@@ -39,6 +39,8 @@ export default function Dashboard() {
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Russo+One&family=Nunito:wght@700;800;900&display=swap&subset=cyrillic');
         
+        html, body { margin: 0 !important; padding: 0 !important; }
+
         .u4a-dash {
           min-height: 100vh;
           background: linear-gradient(160deg, #FFF8F0 0%, #FEF3E2 50%, #FFF0E0 100%);
@@ -46,9 +48,10 @@ export default function Dashboard() {
           background-size: 480px;
           background-repeat: repeat;
           background-blend-mode: soft-light;
-          opacity-layer: 0.08;
           position: relative;
           overflow-x: hidden;
+          padding-top: 0;
+          margin-top: 0;
         }
 
         .u4a-dash-overlay {
