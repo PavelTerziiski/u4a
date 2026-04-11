@@ -22,6 +22,7 @@ export default function Friends() {
           .from('dictation_sessions').select('*')
           .eq('profile_id', data.id)
           .eq('is_scan', false)
+          .eq('parent_confirmed', true)
           .order('created_at', { ascending: false }).limit(20)
         setSessions(sess || [])
         setLoading(false)
