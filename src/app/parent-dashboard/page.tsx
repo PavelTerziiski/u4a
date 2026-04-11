@@ -87,32 +87,20 @@ export default function ParentDashboard() {
     setAddLoading(true)
     setAddError('')
     try {
-      const { data: childProfile } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('email', childEmail.trim())
-        .single()
-      if (!childProfile) throw new Error('Не намерихме такъв потребител')
-      if (childProfile.is_parent) throw new Error('Това е родителски акаунт')
-
-      const { error: authError } = await supabase.auth.signInWithPassword({
-        email: childProfile.email,
-        password: childPassword,
+      const res = await fetch('/api/verify-child', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: childEmail.trim(), password: childPassword })
       })
-      if (authError) throw new Error('Грешна парола')
-
+      const json = await res.json()
+      if (!res.ok) throw new Error(json.error)
+      const childProfile = json.profile
       if (!parent) throw new Error('Не сте влезли')
       const { error } = await supabase.from('parent_children').insert({
         parent_id: parent.id,
         child_id: childProfile.id,
       })
       if (error && error.code !== '23505') throw error
-
-      await supabase.auth.signInWithPassword({
-        email: parent.email,
-        password: childPassword,
-      })
-
       setChildren(prev => [...prev, childProfile])
       setShowAddChild(false)
       setChildEmail('')
@@ -122,6 +110,7 @@ export default function ParentDashboard() {
     } finally {
       setAddLoading(false)
     }
+  }
   }
 
   const handleLogout = () => {
