@@ -105,7 +105,7 @@ export default function Register() {
       <div className="u4a-dash-overlay" />
       <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '24px 16px', position: 'relative', zIndex: 1 }}>
         <div style={{ background: 'linear-gradient(135deg, #F97316, #EA580C)', borderRadius: 28, padding: '28px 24px', width: '100%', maxWidth: 440, boxShadow: '0 8px 32px rgba(249,115,22,0.3)', textAlign: 'center', boxSizing: 'border-box' }}>
-          <img src="/fox-logo.png" alt="" style={{ width: 100, marginBottom: 16 }} />
+          <img src="/fox-logo.png" alt="" style={{ width: 100, marginBottom: 16, background: '#3d1a00', borderRadius: 16, padding: 8 }} />
           <h2 style={{ color: 'white', fontFamily: 'Russo One, sans-serif', marginBottom: 8 }}>Добре дошъл в гората!</h2>
           <p style={{ color: '#FED7AA', marginBottom: 24, fontSize: '0.9rem' }}>Кой създава профил?</p>
           <button onClick={() => { setIsParent(false); setStep(1) }}
@@ -130,7 +130,7 @@ export default function Register() {
       <div className="u4a-dash-overlay" />
       <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '24px 16px', position: 'relative', zIndex: 1 }}>
         <div style={{ background: 'linear-gradient(135deg, #F97316, #EA580C)', borderRadius: 28, padding: '28px 24px', width: '100%', maxWidth: 440, boxShadow: '0 8px 32px rgba(249,115,22,0.3)', textAlign: 'center', boxSizing: 'border-box' }}>
-          <img src="/fox-logo.png" alt="" style={{ width: 90, marginBottom: 12 }} />
+          <img src="/fox-logo.png" alt="" style={{ width: 90, marginBottom: 12, background: '#3d1a00', borderRadius: 16, padding: 8 }} />
           <h2 style={{ color: 'white', fontFamily: 'Russo One, sans-serif', textAlign: 'center', marginBottom: 6 }}>👨‍👩‍👧 Родителски профил</h2>
           <p style={{ color: '#FED7AA', fontSize: '0.85rem', marginBottom: 20 }}>Създай акаунт за да следиш напредъка на детето си</p>
           <input style={{ width: '100%', border: '2px solid #FED7AA', borderRadius: 16, padding: '14px 16px', fontSize: '1rem', fontFamily: 'Nunito, sans-serif', fontWeight: 600, marginBottom: 12, outline: 'none', boxSizing: 'border-box', color: '#1C0A00', background: 'white', display: 'block' }} type="text" placeholder="Вашето име" value={username} onChange={e => setUsername(e.target.value)} />
