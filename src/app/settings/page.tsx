@@ -37,6 +37,7 @@ export default function Settings() {
       .single()
       .then(({ data }) => {
         if (!data) { router.push('/login'); return }
+        if (data.is_parent) { router.push('/parent-dashboard'); return }
         setProfile(data)
         setDisplayName(data.fox_name || data.username)
         setSelectedAvatar(data.avatar_id || 1)

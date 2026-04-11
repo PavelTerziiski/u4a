@@ -46,6 +46,7 @@ export default function DictationPage() {
     supabase.from('profiles').select('*').eq('username', username).single()
       .then(({ data }) => {
         if (!data) { router.push('/login'); return }
+        if (data.is_parent) { router.push('/parent-dashboard'); return }
         setProfile(data)
         supabase.from('dictations').select('*').eq('grade', data.grade)
           .then(({ data: d }) => setDictations(d || []))
