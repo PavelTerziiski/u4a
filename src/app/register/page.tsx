@@ -103,8 +103,8 @@ export default function Register() {
   if (isParent === null) return (
     <div className="u4a-dash">
       <div className="u4a-dash-overlay" />
-      <div className="reg-page">
-        <div className="reg-card" style={{ textAlign: 'center' }}>
+      <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '24px 16px', position: 'relative', zIndex: 1 }}>
+        <div style={{ background: 'linear-gradient(135deg, #F97316, #EA580C)', borderRadius: 28, padding: '28px 24px', width: '100%', maxWidth: 440, boxShadow: '0 8px 32px rgba(249,115,22,0.3)', textAlign: 'center', boxSizing: 'border-box' }}>
           <img src="/fox-logo.png" alt="" style={{ width: 100, marginBottom: 16 }} />
           <h2 style={{ color: 'white', fontFamily: 'Russo One, sans-serif', marginBottom: 8 }}>Добре дошъл в гората!</h2>
           <p style={{ color: '#FED7AA', marginBottom: 24, fontSize: '0.9rem' }}>Кой създава профил?</p>
@@ -128,14 +128,14 @@ export default function Register() {
   if (isParent === true && step === 1) return (
     <div className="u4a-dash">
       <div className="u4a-dash-overlay" />
-      <div className="reg-page">
-        <div className="reg-card" style={{ textAlign: 'center' }}>
+      <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '24px 16px', position: 'relative', zIndex: 1 }}>
+        <div style={{ background: 'linear-gradient(135deg, #F97316, #EA580C)', borderRadius: 28, padding: '28px 24px', width: '100%', maxWidth: 440, boxShadow: '0 8px 32px rgba(249,115,22,0.3)', textAlign: 'center', boxSizing: 'border-box' }}>
           <img src="/fox-logo.png" alt="" style={{ width: 90, marginBottom: 12 }} />
           <h2 style={{ color: 'white', fontFamily: 'Russo One, sans-serif', textAlign: 'center', marginBottom: 6 }}>👨‍👩‍👧 Родителски профил</h2>
           <p style={{ color: '#FED7AA', fontSize: '0.85rem', marginBottom: 20 }}>Създай акаунт за да следиш напредъка на детето си</p>
-          <input className="reg-input" type="text" placeholder="Вашето име" value={username} onChange={e => setUsername(e.target.value)} />
-          <input className="reg-input" type="email" placeholder="Имейл адрес" value={email} onChange={e => setEmail(e.target.value)} />
-          <input className="reg-input" type="password" placeholder="Парола" value={password} onChange={e => setPassword(e.target.value)} />
+          <input style={{ width: '100%', border: '2px solid #FED7AA', borderRadius: 16, padding: '14px 16px', fontSize: '1rem', fontFamily: 'Nunito, sans-serif', fontWeight: 600, marginBottom: 12, outline: 'none', boxSizing: 'border-box', color: '#1C0A00', background: 'white', display: 'block' }} type="text" placeholder="Вашето име" value={username} onChange={e => setUsername(e.target.value)} />
+          <input style={{ width: '100%', border: '2px solid #FED7AA', borderRadius: 16, padding: '14px 16px', fontSize: '1rem', fontFamily: 'Nunito, sans-serif', fontWeight: 600, marginBottom: 12, outline: 'none', boxSizing: 'border-box', color: '#1C0A00', background: 'white', display: 'block' }} type="email" placeholder="Имейл адрес" value={email} onChange={e => setEmail(e.target.value)} />
+          <input style={{ width: '100%', border: '2px solid #FED7AA', borderRadius: 16, padding: '14px 16px', fontSize: '1rem', fontFamily: 'Nunito, sans-serif', fontWeight: 600, marginBottom: 12, outline: 'none', boxSizing: 'border-box', color: '#1C0A00', background: 'white', display: 'block' }} type="password" placeholder="Парола" value={password} onChange={e => setPassword(e.target.value)} />
           {error && <div style={{ background: '#FEE2E2', color: '#DC2626', borderRadius: 10, padding: '10px 14px', marginBottom: 12, fontSize: '0.9rem' }}>{error}</div>}
           <button onClick={handleParentRegister} disabled={loading || !username || !email || !password}
             style={{ width: '100%', background: loading ? '#aaa' : 'white', color: '#EA580C', fontFamily: 'Russo One, sans-serif',
