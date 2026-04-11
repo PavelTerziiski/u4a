@@ -21,12 +21,14 @@ export default function Login() {
         password
       })
       if (error || !data.user) throw new Error('Грешен имейл или парола')
-      const { data: profile } = await supabase
+      console.log('AUTH USER ID:', data.user.id)
+      const { data: profile, error: profileError } = await supabase
         .from('profiles')
         .select('username')
         .eq('id', data.user.id)
         .single()
-      if (!profile) throw new Error('Профилът не е намерен')
+      console.log('PROFILE:', profile, 'ERROR:', profileError)
+      if (!profile) throw new Error('Профилът не е намерен - ID: ' + data.user.id)
       localStorage.setItem('u4a_username', profile.username)
       router.push('/dashboard')
     } catch (e) {
