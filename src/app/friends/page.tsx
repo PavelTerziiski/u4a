@@ -74,7 +74,7 @@ export default function Friends() {
             </div>
           </div>
           {sessions.length === 0 ? (
-            <div style={{ textAlign: 'center', fontFamily: 'Nunito, sans-serif', color: '#D97706', fontSize: '0.9rem', padding: '16px 0' }}>
+            <div style={{ textAlign: 'center', fontFamily: 'Nunito, sans-serif', color: '#7C2D12', fontSize: '0.9rem', padding: '16px 0', fontWeight: 700 }}>
               Все още няма диктовки. Започни първата си! 🦊
             </div>
           ) : (
