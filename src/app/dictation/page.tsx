@@ -73,6 +73,16 @@ export default function DictationPage() {
     setPauseProgress(0)
   }
 
+  useEffect(() => {
+    return () => {
+      if (currentAudio.current) {
+        currentAudio.current.pause()
+        currentAudio.current = null
+      }
+      clearInterval(progressTimer.current!)
+    }
+  }, [])
+
   const speak = (text: string, onDone?: () => void) => {
     if (currentAudio.current) {
       currentAudio.current.pause()
