@@ -32,6 +32,16 @@ export default function ScanDictationPage() {
       .then(({ data }) => { if (data) setProfile(data) })
   }, [])
 
+  const requestCameraAndOpen = async () => {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ video: true })
+      stream.getTracks().forEach(track => track.stop())
+    } catch {
+      // потребителят е отказал или няма камера
+    }
+    fileInputRef.current?.click()
+  }
+
   const handleScan = async (file: File) => {
     setScanning(true)
     const reader = new FileReader()
