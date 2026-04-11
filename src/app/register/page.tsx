@@ -111,11 +111,11 @@ export default function Register() {
           <button onClick={() => { setIsParent(false); setStep(1) }}
             style={{ width: '100%', background: 'white', color: '#EA580C', fontFamily: 'Russo One, sans-serif',
               fontSize: '1.1rem', padding: '16px', borderRadius: 16, border: 'none', cursor: 'pointer', marginBottom: 12 }}>
-            🌱 Аз съм дете
+            Аз съм дете
           </button>
           <button onClick={() => { setIsParent(true); setStep(1) }}
             style={{ width: '100%', background: 'rgba(255,255,255,0.95)', color: '#EA580C', fontFamily: 'Russo One, sans-serif', fontSize: '1.1rem', padding: '16px', borderRadius: 16, border: 'none', cursor: 'pointer' }}>
-            🌳 Аз съм родител
+            Аз съм родител
           </button>
         </div>
         <button onClick={() => router.push('/login')} style={{ marginTop: 16, color: '#EA580C', background: 'none', border: 'none', cursor: 'pointer' }}>
@@ -131,7 +131,7 @@ export default function Register() {
       <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '24px 16px', position: 'relative', zIndex: 1 }}>
         <div style={{ background: 'linear-gradient(135deg, #F97316, #EA580C)', borderRadius: 28, padding: '28px 24px', width: '100%', maxWidth: 440, boxShadow: '0 8px 32px rgba(249,115,22,0.3)', textAlign: 'center', boxSizing: 'border-box' }}>
           <img src="/fox-logo.png" alt="" style={{ width: 90, marginBottom: 12, background: '#3d1a00', borderRadius: 16, padding: 8 }} />
-          <h2 style={{ color: 'white', fontFamily: 'Russo One, sans-serif', textAlign: 'center', marginBottom: 6 }}>🌳 Родителски профил</h2>
+          <h2 style={{ color: 'white', fontFamily: 'Russo One, sans-serif', textAlign: 'center', marginBottom: 6 }}>Родителски профил</h2>
           <p style={{ color: '#FED7AA', fontSize: '0.85rem', marginBottom: 20 }}>Създай акаунт за да следиш напредъка на детето си</p>
           <input style={{ width: '100%', border: '2px solid #FED7AA', borderRadius: 16, padding: '14px 16px', fontSize: '1rem', fontFamily: 'Nunito, sans-serif', fontWeight: 600, marginBottom: 12, outline: 'none', boxSizing: 'border-box', color: '#1C0A00', background: 'white', display: 'block' }} type="text" placeholder="Вашето име" value={username} onChange={e => setUsername(e.target.value)} />
           <input style={{ width: '100%', border: '2px solid #FED7AA', borderRadius: 16, padding: '14px 16px', fontSize: '1rem', fontFamily: 'Nunito, sans-serif', fontWeight: 600, marginBottom: 12, outline: 'none', boxSizing: 'border-box', color: '#1C0A00', background: 'white', display: 'block' }} type="email" placeholder="Имейл адрес" value={email} onChange={e => setEmail(e.target.value)} />
@@ -140,7 +140,7 @@ export default function Register() {
           <button onClick={handleParentRegister} disabled={loading || !username || !email || !password}
             style={{ width: '100%', background: loading ? '#aaa' : 'white', color: '#EA580C', fontFamily: 'Russo One, sans-serif',
               fontSize: '1.1rem', padding: '16px', borderRadius: 16, border: 'none', cursor: 'pointer', marginTop: 8 }}>
-            {loading ? '⏳ Зареждане...' : '🌿 Влез в гората →'}
+            {loading ? '⏳ Зареждане...' : 'Влез в гората →'}
           </button>
         </div>
         <button onClick={() => setIsParent(null)} style={{ marginTop: 16, color: '#EA580C', background: 'none', border: 'none', cursor: 'pointer' }}>
