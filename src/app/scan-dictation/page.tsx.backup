@@ -136,7 +136,7 @@ export default function ScanDictationPage() {
         </div>
         <input ref={fileInputRef} type="file" accept="image/*" capture="environment" className="hidden"
           onChange={e => { if (e.target.files?.[0]) { handleScan(e.target.files[0]); e.target.value = '' } }} />
-        <button onClick={requestCameraAndOpen} disabled={scanning}
+        <button onClick={() => fileInputRef.current?.click()} disabled={scanning}
           className="w-full bg-orange-500 text-white font-bold py-4 rounded-2xl hover:bg-orange-600 transition-colors disabled:opacity-50 text-lg mb-3">
           {scanning ? '📷 Разпознавам...' : '📷 Снимай или качи'}
         </button>
