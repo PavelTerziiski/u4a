@@ -15,13 +15,15 @@ type Child = {
   total_sessions: number
 }
 
+type WordResult = { word: string; correct: boolean; input: string }
+type SentenceResult = { sentence: string; input: string; wordResults: WordResult[]; correct: boolean; explanation?: string }
 type Session = {
   id: string
   dictation_title: string
   score: number
   total: number
   created_at: string
-  results: any[]
+  results: SentenceResult[]
 }
 
 const AVATARS: Record<number, string> = {
@@ -31,7 +33,7 @@ const AVATARS: Record<number, string> = {
 
 export default function ParentDashboard() {
   const router = useRouter()
-  const [parent, setParent] = useState<any>(null)
+  const [parent, setParent] = useState<{id: string; email: string; username: string; is_parent: boolean} | null>(null)
   const [children, setChildren] = useState<Child[]>([])
   const [selectedChild, setSelectedChild] = useState<Child | null>(null)
   const [sessions, setSessions] = useState<Session[]>([])
@@ -58,7 +60,7 @@ export default function ParentDashboard() {
       .select('child_id')
       .eq('parent_id', parentId)
     if (!links || links.length === 0) return
-    const ids = links.map((l: any) => l.child_id)
+    const ids = links.map((l: {child_id: string}) => l.child_id)
     const { data: kids } = await supabase
       .from('profiles')
       .select('*')
@@ -93,7 +95,7 @@ export default function ParentDashboard() {
       if (!childProfile) throw new Error('Не намерихме такъв потребител')
       if (childProfile.is_parent) throw new Error('Това е родителски акаунт')
 
-      const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
+      const { error: authError } = await supabase.auth.signInWithPassword({
         email: childProfile.email,
         password: childPassword,
       })
