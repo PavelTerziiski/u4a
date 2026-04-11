@@ -21,6 +21,7 @@ export default function Friends() {
         const { data: sess } = await supabase
           .from('dictation_sessions').select('*')
           .eq('profile_id', data.id)
+          .eq('is_scan', false)
           .order('created_at', { ascending: false }).limit(20)
         setSessions(sess || [])
         setLoading(false)
