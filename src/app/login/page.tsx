@@ -23,12 +23,18 @@ export default function Login() {
       if (error || !data.user) throw new Error('Грешен имейл или парола')
       const { data: profile } = await supabase
         .from('profiles')
-        .select('username')
+        .select('username, is_parent')
         .eq('id', data.user.id)
         .single()
       if (!profile) throw new Error('Профилът не е намерен')
       localStorage.setItem('u4a_username', profile.username)
-      router.push('/dashboard')
+      if (profile.is_parent) {
+        localStorage.setItem('u4a_is_parent', 'true')
+        router.push('/parent-dashboard')
+      } else {
+        localStorage.removeItem('u4a_is_parent')
+        router.push('/dashboard')
+      }
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Грешка')
     } finally {
