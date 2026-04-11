@@ -111,7 +111,6 @@ export default function ParentDashboard() {
       setAddLoading(false)
     }
   }
-  }
 
   const handleLogout = () => {
     localStorage.removeItem('u4a_username')
