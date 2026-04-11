@@ -7,9 +7,12 @@ import '../dashboard/dashboard.css'
 import { Profile } from '@/lib/types'
 import Fox from '@/components/fox/Fox'
 
+type WordResult = { word: string; correct: boolean; input: string }
+type SentenceResult = { sentence: string; input: string; wordResults: WordResult[]; correct: boolean; explanation?: string | null }
+
 export default function ScanDictationPage() {
   const router = useRouter()
-  const [phase, setPhase] = useState<'scan' | 'ready' | 'play' | 'done'>('scan')
+  const [phase, setPhase] = useState<'scan' | 'ready' | 'play' | 'ocr' | 'review' | 'done'>('scan')
   const [profile, setProfile] = useState<Profile | null>(null)
   const [scanning, setScanning] = useState(false)
   const [sentences, setSentences] = useState<string[]>([])
@@ -17,11 +20,17 @@ export default function ScanDictationPage() {
   const [speaking, setSpeaking] = useState(false)
   const [speed, setSpeed] = useState(1.0)
   const [repeatsLeft, setRepeatsLeft] = useState(3)
-  const lastSentence = useRef<string>('')
-  const speedRef = useRef(1.0)
   const [pausing, setPausing] = useState(false)
   const [pauseProgress, setPauseProgress] = useState(0)
+  const [ocrLoading, setOcrLoading] = useState(false)
+  const [ocrRaw, setOcrRaw] = useState('')
+  const [correctedText, setCorrectedText] = useState('')
+  const [results, setResults] = useState<SentenceResult[]>([])
+  const [explanations, setExplanations] = useState<Record<number, string>>({})
+  const lastSentence = useRef<string>('')
+  const speedRef = useRef(1.0)
   const fileInputRef = useRef<HTMLInputElement>(null)
+  const ocrFileInputRef = useRef<HTMLInputElement>(null)
   const currentAudio = useRef<HTMLAudioElement | null>(null)
   const progressTimer = useRef<NodeJS.Timeout | null>(null)
 
@@ -29,177 +38,241 @@ export default function ScanDictationPage() {
     const username = localStorage.getItem('u4a_username')
     if (!username) { router.push('/login'); return }
     supabase.from('profiles').select('*').eq('username', username).single()
-      .then(({ data }) => { if (data) setProfile(data) })
+      .then(({ data }) => {
+        if (!data) { router.push('/login'); return }
+        if (data.is_parent) { router.push('/parent-dashboard'); return }
+        setProfile(data)
+      })
   }, [])
 
-  const requestCameraAndOpen = async () => {
-    try {
-      const stream = await navigator.mediaDevices.getUserMedia({ video: true })
-      stream.getTracks().forEach(track => track.stop())
-    } catch {
-      // потребителят е отказал или няма камера
+  useEffect(() => {
+    return () => {
+      if (currentAudio.current) { currentAudio.current.pause(); currentAudio.current = null }
+      clearInterval(progressTimer.current!)
     }
-    fileInputRef.current?.click()
+  }, [])
+
+  const processImage = async (file: File): Promise<string> => {
+    return new Promise((resolve) => {
+      const reader = new FileReader()
+      reader.onload = (e) => {
+        const img = new Image()
+        img.onload = () => {
+          const canvas = document.createElement('canvas')
+          const maxSize = 1200
+          let w = img.width, h = img.height
+          if (w > maxSize || h > maxSize) {
+            if (w > h) { h = Math.round(h * maxSize / w); w = maxSize }
+            else { w = Math.round(w * maxSize / h); h = maxSize }
+          }
+          canvas.width = w; canvas.height = h
+          canvas.getContext('2d')!.drawImage(img, 0, 0, w, h)
+          resolve(canvas.toDataURL('image/jpeg', 0.85).split(',')[1])
+        }
+        img.src = e.target?.result as string
+      }
+      reader.readAsDataURL(file)
+    })
   }
 
   const handleScan = async (file: File) => {
     setScanning(true)
-    const reader = new FileReader()
-    reader.onload = async (e) => {
-      const img = new Image()
-      img.onload = async () => {
-        const canvas = document.createElement('canvas')
-        const maxSize = 800
-        let w = img.width, h = img.height
-        if (w > maxSize || h > maxSize) {
-          if (w > h) { h = Math.round(h * maxSize / w); w = maxSize }
-          else { w = Math.round(w * maxSize / h); h = maxSize }
-        }
-        canvas.width = w; canvas.height = h
-        canvas.getContext('2d')!.drawImage(img, 0, 0, w, h)
-        const base64 = canvas.toDataURL('image/jpeg', 0.5).split(',')[1]
-
-        const res = await fetch('/api/ocr-scan', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ image: base64 })
-        })
-        const data = await res.json()
-        if (data.text) {
-          const parsed = data.text
-            .split('\n')
-            .map((s: string) => s.trim())
-            .filter((s: string) => s.length > 0)
-          setSentences(parsed)
-          setPhase('ready')
-        }
-        setScanning(false)
-      }
-      img.src = e.target?.result as string
+    const base64 = await processImage(file)
+    const res = await fetch('/api/ocr-scan', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ image: base64 })
+    })
+    const data = await res.json()
+    if (data.text) {
+      const parsed = data.text.split('\n').map((s: string) => s.trim()).filter((s: string) => s.length > 0)
+      setSentences(parsed)
+      setPhase('ready')
     }
-    reader.readAsDataURL(file)
+    setScanning(false)
+  }
+
+  const handleWriteOCR = async (file: File) => {
+    setOcrLoading(true)
+    const base64 = await processImage(file)
+    const res = await fetch('/api/ocr', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ image: base64 })
+    })
+    const data = await res.json()
+    if (data.text) {
+      setOcrRaw(data.text)
+      setCorrectedText(data.text)
+      setPhase('review')
+    }
+    setOcrLoading(false)
   }
 
   const speakWithPauses = async (text: string, onDone: () => void) => {
     setSpeaking(true)
     lastSentence.current = text
     const voice = profile?.preferred_voice || 'kalina'
-    
     const res = await fetch('/api/tts-azure', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ text, voice, speed: speedRef.current })
     })
     const data = await res.json()
-    
     if (data.audio) {
       const audio = new Audio(`data:audio/mpeg;base64,${data.audio}`)
       currentAudio.current = audio
       audio.onended = () => {
         setSpeaking(false)
         currentAudio.current = null
-        // Пауза след изречение — по-дълга като в нормалната диктовка
-        setPausing(true)
-        setPauseProgress(0)
+        setPausing(true); setPauseProgress(0)
         let step = 0
         const steps = 50
         const pauseMs = Math.max(3000, Math.round((text.length / (1.4 / speedRef.current)) * 1000))
-        const stepMs = pauseMs / steps
         progressTimer.current = setInterval(() => {
           step++
           setPauseProgress(Math.round((step / steps) * 100))
           if (step >= steps) {
             clearInterval(progressTimer.current!)
-            setPausing(false)
-            setPauseProgress(0)
+            setPausing(false); setPauseProgress(0)
             onDone()
           }
-        }, stepMs)
+        }, pauseMs / steps)
       }
       audio.play()
-    } else {
-      setSpeaking(false)
-      onDone()
-    }
+    } else { setSpeaking(false); onDone() }
   }
 
   const readAll = (index: number) => {
-    if (index >= sentences.length) {
-      setPhase('done')
-      return
-    }
+    if (index >= sentences.length) { setPhase('ocr'); return }
     setPhase('play')
     setSentenceIndex(index)
     speakWithPauses(sentences[index], () => readAll(index + 1))
   }
 
+  const checkSentence = (original: string, userInput: string): WordResult[] => {
+    const normalize = (s: string) => s.trim().toLowerCase().replace(/[.,!?;:»«–]/g, '')
+    const originalWords = original.trim().split(/\s+/)
+    const inputWords = userInput.trim().split(/\s+/)
+    return originalWords.map((word, i) => ({
+      word, input: inputWords[i] || '',
+      correct: normalize(word) === normalize(inputWords[i] || '')
+    }))
+  }
+
+  const handleSubmit = async () => {
+    if (!profile) return
+    const inputSentences = correctedText.trim().split('\n').filter(s => s.trim())
+    const newResults: SentenceResult[] = sentences.map((s, i) => {
+      const userInput = inputSentences[i] || ''
+      const wordResults = checkSentence(s, userInput)
+      return { sentence: s, input: userInput, wordResults, correct: wordResults.every(r => r.correct) }
+    })
+    const score = newResults.filter(r => r.correct).length
+    const childCorrected = correctedText !== ocrRaw
+
+    await supabase.from('dictation_sessions').insert({
+      profile_id: profile.id,
+      dictation_id: null,
+      dictation_title: 'Снимана диктовка',
+      score,
+      total: sentences.length,
+      time_seconds: 0,
+      results: newResults,
+      is_scan: true,
+      ocr_raw: ocrRaw,
+      child_correction: childCorrected ? correctedText : null,
+    })
+
+    setResults(newResults)
+    setPhase('done')
+    if (profile.is_premium) fetchExplanations(newResults)
+  }
+
+  const fetchExplanations = async (newResults: SentenceResult[]) => {
+    const newExplanations: Record<number, string> = {}
+    await Promise.all(newResults.map(async (r, i) => {
+      if (!r.correct) {
+        const wrongWords = r.wordResults.filter(w => !w.correct).map(w => w.word)
+        try {
+          const res = await fetch('/api/explain', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ sentence: r.sentence, userInput: r.input, wrongWords })
+          })
+          const data = await res.json()
+          if (data.explanation) newExplanations[i] = data.explanation
+        } catch { }
+      }
+    }))
+    setExplanations(newExplanations)
+    const updatedResults = newResults.map((r, i) => ({ ...r, explanation: newExplanations[i] || null }))
+    const lastSession = await supabase.from('dictation_sessions').select('id').eq('profile_id', profile?.id || '').order('created_at', { ascending: false }).limit(1).single()
+    if (lastSession.data) {
+      await supabase.from('dictation_sessions').update({ results: updatedResults }).eq('id', lastSession.data.id)
+    }
+  }
+
+  // SCAN
   if (phase === 'scan') return (
     <main className="u4a-dash min-h-screen flex flex-col items-center justify-center p-6">
       <div className="u4a-dash-overlay"></div>
-      <div className="w-full max-w-md text-center">
+      <div className="w-full max-w-md text-center" style={{ position: 'relative', zIndex: 1 }}>
         <Fox mood="happy" size={140} />
         <h1 className="text-2xl font-bold text-gray-700 mt-6 mb-2">Снимай текста</h1>
-        <p className="text-gray-500 mb-2">Снимай страница от учебника и лисицата ще я прочете!</p>
-        <div className="bg-yellow-50 border border-yellow-200 rounded-2xl p-4 mb-6 text-left">
-          <p className="text-yellow-700 text-sm font-bold mb-1">💡 Съвет за по-добро разпознаване:</p>
-          <p className="text-yellow-600 text-sm">Снимай на добро осветление — така лисицата ще прочете текста по-точно!</p>
-        </div>
+        <p className="text-gray-500 mb-4">Снимай страница от учебника и лисицата ще я прочете!</p>
         <input ref={fileInputRef} type="file" accept="image/*" capture="environment" className="hidden"
           onChange={e => { if (e.target.files?.[0]) { handleScan(e.target.files[0]); e.target.value = '' } }} />
-        <button onClick={requestCameraAndOpen} disabled={scanning}
-          className="w-full bg-orange-500 text-white font-bold py-4 rounded-2xl hover:bg-orange-600 transition-colors disabled:opacity-50 text-lg mb-3">
-          {scanning ? '📷 Разпознавам...' : '📷 Снимай или качи'}
+        <button onClick={() => fileInputRef.current?.click()} disabled={scanning}
+          className="w-full bg-orange-500 text-white font-bold py-4 rounded-2xl hover:bg-orange-600 disabled:opacity-50 text-lg mb-3">
+          {scanning ? '📷 Разпознавам...' : '📷 Снимай учебника'}
         </button>
-        <button onClick={() => {
-          if (currentAudio.current) { currentAudio.current.pause(); currentAudio.current = null }
-          clearInterval(progressTimer.current!)
-          router.push('/dictation')
-        }} className="w-full bg-white text-orange-500 border-2 border-orange-300 font-bold py-3 rounded-2xl hover:bg-orange-50 transition-colors">
+        <button onClick={() => router.push('/dashboard')}
+          className="w-full bg-white text-orange-500 border-2 border-orange-300 font-bold py-3 rounded-2xl">
           ← Назад
         </button>
       </div>
     </main>
   )
 
+  // READY
   if (phase === 'ready') return (
     <main className="u4a-dash min-h-screen flex flex-col items-center justify-center p-6">
       <div className="u4a-dash-overlay"></div>
-      <div className="w-full max-w-md text-center">
+      <div className="w-full max-w-md text-center" style={{ position: 'relative', zIndex: 1 }}>
         <Fox mood="excited" size={140} />
         <h1 className="text-2xl font-bold text-gray-700 mt-6 mb-2">Готово!</h1>
         <p className="text-gray-500 mb-4">Разпознах {sentences.length} изречения. Вземи молив и хартия!</p>
-        <div className="bg-white rounded-2xl p-4 shadow mb-6 text-left">
-          {sentences.map((s, i) => (
-            <p key={i} className="text-gray-600 text-sm mb-1">{i + 1}. {s}</p>
-          ))}
+        <div className="bg-white rounded-2xl p-4 shadow mb-4 text-left">
+          {sentences.map((s, i) => <p key={i} className="text-gray-600 text-sm mb-1">{i + 1}. {s}</p>)}
         </div>
         <div className="grid grid-cols-2 gap-2 mb-4">
           {[{label: '🐢 Бавно', val: 0.7}, {label: '🚶 Нормално', val: 1.0}].map(s => (
             <button key={s.val} onClick={() => { setSpeed(s.val); speedRef.current = s.val }}
-              className={`py-2 rounded-xl font-bold border-2 transition-all text-sm ${speed === s.val ? 'bg-orange-500 text-white border-orange-500' : 'bg-white text-orange-500 border-orange-200'}`}>
+              className={`py-2 rounded-xl font-bold border-2 text-sm ${speed === s.val ? 'bg-orange-500 text-white border-orange-500' : 'bg-white text-orange-500 border-orange-200'}`}>
               {s.label}
             </button>
           ))}
         </div>
         <button onClick={() => { setRepeatsLeft(3); readAll(0) }}
-          className="w-full bg-orange-500 text-white text-xl font-bold py-5 rounded-2xl hover:bg-orange-600 transition-colors shadow-lg">
+          className="w-full bg-orange-500 text-white text-xl font-bold py-5 rounded-2xl hover:bg-orange-600 shadow-lg mb-3">
           Готов съм! ✏️
         </button>
-        <button onClick={() => setPhase('scan')} className="mt-3 text-orange-400">← Снимай отново</button>
+        <button onClick={() => setPhase('scan')} className="text-orange-400">← Снимай отново</button>
       </div>
     </main>
   )
 
+  // PLAY
   if (phase === 'play') return (
     <main className="u4a-dash min-h-screen flex flex-col items-center justify-center p-6">
       <div className="u4a-dash-overlay"></div>
-      <div className="w-full max-w-md text-center">
+      <div className="w-full max-w-md" style={{ position: 'relative', zIndex: 1 }}>
         <div className="w-full bg-orange-100 rounded-full h-3 mb-6">
-          <div className="bg-orange-500 h-3 rounded-full transition-all"
-            style={{ width: `${(sentenceIndex / sentences.length) * 100}%` }} />
+          <div className="bg-orange-500 h-3 rounded-full transition-all" style={{ width: `${(sentenceIndex / sentences.length) * 100}%` }} />
         </div>
-        <Fox mood={speaking ? 'happy' : pausing ? 'writing' : 'happy'} size={140} />
-        <div className="bg-white rounded-3xl p-6 shadow-lg mt-6">
+        <div className="flex justify-center mb-4"><Fox mood={speaking ? 'happy' : 'writing'} size={140} /></div>
+        <div className="bg-white rounded-3xl p-6 shadow-lg mb-4">
           <p className="text-orange-500 font-bold">Изречение {sentenceIndex + 1} от {sentences.length}</p>
           {speaking && <p className="text-orange-500 animate-pulse mt-2">🔊 Лисицата чете...</p>}
           {pausing && (
@@ -211,14 +284,6 @@ export default function ScanDictationPage() {
             </div>
           )}
         </div>
-        <div className="mt-4 grid grid-cols-2 gap-2">
-          {[{label: '🐢 Бавно', val: 0.7}, {label: '🚶 Нормално', val: 1.0}].map(s => (
-            <button key={s.val} onClick={() => { setSpeed(s.val); speedRef.current = s.val }}
-              className={`py-2 rounded-xl font-bold border-2 transition-all text-sm ${speed === s.val ? 'bg-orange-500 text-white border-orange-500' : 'bg-white text-orange-500 border-orange-200'}`}>
-              {s.label}
-            </button>
-          ))}
-        </div>
         <button onClick={() => {
           if (repeatsLeft <= 0) return
           if (currentAudio.current) { currentAudio.current.pause(); currentAudio.current = null }
@@ -227,33 +292,119 @@ export default function ScanDictationPage() {
           setRepeatsLeft(r => r - 1)
           speakWithPauses(lastSentence.current, () => readAll(sentenceIndex + 1))
         }} disabled={repeatsLeft <= 0}
-          className="mt-2 w-full bg-white text-orange-500 border-2 border-orange-300 font-bold py-3 rounded-2xl hover:bg-orange-50 transition-colors disabled:opacity-40">
+          className="w-full bg-white text-orange-500 border-2 border-orange-300 font-bold py-3 rounded-2xl disabled:opacity-40 mb-2">
           🔁 Повтори ({repeatsLeft} пъти)
         </button>
-        <button onClick={() => {
-          if (currentAudio.current) { currentAudio.current.pause(); currentAudio.current = null }
-          clearInterval(progressTimer.current!)
-          setSpeaking(false); setPausing(false)
-          router.push('/dictation')
-        }} className="mt-2 w-full bg-white text-orange-500 border-2 border-orange-300 font-bold py-3 rounded-2xl hover:bg-orange-50 transition-colors">
+        <button onClick={() => { router.push('/dashboard') }}
+          className="w-full bg-white text-orange-500 border-2 border-orange-300 font-bold py-3 rounded-2xl">
           ← Спри диктовката
         </button>
       </div>
     </main>
   )
 
-  return (
+  // OCR на написаното
+  if (phase === 'ocr') return (
     <main className="u4a-dash min-h-screen flex flex-col items-center justify-center p-6">
       <div className="u4a-dash-overlay"></div>
-      <div className="w-full max-w-md text-center">
-        <Fox mood="excited" size={140} />
-        <h1 className="text-2xl font-bold text-gray-700 mt-6 mb-4">Диктовката свърши! 🎉</h1>
-        <p className="text-gray-500 mb-6">Провери написаното си с учителя или родителя.</p>
-        <button onClick={() => router.push('/dashboard')}
-          className="w-full bg-orange-500 text-white font-bold py-4 rounded-2xl hover:bg-orange-600 transition-colors">
-          Към началото 🏠
+      <div className="w-full max-w-md text-center" style={{ position: 'relative', zIndex: 1 }}>
+        <Fox mood="pointing" size={140} />
+        <h2 className="text-2xl font-bold text-gray-700 mt-4 mb-2">Диктовката свърши!</h2>
+        <p className="text-gray-500 mb-6">Снимай написаното на хартия</p>
+        <input ref={ocrFileInputRef} type="file" accept="image/*" capture="environment" className="hidden"
+          onChange={e => { if (e.target.files?.[0]) { handleWriteOCR(e.target.files[0]); e.target.value = '' } }} />
+        <button onClick={() => ocrFileInputRef.current?.click()} disabled={ocrLoading}
+          className="w-full bg-orange-500 text-white font-bold py-4 rounded-2xl hover:bg-orange-600 disabled:opacity-50 text-lg mb-3">
+          {ocrLoading ? '📷 Разпознавам написаното...' : '📷 Снимай написаното'}
+        </button>
+        <p style={{ fontSize: '0.72rem', color: '#92400E', fontStyle: 'italic', marginBottom: 16 }}>
+          💡 u4a.bg ползва AI за разпознаване. Работим всекидневно за подобрението му.
+        </p>
+        <button onClick={() => router.push('/dashboard')} className="text-orange-400">← Към началото</button>
+      </div>
+    </main>
+  )
+
+  // REVIEW — детето вижда разпознатото и може да коригира
+  if (phase === 'review') return (
+    <main className="u4a-dash min-h-screen flex flex-col items-center justify-center p-6">
+      <div className="u4a-dash-overlay"></div>
+      <div className="w-full max-w-lg" style={{ position: 'relative', zIndex: 1 }}>
+        <div className="text-center mb-4">
+          <Fox mood="pointing" size={100} />
+          <h2 className="text-xl font-bold text-gray-700 mt-2">Провери разпознатото</h2>
+          <p className="text-gray-500 text-sm mt-1">Ако лисицата е сбъркала — поправи го</p>
+        </div>
+        <div className="bg-white rounded-2xl p-4 shadow mb-4">
+          <p className="text-xs font-bold text-gray-400 mb-2 uppercase">Оригинален текст</p>
+          {sentences.map((s, i) => <p key={i} className="text-gray-600 text-sm mb-1">{i + 1}. {s}</p>)}
+        </div>
+        <div className="bg-white rounded-2xl p-4 shadow mb-4">
+          <p className="text-xs font-bold text-orange-400 mb-2 uppercase">Разпознато от лисицата</p>
+          <textarea value={correctedText} onChange={e => setCorrectedText(e.target.value)}
+            rows={sentences.length + 2}
+            className="w-full border-2 border-orange-200 rounded-xl p-3 text-sm focus:outline-none focus:border-orange-400 resize-none" />
+        </div>
+        <p style={{ fontSize: '0.72rem', color: '#92400E', fontStyle: 'italic', marginBottom: 12 }}>
+          💡 u4a.bg ползва AI за разпознаване. Работим всекидневно за подобрението му.
+        </p>
+        <button onClick={handleSubmit} disabled={!correctedText.trim()}
+          className="w-full bg-orange-500 text-white text-xl font-bold py-4 rounded-2xl hover:bg-orange-600 disabled:opacity-40">
+          Провери диктовката ✓
         </button>
       </div>
     </main>
   )
+
+  // DONE
+  if (phase === 'done') {
+    const score = results.filter(r => r.correct).length
+    const percent = sentences.length > 0 ? Math.round((score / sentences.length) * 100) : 0
+    return (
+      <main className="u4a-dash min-h-screen flex flex-col items-center justify-center p-6">
+        <div className="u4a-dash-overlay"></div>
+        <div className="w-full max-w-lg" style={{ position: 'relative', zIndex: 1 }}>
+          <div className="text-center mb-6">
+            <Fox mood={percent >= 80 ? 'excited' : percent >= 50 ? 'wink' : 'sad'} size={128} />
+            <h1 className="text-3xl font-bold text-gray-700 mb-2 mt-4">
+              {percent >= 80 ? '🎉 Браво!' : percent >= 50 ? '👍 Добре!' : '💪 Продължавай!'}
+            </h1>
+            <p className="text-6xl font-bold text-orange-500">{score}/{sentences.length}</p>
+            <p className="text-gray-400">{percent}% верни изречения</p>
+          </div>
+          <div className="bg-white rounded-3xl p-6 shadow-lg mb-6">
+            {results.map((r, i) => (
+              <div key={i} className="py-3 border-b border-gray-100 last:border-0">
+                <div className="flex items-start justify-between gap-2">
+                  <p className="text-gray-500 text-sm flex-1">{r.sentence}</p>
+                  <span className={r.correct ? 'text-green-500 text-xl' : 'text-red-500 text-xl'}>{r.correct ? '✓' : '✗'}</span>
+                </div>
+                {!r.correct && (
+                  <div className="mt-2 flex flex-wrap gap-1">
+                    {r.wordResults.map((wr, j) => (
+                      <span key={j} className={`text-sm px-1 rounded ${wr.correct ? 'text-gray-600' : 'bg-red-100 text-red-600 font-bold'}`}>
+                        {wr.word}
+                      </span>
+                    ))}
+                  </div>
+                )}
+                {explanations[i] && (
+                  <div className="mt-3 bg-orange-50 rounded-xl p-3 border border-orange-200">
+                    <p className="text-xs text-orange-500 font-bold mb-1">🦊 Лисицата обяснява:</p>
+                    <p className="text-sm text-gray-600">{explanations[i]}</p>
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+          <button onClick={() => router.push('/dashboard')}
+            className="w-full bg-orange-500 text-white text-xl font-bold py-4 rounded-2xl hover:bg-orange-600">
+            Към началото 🏠
+          </button>
+        </div>
+      </main>
+    )
+  }
+
+  return null
 }
