@@ -115,7 +115,7 @@ export default function ParentDashboard() {
 
       setChildren(prev => [...prev, childProfile])
       setShowAddChild(false)
-      setChildUsername('')
+      setChildEmail('')
       setChildPassword('')
     } catch (e) {
       setAddError(e instanceof Error ? e.message : 'Грешка')
