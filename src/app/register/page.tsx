@@ -114,8 +114,7 @@ export default function Register() {
             🧒 Аз съм дете
           </button>
           <button onClick={() => { setIsParent(true); setStep(1) }}
-            style={{ width: '100%', background: 'rgba(255,255,255,0.15)', color: 'white', fontFamily: 'Russo One, sans-serif',
-              fontSize: '1.1rem', padding: '16px', borderRadius: 16, border: '2px solid rgba(255,255,255,0.4)', cursor: 'pointer' }}>
+            style={{ width: '100%', background: 'rgba(255,255,255,0.95)', color: '#EA580C', fontFamily: 'Russo One, sans-serif', fontSize: '1.1rem', padding: '16px', borderRadius: 16, border: 'none', cursor: 'pointer' }}>
             👨‍👩‍👧 Аз съм родител
           </button>
         </div>
@@ -130,8 +129,10 @@ export default function Register() {
     <div className="u4a-dash">
       <div className="u4a-dash-overlay" />
       <div className="reg-page">
-        <div className="reg-card">
-          <h2 style={{ color: 'white', fontFamily: 'Russo One, sans-serif', textAlign: 'center', marginBottom: 20 }}>👨‍👩‍👧 Родителски профил</h2>
+        <div className="reg-card" style={{ textAlign: 'center' }}>
+          <img src="/fox-logo.png" alt="" style={{ width: 90, marginBottom: 12 }} />
+          <h2 style={{ color: 'white', fontFamily: 'Russo One, sans-serif', textAlign: 'center', marginBottom: 6 }}>👨‍👩‍👧 Родителски профил</h2>
+          <p style={{ color: '#FED7AA', fontSize: '0.85rem', marginBottom: 20 }}>Създай акаунт за да следиш напредъка на детето си</p>
           <input className="reg-input" type="text" placeholder="Вашето име" value={username} onChange={e => setUsername(e.target.value)} />
           <input className="reg-input" type="email" placeholder="Имейл адрес" value={email} onChange={e => setEmail(e.target.value)} />
           <input className="reg-input" type="password" placeholder="Парола" value={password} onChange={e => setPassword(e.target.value)} />
