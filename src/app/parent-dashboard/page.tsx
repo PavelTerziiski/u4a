@@ -233,7 +233,7 @@ export default function ParentDashboard() {
               {sessions.map((s, i) => {
                 const percent = Math.round((s.score / s.total) * 100)
                 const medal = percent >= 90 ? '🥇' : percent >= 70 ? '🥈' : percent >= 50 ? '🥉' : '💪'
-                const wrongResults = (s.results || []).filter((r: any) => !r.correct)
+                const wrongResults = (s.results || []).filter((r: SentenceResult) => !r.correct)
                 return (
                   <div key={s.id} style={{ borderBottom: i < sessions.length - 1 ? '1px solid #FED7AA' : 'none', paddingBottom: 16, marginBottom: 16 }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
@@ -250,7 +250,7 @@ export default function ParentDashboard() {
                     {/* Грешките с обяснения на лисицата */}
                     {wrongResults.length > 0 && (
                       <div style={{ background: '#FFFBF5', borderRadius: 12, padding: 12 }}>
-                        {wrongResults.map((r: any, j: number) => (
+                        {wrongResults.map((r: SentenceResult, j: number) => (
                           <div key={j} style={{ marginBottom: j < wrongResults.length - 1 ? 12 : 0 }}>
                             <div style={{ fontFamily: 'Nunito, sans-serif', fontSize: '0.85rem', color: '#92400E', marginBottom: 4 }}>
                               ✗ <span style={{ color: '#aaa' }}>{r.sentence}</span>
