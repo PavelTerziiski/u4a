@@ -12,7 +12,7 @@ type SentenceResult = { sentence: string; input: string; wordResults: WordResult
 
 export default function ScanDictationPage() {
   const router = useRouter()
-  const [phase, setPhase] = useState<'scan' | 'ready' | 'play' | 'ocr' | 'review' | 'done'>('scan')
+  const [phase, setPhase] = useState<'scan' | 'crop' | 'ready' | 'play' | 'ocr' | 'review' | 'done'>('scan')
   const [profile, setProfile] = useState<Profile | null>(null)
   const [scanning, setScanning] = useState(false)
   const [sentences, setSentences] = useState<string[]>([])
@@ -28,6 +28,13 @@ export default function ScanDictationPage() {
   const [results, setResults] = useState<SentenceResult[]>([])
   const [explanations, setExplanations] = useState<Record<number, string>>({})
   const lastSentence = useRef<string>('')
+  const [cropImageSrc, setCropImageSrc] = useState<string | null>(null)
+  const [cropFile, setCropFile] = useState<File | null>(null)
+  const cropCanvasRef = useRef<HTMLCanvasElement>(null)
+  const cropContainerRef = useRef<HTMLDivElement>(null)
+  const [cropRect, setCropRect] = useState({ x: 0.05, y: 0.05, w: 0.9, h: 0.9 })
+  const dragging = useRef<null | string>(null)
+  const dragStart = useRef({ mx: 0, my: 0, rx: 0, ry: 0, rw: 0, rh: 0 })
   const speedRef = useRef(1.0)
   const fileInputRef = useRef<HTMLInputElement>(null)
   const ocrFileInputRef = useRef<HTMLInputElement>(null)
@@ -213,6 +220,128 @@ export default function ScanDictationPage() {
     }
   }
 
+  // CROP
+  const handleCropAndScan = async () => {
+    if (!cropFile || !cropImageSrc) return
+    setScanning(true)
+    setPhase('scan')
+    const img = new Image()
+    img.onload = async () => {
+      const canvas = document.createElement('canvas')
+      const cw = Math.round(img.width * cropRect.w)
+      const ch = Math.round(img.height * cropRect.h)
+      const cx = Math.round(img.width * cropRect.x)
+      const cy = Math.round(img.height * cropRect.y)
+      const maxSize = 1200
+      let w = cw, h = ch
+      if (w > maxSize || h > maxSize) {
+        if (w > h) { h = Math.round(h * maxSize / w); w = maxSize }
+        else { w = Math.round(w * maxSize / h); h = maxSize }
+      }
+      canvas.width = w; canvas.height = h
+      canvas.getContext('2d')!.drawImage(img, cx, cy, cw, ch, 0, 0, w, h)
+      const base64 = canvas.toDataURL('image/jpeg', 0.85).split(',')[1]
+      const res = await fetch('/api/ocr-scan', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ image: base64 })
+      })
+      const data = await res.json()
+      if (data.text) {
+        const parsed = data.text.split('\n').map((s: string) => s.trim()).filter((s: string) => s.length > 0)
+        setSentences(parsed)
+        setPhase('ready')
+      }
+      setScanning(false)
+    }
+    img.src = cropImageSrc
+  }
+
+  const handleCropPointerDown = (e: React.PointerEvent, handle: string) => {
+    e.preventDefault()
+    dragging.current = handle
+    const el = cropContainerRef.current!
+    const rect = el.getBoundingClientRect()
+    dragStart.current = {
+      mx: (e.clientX - rect.left) / rect.width,
+      my: (e.clientY - rect.top) / rect.height,
+      rx: cropRect.x, ry: cropRect.y, rw: cropRect.w, rh: cropRect.h
+    }
+  }
+
+  const handleCropPointerMove = (e: React.PointerEvent) => {
+    if (!dragging.current) return
+    const el = cropContainerRef.current!
+    const rect = el.getBoundingClientRect()
+    const mx = (e.clientX - rect.left) / rect.width
+    const my = (e.clientY - rect.top) / rect.height
+    const dx = mx - dragStart.current.mx
+    const dy = my - dragStart.current.my
+    const { rx, ry, rw, rh } = dragStart.current
+    let nx = rx, ny = ry, nw = rw, nh = rh
+    const min = 0.1
+    if (dragging.current === 'move') {
+      nx = Math.max(0, Math.min(1 - rw, rx + dx))
+      ny = Math.max(0, Math.min(1 - rh, ry + dy))
+    } else {
+      if (dragging.current.includes('e')) nw = Math.max(min, Math.min(1 - rx, rw + dx))
+      if (dragging.current.includes('s')) nh = Math.max(min, Math.min(1 - ry, rh + dy))
+      if (dragging.current.includes('w')) { const d = Math.min(dx, rw - min); nx = rx + d; nw = rw - d }
+      if (dragging.current.includes('n')) { const d = Math.min(dy, rh - min); ny = ry + d; nh = rh - d }
+    }
+    setCropRect({ x: nx, y: ny, w: nw, h: nh })
+  }
+
+  if (phase === 'crop' && cropImageSrc) return (
+    <main className="u4a-dash min-h-screen flex flex-col items-center justify-center p-4">
+      <div className="u4a-dash-overlay"></div>
+      <div className="w-full max-w-md" style={{ position: 'relative', zIndex: 1 }}>
+        <h1 className="text-xl font-bold text-gray-700 text-center mb-3">Избери текста</h1>
+        <p className="text-gray-500 text-sm text-center mb-3">Дръпни ъглите за да изрежеш само текста</p>
+        <div
+          ref={cropContainerRef}
+          onPointerMove={handleCropPointerMove}
+          onPointerUp={() => { dragging.current = null }}
+          onPointerLeave={() => { dragging.current = null }}
+          style={{ position: 'relative', width: '100%', touchAction: 'none', borderRadius: 12, overflow: 'hidden', boxShadow: '0 4px 20px rgba(0,0,0,0.2)' }}
+        >
+          <img src={cropImageSrc} style={{ width: '100%', display: 'block' }} />
+          {/* Затъмнение около кропа */}
+          <div style={{ position: 'absolute', inset: 0, pointerEvents: 'none' }}>
+            <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: `${cropRect.y * 100}%`, background: 'rgba(0,0,0,0.5)' }} />
+            <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: `${(1 - cropRect.y - cropRect.h) * 100}%`, background: 'rgba(0,0,0,0.5)' }} />
+            <div style={{ position: 'absolute', top: `${cropRect.y * 100}%`, left: 0, width: `${cropRect.x * 100}%`, height: `${cropRect.h * 100}%`, background: 'rgba(0,0,0,0.5)' }} />
+            <div style={{ position: 'absolute', top: `${cropRect.y * 100}%`, right: 0, width: `${(1 - cropRect.x - cropRect.w) * 100}%`, height: `${cropRect.h * 100}%`, background: 'rgba(0,0,0,0.5)' }} />
+          </div>
+          {/* Рамката */}
+          <div
+            onPointerDown={e => handleCropPointerDown(e, 'move')}
+            style={{ position: 'absolute', left: `${cropRect.x * 100}%`, top: `${cropRect.y * 100}%`, width: `${cropRect.w * 100}%`, height: `${cropRect.h * 100}%`, border: '2px solid #F97316', boxSizing: 'border-box', cursor: 'move' }}
+          >
+            {/* Ъглови handles */}
+            {[['nw','0%','0%'],['ne','0%','100%'],['sw','100%','0%'],['se','100%','100%']].map(([dir, top, left]) => (
+              <div key={dir} onPointerDown={e => { e.stopPropagation(); handleCropPointerDown(e, dir) }}
+                style={{ position: 'absolute', top, left, width: 22, height: 22, background: '#F97316', borderRadius: 4, transform: 'translate(-50%,-50%)', cursor: 'pointer', zIndex: 10 }} />
+            ))}
+            {/* Средни handles */}
+            {[['n','0%','50%'],['s','100%','50%'],['w','50%','0%'],['e','50%','100%']].map(([dir, top, left]) => (
+              <div key={dir} onPointerDown={e => { e.stopPropagation(); handleCropPointerDown(e, dir) }}
+                style={{ position: 'absolute', top, left, width: 18, height: 18, background: 'white', border: '2px solid #F97316', borderRadius: '50%', transform: 'translate(-50%,-50%)', cursor: 'pointer', zIndex: 10 }} />
+            ))}
+          </div>
+        </div>
+        <button onClick={handleCropAndScan}
+          className="w-full bg-orange-500 text-white font-bold py-4 rounded-2xl text-lg mt-4 mb-2">
+          ✂️ Изрежи и разпознай
+        </button>
+        <button onClick={() => setPhase('scan')}
+          className="w-full bg-white text-orange-500 border-2 border-orange-300 font-bold py-3 rounded-2xl">
+          ← Снимай отново
+        </button>
+      </div>
+    </main>
+  )
+
   // SCAN
   if (phase === 'scan') return (
     <main className="u4a-dash min-h-screen flex flex-col items-center justify-center p-6">
@@ -223,7 +352,7 @@ export default function ScanDictationPage() {
         <p className="text-gray-500 mb-2">Снимай страница от учебника и лисицата ще я прочете!</p>
         <p style={{ fontSize: "0.8rem", color: "#92400E", fontStyle: "italic", marginBottom: 16 }}>💡 Снимай на добро осветление и дръж камерата право над текста за по-точно разпознаване.</p>
         <input ref={fileInputRef} type="file" accept="image/*" capture="environment" className="hidden"
-          onChange={e => { if (e.target.files?.[0]) { handleScan(e.target.files[0]); e.target.value = '' } }} />
+          onChange={e => { if (e.target.files?.[0]) { const f = e.target.files[0]; setCropFile(f); const url = URL.createObjectURL(f); setCropImageSrc(url); setCropRect({ x: 0.05, y: 0.05, w: 0.9, h: 0.9 }); setPhase('crop'); e.target.value = '' } }} />
         <button onClick={() => fileInputRef.current?.click()} disabled={scanning}
           className="w-full bg-orange-500 text-white font-bold py-4 rounded-2xl hover:bg-orange-600 disabled:opacity-50 text-lg mb-3">
           {scanning ? '📷 Разпознавам...' : '📷 Снимай учебника'}
