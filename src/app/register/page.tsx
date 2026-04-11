@@ -30,6 +30,7 @@ export default function Register() {
   const [avatarId, setAvatarId] = useState<number | null>(null)
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
+  const [isParent, setIsParent] = useState<boolean | null>(null)
 
   const handleRegister = async () => {
     setLoading(true)
@@ -64,6 +65,89 @@ export default function Register() {
       setLoading(false)
     }
   }
+
+
+  const handleParentRegister = async () => {
+    setLoading(true)
+    setError('')
+    try {
+      const { data: authData, error: authError } = await supabase.auth.signUp({
+        email: email.toLowerCase().trim(),
+        password,
+      })
+      if (authError) throw authError
+      if (!authData.user) throw new Error('Грешка при създаване на профил')
+      const { error: profileError } = await supabase.from('profiles').insert({
+        id: authData.user.id,
+        username,
+        email: email.toLowerCase().trim(),
+        fox_name: 'Бухал',
+        grade: 0,
+        avatar_id: 3,
+        display_name: username,
+        is_parent: true,
+        parent_plan: 'premium',
+      })
+      if (profileError) throw profileError
+      localStorage.setItem('u4a_username', username)
+      localStorage.setItem('u4a_is_parent', 'true')
+      router.push('/parent-dashboard')
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'Грешка при регистрация')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+
+  if (isParent === null) return (
+    <div className="u4a-dash">
+      <div className="u4a-dash-overlay" />
+      <div className="reg-page">
+        <div className="reg-card" style={{ textAlign: 'center' }}>
+          <img src="/fox-logo.png" alt="" style={{ width: 100, marginBottom: 16 }} />
+          <h2 style={{ color: 'white', fontFamily: 'Russo One, sans-serif', marginBottom: 8 }}>Добре дошъл в гората!</h2>
+          <p style={{ color: '#FED7AA', marginBottom: 24, fontSize: '0.9rem' }}>Кой създава профил?</p>
+          <button onClick={() => { setIsParent(false); setStep(1) }}
+            style={{ width: '100%', background: 'white', color: '#EA580C', fontFamily: 'Russo One, sans-serif',
+              fontSize: '1.1rem', padding: '16px', borderRadius: 16, border: 'none', cursor: 'pointer', marginBottom: 12 }}>
+            🧒 Аз съм дете
+          </button>
+          <button onClick={() => { setIsParent(true); setStep(1) }}
+            style={{ width: '100%', background: 'rgba(255,255,255,0.15)', color: 'white', fontFamily: 'Russo One, sans-serif',
+              fontSize: '1.1rem', padding: '16px', borderRadius: 16, border: '2px solid rgba(255,255,255,0.4)', cursor: 'pointer' }}>
+            👨‍👩‍👧 Аз съм родител
+          </button>
+        </div>
+        <button onClick={() => router.push('/login')} style={{ marginTop: 16, color: '#EA580C', background: 'none', border: 'none', cursor: 'pointer' }}>
+          ← Назад към вход
+        </button>
+      </div>
+    </div>
+  )
+
+  if (isParent === true && step === 1) return (
+    <div className="u4a-dash">
+      <div className="u4a-dash-overlay" />
+      <div className="reg-page">
+        <div className="reg-card">
+          <h2 style={{ color: 'white', fontFamily: 'Russo One, sans-serif', textAlign: 'center', marginBottom: 20 }}>👨‍👩‍👧 Родителски профил</h2>
+          <input className="reg-input" type="text" placeholder="Вашето име" value={username} onChange={e => setUsername(e.target.value)} />
+          <input className="reg-input" type="email" placeholder="Имейл адрес" value={email} onChange={e => setEmail(e.target.value)} />
+          <input className="reg-input" type="password" placeholder="Парола" value={password} onChange={e => setPassword(e.target.value)} />
+          {error && <div style={{ background: '#FEE2E2', color: '#DC2626', borderRadius: 10, padding: '10px 14px', marginBottom: 12, fontSize: '0.9rem' }}>{error}</div>}
+          <button onClick={handleParentRegister} disabled={loading || !username || !email || !password}
+            style={{ width: '100%', background: loading ? '#aaa' : 'white', color: '#EA580C', fontFamily: 'Russo One, sans-serif',
+              fontSize: '1.1rem', padding: '16px', borderRadius: 16, border: 'none', cursor: 'pointer', marginTop: 8 }}>
+            {loading ? '⏳ Зареждане...' : '🌿 Влез в гората →'}
+          </button>
+        </div>
+        <button onClick={() => setIsParent(null)} style={{ marginTop: 16, color: '#EA580C', background: 'none', border: 'none', cursor: 'pointer' }}>
+          ← Назад
+        </button>
+      </div>
+    </div>
+  )
 
   return (
     <>
