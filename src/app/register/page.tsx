@@ -36,20 +36,30 @@ export default function Register() {
     setError('')
     const finalFoxName = foxName === 'свое' ? customFoxName : foxName
     try {
-      const { error } = await supabase.from('profiles').insert({
+      // 1. Създаваме Auth потребител
+      const { data: authData, error: authError } = await supabase.auth.signUp({
+        email: email.toLowerCase().trim(),
+        password,
+      })
+      if (authError) throw authError
+      if (!authData.user) throw new Error('Грешка при създаване на профил')
+
+      // 2. Създаваме профил с Auth UID като id
+      const { error: profileError } = await supabase.from('profiles').insert({
+        id: authData.user.id,
         username,
         email: email.toLowerCase().trim(),
-        password_hash: btoa(password),
         fox_name: finalFoxName,
         grade,
         avatar_id: avatarId,
         display_name: username,
       })
-      if (error) throw error
+      if (profileError) throw profileError
+
       localStorage.setItem('u4a_username', username)
       router.push('/dashboard')
     } catch (e) {
-      setError(e instanceof Error ? e.message : 'Грешка')
+      setError(e instanceof Error ? e.message : 'Грешка при регистрация')
     } finally {
       setLoading(false)
     }
