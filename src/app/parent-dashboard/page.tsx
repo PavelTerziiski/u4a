@@ -38,7 +38,7 @@ export default function ParentDashboard() {
   const [selectedChild, setSelectedChild] = useState<Child | null>(null)
   const [sessions, setSessions] = useState<Session[]>([])
   const [showAddChild, setShowAddChild] = useState(false)
-  const [childUsername, setChildUsername] = useState('')
+  const [childEmail, setChildEmail] = useState('')
   const [childPassword, setChildPassword] = useState('')
   const [addError, setAddError] = useState('')
   const [addLoading, setAddLoading] = useState(false)
@@ -178,8 +178,8 @@ export default function ParentDashboard() {
         {showAddChild && (
           <div style={{ background: 'white', borderRadius: 20, padding: 24, marginBottom: 24, border: '2px solid #FED7AA' }}>
             <h3 style={{ fontFamily: 'Russo One, sans-serif', color: '#92400E', marginBottom: 16 }}>🧒 Добави дете</h3>
-            <input value={childUsername} onChange={e => setChildUsername(e.target.value)}
-              placeholder="Потребителско име на детето"
+            <input value={childEmail} onChange={e => setChildEmail(e.target.value)}
+              placeholder="Имейл на детето"
               style={{ width: '100%', padding: '12px 16px', borderRadius: 12, border: '2px solid #FED7AA',
                 fontFamily: 'Nunito, sans-serif', fontWeight: 700, fontSize: '1rem', color: '#92400E',
                 background: '#FFFBF5', outline: 'none', boxSizing: 'border-box', marginBottom: 12 }} />
@@ -190,7 +190,7 @@ export default function ParentDashboard() {
                 background: '#FFFBF5', outline: 'none', boxSizing: 'border-box', marginBottom: 12 }} />
             {addError && <div style={{ background: '#FEE2E2', color: '#DC2626', borderRadius: 10, padding: '10px 14px', marginBottom: 12 }}>{addError}</div>}
             <div style={{ display: 'flex', gap: 8 }}>
-              <button onClick={handleAddChild} disabled={addLoading || !childUsername || !childPassword}
+              <button onClick={handleAddChild} disabled={addLoading || !childEmail || !childPassword}
                 style={{ flex: 1, background: 'linear-gradient(135deg, #F97316, #EA580C)', color: 'white',
                   fontFamily: 'Russo One, sans-serif', padding: '14px', borderRadius: 12, border: 'none', cursor: 'pointer' }}>
                 {addLoading ? '⏳...' : '✓ Добави'}
