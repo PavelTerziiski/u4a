@@ -16,14 +16,18 @@ export default function Login() {
     setLoading(true)
     setError('')
     try {
-      const { data, error } = await supabase
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email: email.toLowerCase().trim(),
+        password
+      })
+      if (error || !data.user) throw new Error('Грешен имейл или парола')
+      const { data: profile } = await supabase
         .from('profiles')
-        .select('*')
-        .eq('email', email.toLowerCase().trim())
-        .eq('password_hash', btoa(password))
+        .select('username')
+        .eq('id', data.user.id)
         .single()
-      if (error || !data) throw new Error('Грешен имейл или парола')
-      localStorage.setItem('u4a_username', data.username)
+      if (!profile) throw new Error('Профилът не е намерен')
+      localStorage.setItem('u4a_username', profile.username)
       router.push('/dashboard')
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Грешка')
@@ -35,7 +39,6 @@ export default function Login() {
   return (
     <div className="u4a-dash" style={{ minHeight: '100vh' }}>
       <div className="u4a-dash-overlay"></div>
-
       <div className="falling-leaf leaf-1"><img src="/leaves/vec_red.png" alt="" /></div>
       <div className="falling-leaf leaf-2"><img src="/leaves/vec_yellow.png" alt="" /></div>
       <div className="falling-leaf leaf-3"><img src="/leaves/vec_green.png" alt="" /></div>
@@ -51,7 +54,7 @@ export default function Login() {
         display: 'flex', flexDirection: 'column', alignItems: 'center',
         justifyContent: 'center', minHeight: '100vh', padding: '24px'
       }}>
-        <img src="/fox-logo.png" style={{ height: 120, objectFit: 'contain', marginBottom: 4 }} alt="u4a" />
+        <img src="/fox-logo.png" style={{ height: 150, objectFit: 'contain', marginBottom: 4 }} alt="u4a" />
         <p style={{
           fontFamily: 'Nunito, sans-serif', fontWeight: 700,
           color: '#92400E', fontSize: '1rem', marginBottom: 28
@@ -112,11 +115,8 @@ export default function Login() {
           </button>
 
           <div style={{
-            textAlign: 'center',
-            fontFamily: 'Nunito, sans-serif',
-            fontSize: '0.72rem',
-            color: '#D97706',
-            lineHeight: 1.6
+            textAlign: 'center', fontFamily: 'Nunito, sans-serif',
+            fontSize: '0.72rem', color: '#D97706', lineHeight: 1.6
           }}>
             🔒 Данните ти са защитени и никога не се споделят с трети страни.
           </div>
