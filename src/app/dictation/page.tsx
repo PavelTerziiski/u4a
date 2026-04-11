@@ -242,6 +242,24 @@ export default function DictationPage() {
     )
     setExplanations(newExplanations)
     setLoadingExplanations(false)
+    // Записваме обясненията в базата
+    const updatedResults = newResults.map((r, i) => ({
+      ...r,
+      explanation: newExplanations[i] || null
+    }))
+    const lastSession = await supabase
+      .from('dictation_sessions')
+      .select('id')
+      .eq('profile_id', profile?.id || '')
+      .order('created_at', { ascending: false })
+      .limit(1)
+      .single()
+    if (lastSession.data) {
+      await supabase
+        .from('dictation_sessions')
+        .update({ results: updatedResults })
+        .eq('id', lastSession.data.id)
+    }
   }
 
   const checkSentence = (original: string, userInput: string): WordResult[] => {
