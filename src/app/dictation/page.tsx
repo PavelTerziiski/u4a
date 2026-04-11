@@ -502,6 +502,7 @@ export default function DictationPage() {
           {profile?.is_premium && (
             <div className="bg-white rounded-2xl p-4 shadow mb-4">
               <p className="text-gray-500 text-sm mb-3">⭐ Premium: Снимай написаното и лисицата ще го прочете!</p>
+              <p style={{ fontSize: '0.75rem', color: '#92400E', fontStyle: 'italic', marginBottom: 8, lineHeight: 1.5 }}>💡 <em>u4a.bg ползва AI за разпознаване на ръкопис. Разпознаването не винаги е точно — работим всекидневно за подобрението му.</em></p>
               <input ref={fileInputRef} type="file" accept="image/*" capture="environment" className="hidden"
                 onChange={e => { if (e.target.files?.[0]) { handleOCR(e.target.files[0]); e.target.value = '' } }} />
               <button onClick={() => fileInputRef.current?.click()} disabled={ocrLoading}
