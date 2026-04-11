@@ -90,7 +90,7 @@ export default function ParentDashboard() {
       const { data: childProfile } = await supabase
         .from('profiles')
         .select('*')
-        .eq('username', childUsername.trim())
+        .eq('email', childEmail.trim())
         .single()
       if (!childProfile) throw new Error('Не намерихме такъв потребител')
       if (childProfile.is_parent) throw new Error('Това е родителски акаунт')
