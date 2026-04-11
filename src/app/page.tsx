@@ -56,7 +56,7 @@ export default function Home() {
 
         <div style={{
           marginTop: 24, fontFamily: 'Nunito, sans-serif',
-          fontSize: '0.72rem', color: '#D97706', textAlign: 'center'
+          fontSize: '0.72rem', color: '#92400E', textAlign: 'center'
         }}>
           🔒 Данните ти са защитени и никога не се споделят с трети страни.
         </div>

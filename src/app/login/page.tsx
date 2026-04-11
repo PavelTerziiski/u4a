@@ -116,7 +116,7 @@ export default function Login() {
 
           <div style={{
             textAlign: 'center', fontFamily: 'Nunito, sans-serif',
-            fontSize: '0.72rem', color: '#D97706', lineHeight: 1.6
+            fontSize: '0.72rem', color: '#92400E', lineHeight: 1.6
           }}>
             🔒 Данните ти са защитени и никога не се споделят с трети страни.
           </div>
