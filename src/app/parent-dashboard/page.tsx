@@ -101,6 +101,7 @@ export default function ParentDashboard() {
       })
       if (authError) throw new Error('Грешна парола')
 
+      if (!parent) throw new Error('Не сте влезли')
       const { error } = await supabase.from('parent_children').insert({
         parent_id: parent.id,
         child_id: childProfile.id,
