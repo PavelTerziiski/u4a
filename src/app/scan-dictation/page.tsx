@@ -30,7 +30,7 @@ export default function ScanDictationPage() {
   const lastSentence = useRef<string>('')
   const [cropImageSrc, setCropImageSrc] = useState<string | null>(null)
   const [cropFile, setCropFile] = useState<File | null>(null)
-  const cropCanvasRef = useRef<HTMLCanvasElement>(null)
+  // cropCanvasRef removed
   const cropContainerRef = useRef<HTMLDivElement>(null)
   const [cropRect, setCropRect] = useState({ x: 0.05, y: 0.05, w: 0.9, h: 0.9 })
   const dragging = useRef<null | string>(null)
@@ -82,22 +82,7 @@ export default function ScanDictationPage() {
     })
   }
 
-  const handleScan = async (file: File) => {
-    setScanning(true)
-    const base64 = await processImage(file)
-    const res = await fetch('/api/ocr-scan', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ image: base64 })
-    })
-    const data = await res.json()
-    if (data.text) {
-      const parsed = data.text.split('\n').map((s: string) => s.trim()).filter((s: string) => s.length > 0)
-      setSentences(parsed)
-      setPhase('ready')
-    }
-    setScanning(false)
-  }
+
 
   const handleWriteOCR = async (file: File) => {
     setOcrLoading(true)
