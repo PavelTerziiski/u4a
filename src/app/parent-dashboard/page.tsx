@@ -89,7 +89,11 @@ export default function ParentDashboard() {
 
   const handleConfirm = async (session: Session) => {
     setConfirmLoading(session.id)
-    await supabase.from('dictation_sessions').update({ parent_confirmed: true }).eq('id', session.id)
+    await fetch('/api/confirm-session', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ sessionId: session.id, parentId: parent?.id })
+    })
     setSessions(prev => prev.map(s => s.id === session.id ? { ...s, parent_confirmed: true } : s))
     setConfirmLoading(null)
   }
@@ -108,11 +112,11 @@ export default function ParentDashboard() {
       return { ...r, input: userInput, wordResults, correct: wordResults.every(w => w.correct) }
     })
     const newScore = newResults.filter(r => r.correct).length
-    await supabase.from('dictation_sessions').update({
-      parent_confirmed: true,
-      parent_corrected_results: newResults,
-      score: newScore
-    }).eq('id', session.id)
+    await fetch('/api/confirm-session', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ sessionId: session.id, parentId: parent?.id, correctedResults: newResults, newScore })
+    })
     setSessions(prev => prev.map(s => s.id === session.id ? { ...s, parent_confirmed: true, parent_corrected_results: newResults, score: newScore } : s))
     setEditSession(null)
   }
