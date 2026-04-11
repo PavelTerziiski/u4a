@@ -318,7 +318,7 @@ export default function ScanDictationPage() {
           {ocrLoading ? '📷 Разпознавам написаното...' : '📷 Снимай написаното'}
         </button>
         <p style={{ fontSize: '0.72rem', color: '#92400E', fontStyle: 'italic', marginBottom: 16 }}>
-          💡 u4a.bg ползва AI за разпознаване. Работим всекидневно за подобрението му.
+          💡 u4a.bg ползва AI за разпознаване. Работим всекидневно за подобрението му. За по-добро разпознаване, пиши през ред.
         </p>
         <button onClick={() => router.push('/dashboard')} className="text-orange-400">← Към началото</button>
       </div>
@@ -346,7 +346,7 @@ export default function ScanDictationPage() {
             className="w-full border-2 border-orange-200 rounded-xl p-3 text-sm focus:outline-none focus:border-orange-400 resize-none" />
         </div>
         <p style={{ fontSize: '0.72rem', color: '#92400E', fontStyle: 'italic', marginBottom: 12 }}>
-          💡 u4a.bg ползва AI за разпознаване. Работим всекидневно за подобрението му.
+          💡 u4a.bg ползва AI за разпознаване. Работим всекидневно за подобрението му. За по-добро разпознаване, пиши през ред.
         </p>
         <button onClick={handleSubmit} disabled={!correctedText.trim()}
           className="w-full bg-orange-500 text-white text-xl font-bold py-4 rounded-2xl hover:bg-orange-600 disabled:opacity-40">
