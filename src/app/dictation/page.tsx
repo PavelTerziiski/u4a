@@ -312,6 +312,12 @@ export default function DictationPage() {
       return { sentence: s.text, input: userInput, wordResults, correct: wordResults.every(r => r.correct) }
     })
     const score = newResults.filter(r => r.correct).length
+    const { data: parentLink } = await supabase
+      .from('parent_children')
+      .select('parent_id')
+      .eq('child_id', profile.id)
+      .single()
+    const autoConfirm = !parentLink
     await supabase.from('dictation_sessions').insert({
       profile_id: profile.id,
       dictation_id: selected.id,
@@ -320,6 +326,7 @@ export default function DictationPage() {
       total: sentences.length,
       time_seconds: 0,
       results: newResults,
+      parent_confirmed: autoConfirm,
     })
     const today = new Date().toISOString().slice(0, 10)
     const lastDate = profile.last_session_date

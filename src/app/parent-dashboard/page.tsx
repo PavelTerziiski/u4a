@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
 import '../dashboard/dashboard.css'
+import ReactMarkdown from 'react-markdown'
 
 type Child = {
   id: string; username: string; display_name: string
@@ -322,7 +323,7 @@ export default function ParentDashboard() {
                                   {r.explanation && (
                                     <div style={{ background: 'linear-gradient(135deg, #F97316, #EA580C)', borderRadius: 10, padding: '8px 12px' }}>
                                       <span style={{ fontSize: '0.75rem', color: 'white', fontFamily: F.nunito, fontWeight: 700 }}>
-                                        🦊 {r.explanation}
+                                        🦊 <ReactMarkdown>{r.explanation}</ReactMarkdown>
                                       </span>
                                     </div>
                                   )}
