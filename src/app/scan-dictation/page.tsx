@@ -221,7 +221,7 @@ export default function ScanDictationPage() {
         <Fox mood="happy" size={140} />
         <h1 className="text-2xl font-bold text-gray-700 mt-6 mb-2">Снимай текста</h1>
         <p className="text-gray-500 mb-2">Снимай страница от учебника и лисицата ще я прочете!</p>
-        <p style={{ fontSize: "0.8rem", color: "#92400E", fontStyle: "italic", marginBottom: 16 }}>💡 Снимай на добро осветление и държи камерата право над текста за по-точно разпознаване.</p>
+        <p style={{ fontSize: "0.8rem", color: "#92400E", fontStyle: "italic", marginBottom: 16 }}>💡 Снимай на добро осветление и дръж камерата право над текста за по-точно разпознаване.</p>
         <input ref={fileInputRef} type="file" accept="image/*" capture="environment" className="hidden"
           onChange={e => { if (e.target.files?.[0]) { handleScan(e.target.files[0]); e.target.value = '' } }} />
         <button onClick={() => fileInputRef.current?.click()} disabled={scanning}
