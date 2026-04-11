@@ -128,7 +128,8 @@ export default function Register() {
           outline: none;
           transition: border-color 0.2s;
           box-sizing: border-box;
-          color: white;
+          color: #92400E;
+          background: #FFFBF5;
         }
 
         .reg-input:focus { border-color: #F97316; }
