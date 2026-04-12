@@ -31,6 +31,7 @@ export default function DictationPage() {
   const [fullInput, setFullInput] = useState('')
   const [results, setResults] = useState<SentenceResult[]>([])
   const [selfReview, setSelfReview] = useState(false)
+  const [currentSessionId, setCurrentSessionId] = useState<string | null>(null)
   const [selfEdits, setSelfEdits] = useState<Record<number, string>>({})
   const [hasParent, setHasParent] = useState<boolean | null>(null)
   const [speed, setSpeed] = useState(1.0)
@@ -324,7 +325,7 @@ export default function DictationPage() {
       .eq('child_id', profile.id)
       .single()
     const autoConfirm = !parentLink
-    await supabase.from('dictation_sessions').insert({
+    const { data: sessionData } = await supabase.from('dictation_sessions').insert({
       profile_id: profile.id,
       dictation_id: selected.id,
       dictation_title: selected.title,
@@ -333,7 +334,8 @@ export default function DictationPage() {
       time_seconds: 0,
       results: newResults,
       parent_confirmed: autoConfirm,
-    })
+    }).select('id').single()
+    if (sessionData) setCurrentSessionId(sessionData.id)
     const today = new Date().toISOString().slice(0, 10)
     const lastDate = profile.last_session_date
     const yesterday = new Date(Date.now() - 86400000).toISOString().slice(0, 10)
@@ -626,9 +628,8 @@ export default function DictationPage() {
                 })
                 setResults(updatedResults as SentenceResult[])
                 setSelfReview(false)
-                const lastSession = await supabase.from('dictation_sessions').select('id').eq('profile_id', profile?.id || '').order('created_at', { ascending: false }).limit(1).single()
-                if (lastSession.data) {
-                  await supabase.from('dictation_sessions').update({ results: updatedResults, ...(hasParent ? {} : { parent_confirmed: true }) }).eq('id', lastSession.data.id)
+                if (currentSessionId) {
+                  await supabase.from('dictation_sessions').update({ results: updatedResults, ...(hasParent ? {} : { parent_confirmed: true }) }).eq('id', currentSessionId)
                 }
               }}
                 className="w-full bg-orange-500 text-white font-bold py-3 rounded-2xl hover:bg-orange-600">
