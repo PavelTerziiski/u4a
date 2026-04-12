@@ -332,7 +332,7 @@ export default function DictationPage() {
       results: newResults,
       parent_confirmed: autoConfirm,
     }).select('id').single()
-    setCurrentSessionId(newSessionId)
+
     const today = new Date().toISOString().slice(0, 10)
     const lastDate = profile.last_session_date
     const yesterday = new Date(Date.now() - 86400000).toISOString().slice(0, 10)
