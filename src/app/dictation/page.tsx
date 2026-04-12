@@ -31,6 +31,7 @@ export default function DictationPage() {
   const [fullInput, setFullInput] = useState('')
   const [results, setResults] = useState<SentenceResult[]>([])
   const [selfReview, setSelfReview] = useState(false)
+  const [savedOk, setSavedOk] = useState(false)
   const [currentSessionId, setCurrentSessionId] = useState<string | null>(null)
   const [selfEdits, setSelfEdits] = useState<Record<number, string>>({})
   const [hasParent, setHasParent] = useState<boolean | null>(null)
@@ -599,6 +600,11 @@ export default function DictationPage() {
               </div>
             ))}
           </div>
+          {savedOk && (
+            <div className="bg-green-50 border border-green-200 rounded-2xl p-4 mb-3 text-center">
+              <p className="text-green-600 font-bold">✓ Корекциите са запазени!</p>
+            </div>
+          )}
           {!selfReview && (
             <button onClick={() => { setSelfReview(true); const edits: Record<number, string> = {}; results.forEach((r, i) => { if (!r.correct) edits[i] = r.input }); setSelfEdits(edits) }}
               className="w-full bg-white text-orange-500 border-2 border-orange-400 text-lg font-bold py-4 rounded-2xl mb-3 hover:bg-orange-50 transition-colors">
@@ -633,6 +639,7 @@ export default function DictationPage() {
                 if (currentSessionId) {
                   const { error } = await supabase.from('dictation_sessions').update({ results: updatedResults, ...(hasParent ? {} : { parent_confirmed: true }) }).eq('id', currentSessionId)
                   console.log('update error:', error)
+                  if (!error) setSavedOk(true)
                 } else {
                   console.log('NO SESSION ID!')
                 }
