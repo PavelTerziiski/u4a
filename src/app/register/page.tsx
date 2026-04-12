@@ -45,17 +45,21 @@ export default function Register() {
       if (authError) throw authError
       if (!authData.user) throw new Error('Грешка при създаване на профил')
 
-      // 2. Създаваме профил с Auth UID като id
-      const { error: profileError } = await supabase.from('profiles').insert({
-        id: authData.user.id,
-        username,
-        email: email.toLowerCase().trim(),
-        fox_name: finalFoxName,
-        grade,
-        avatar_id: avatarId,
-        display_name: username,
+      // 2. Създаваме профил през API route (service role)
+      const profileRes = await fetch('/api/register', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          id: authData.user.id,
+          username,
+          email: email.toLowerCase().trim(),
+          fox_name: finalFoxName,
+          grade,
+          avatar_id: avatarId,
+          display_name: username,
+        })
       })
-      if (profileError) throw profileError
+      if (!profileRes.ok) { const d = await profileRes.json(); throw new Error(d.error || 'Грешка при създаване на профил') }
 
       localStorage.setItem('u4a_username', username)
       router.push('/dashboard')
@@ -77,18 +81,22 @@ export default function Register() {
       })
       if (authError) throw authError
       if (!authData.user) throw new Error('Грешка при създаване на профил')
-      const { error: profileError } = await supabase.from('profiles').insert({
-        id: authData.user.id,
-        username,
-        email: email.toLowerCase().trim(),
-        fox_name: 'Бухал',
-        grade: 0,
-        avatar_id: 3,
-        display_name: username,
-        is_parent: true,
-        parent_plan: 'premium',
+      const profileRes = await fetch('/api/register', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          id: authData.user.id,
+          username,
+          email: email.toLowerCase().trim(),
+          fox_name: 'Бухал',
+          grade: 0,
+          avatar_id: 3,
+          display_name: username,
+          is_parent: true,
+          parent_plan: 'premium',
+        })
       })
-      if (profileError) throw profileError
+      if (!profileRes.ok) { const d = await profileRes.json(); throw new Error(d.error || 'Грешка при създаване на профил') }
       localStorage.setItem('u4a_username', username)
       localStorage.setItem('u4a_is_parent', 'true')
       router.push('/parent-dashboard')
