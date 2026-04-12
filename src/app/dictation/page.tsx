@@ -30,10 +30,7 @@ export default function DictationPage() {
   const [foxMood, setFoxMood] = useState<FoxMood>('happy')
   const [fullInput, setFullInput] = useState('')
   const [results, setResults] = useState<SentenceResult[]>([])
-  const [selfReview, setSelfReview] = useState(false)
-  const [savedOk, setSavedOk] = useState(false)
   const [currentSessionId, setCurrentSessionId] = useState<string | null>(null)
-  const [selfEdits, setSelfEdits] = useState<Record<number, string>>({})
   const [hasParent, setHasParent] = useState<boolean | null>(null)
   const [speed, setSpeed] = useState(1.0)
   const [weeklyCount, setWeeklyCount] = useState(0)
@@ -600,53 +597,7 @@ export default function DictationPage() {
               </div>
             ))}
           </div>
-          {savedOk && (
-            <div className="bg-green-50 border border-green-200 rounded-2xl p-4 mb-3 text-center">
-              <p className="text-green-600 font-bold">✓ Корекциите са запазени!</p>
-            </div>
-          )}
-          {!selfReview && (
-            <button onClick={() => { setSelfReview(true); setSavedOk(false); const edits: Record<number, string> = {}; results.forEach((r, i) => { if (!r.correct) edits[i] = r.input }); setSelfEdits(edits) }}
-              className="w-full bg-white text-orange-500 border-2 border-orange-400 text-lg font-bold py-4 rounded-2xl mb-3 hover:bg-orange-50 transition-colors">
-              ✏️ Провери сам
-            </button>
-          )}
-          {selfReview && (
-            <div className="bg-white rounded-3xl p-6 shadow-lg mb-4">
-              <p className="text-gray-600 font-bold mb-4 text-center">Поправи грешните изречения:</p>
-              {results.map((r, i) => !r.correct && (
-                <div key={i} className="mb-4">
-                  <p className="text-gray-400 text-xs mb-1">Правилно: <span className="text-green-600 font-bold">{r.sentence}</span></p>
-                  <textarea
-                    value={selfEdits[i] || ''}
-                    onChange={e => setSelfEdits(prev => ({ ...prev, [i]: e.target.value }))}
-                    className="w-full border-2 border-orange-200 rounded-xl p-3 text-sm focus:border-orange-400 outline-none resize-none"
-                    rows={2}
-                  />
-                </div>
-              ))}
-              <button onClick={async () => {
-                const updatedResults = results.map((r, i) => {
-                  if (!r.correct && selfEdits[i] !== undefined) {
-                    const corrected = selfEdits[i].trim() === r.sentence.trim()
-                    return { ...r, selfCorrected: corrected, selfInput: selfEdits[i] }
-                  }
-                  return r
-                })
-                console.log('sessionId:', currentSessionId, 'hasParent:', hasParent)
-                if (currentSessionId) {
-                  const { error } = await supabase.from('dictation_sessions').update({ results: updatedResults, ...(hasParent ? {} : { parent_confirmed: true }) }).eq('id', currentSessionId)
-                  console.log('update error:', error)
-                  if (!error) { setResults(updatedResults as SentenceResult[]); setSelfReview(false); setSavedOk(true) }
-                } else {
-                  console.log('NO SESSION ID!')
-                }
-              }}
-                className="w-full bg-orange-500 text-white font-bold py-3 rounded-2xl hover:bg-orange-600">
-                Запази корекциите ✓
-              </button>
-            </div>
-          )}
+
           <button onClick={() => router.push('/dashboard')}
             className="w-full bg-orange-500 text-white text-xl font-bold py-4 rounded-2xl hover:bg-orange-600 transition-colors">
             Към началото 🏠
