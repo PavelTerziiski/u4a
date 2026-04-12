@@ -606,7 +606,7 @@ export default function DictationPage() {
             </div>
           )}
           {!selfReview && (
-            <button onClick={() => { setSelfReview(true); const edits: Record<number, string> = {}; results.forEach((r, i) => { if (!r.correct) edits[i] = r.input }); setSelfEdits(edits) }}
+            <button onClick={() => { setSelfReview(true); setSavedOk(false); const edits: Record<number, string> = {}; results.forEach((r, i) => { if (!r.correct) edits[i] = r.input }); setSelfEdits(edits) }}
               className="w-full bg-white text-orange-500 border-2 border-orange-400 text-lg font-bold py-4 rounded-2xl mb-3 hover:bg-orange-50 transition-colors">
               ✏️ Провери сам
             </button>
@@ -633,13 +633,11 @@ export default function DictationPage() {
                   }
                   return r
                 })
-                setResults(updatedResults as SentenceResult[])
-                setSelfReview(false)
                 console.log('sessionId:', currentSessionId, 'hasParent:', hasParent)
                 if (currentSessionId) {
                   const { error } = await supabase.from('dictation_sessions').update({ results: updatedResults, ...(hasParent ? {} : { parent_confirmed: true }) }).eq('id', currentSessionId)
                   console.log('update error:', error)
-                  if (!error) setSavedOk(true)
+                  if (!error) { setResults(updatedResults as SentenceResult[]); setSelfReview(false); setSavedOk(true) }
                 } else {
                   console.log('NO SESSION ID!')
                 }
