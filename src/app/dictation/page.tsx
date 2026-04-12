@@ -154,6 +154,23 @@ export default function DictationPage() {
     }
     setSentenceIndex(index)
     setFoxMood('happy')
+    // При 3-тото изречение записваме в базата и броим към лимита
+    if (index === 2 && profile && selected) {
+      const autoConfirm = true
+      supabase.from('dictation_sessions').insert({
+        profile_id: profile.id,
+        dictation_id: selected.id,
+        dictation_title: selected.title,
+        score: 0,
+        total: sentences.length,
+        time_seconds: 0,
+        results: [],
+        parent_confirmed: autoConfirm,
+        is_started_only: true,
+      }).then(() => {
+        setWeeklyCount(c => c + 1)
+      })
+    }
     speak(sentences[index].text, () => {
       startPause(sentences[index].text, grade, () => {
         readSentence(sentences, index + 1, grade)
@@ -533,8 +550,29 @@ export default function DictationPage() {
               placeholder={`Изречение 1\nИзречение 2\n...`} autoFocus />
           </div>
           <button onClick={handleSubmit} disabled={!fullInput.trim()}
-            className="w-full bg-orange-500 text-white text-xl font-bold py-4 rounded-2xl hover:bg-orange-600 disabled:opacity-40 transition-colors">
-            Провери диктовката ✓
+            className="w-full bg-orange-500 text-white text-xl font-bold py-4 rounded-2xl hover:bg-orange-600 disabled:opacity-40 transition-colors mb-3">
+            ✏️ Провери диктовката
+          </button>
+          <button onClick={async () => {
+            if (!selected || !profile) return
+            const { data: parentLink } = await supabase.from('parent_children').select('parent_id').eq('child_id', profile.id).maybeSingle()
+            const autoConfirm = !parentLink
+            await supabase.from('dictation_sessions').insert({
+              profile_id: profile.id,
+              dictation_id: selected.id,
+              dictation_title: selected.title,
+              score: null,
+              total: (selected.sentences as Sentence[]).length,
+              time_seconds: 0,
+              results: null,
+              parent_confirmed: autoConfirm,
+              is_started_only: false,
+            })
+            setWeeklyCount(c => c + 1)
+            router.push('/dashboard')
+          }}
+            className="w-full bg-white text-orange-500 border-2 border-orange-300 font-bold py-4 rounded-2xl hover:bg-orange-50 transition-colors">
+            ➡️ Продължи без оценяване
           </button>
         </div>
       </main>
