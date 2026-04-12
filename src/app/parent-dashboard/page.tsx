@@ -220,6 +220,7 @@ export default function ParentDashboard() {
               const percent = noScore ? null : Math.round((s.score / s.total) * 100)
               const isOpen = expanded[s.id]
               const activeResults = s.parent_corrected_results || s.results || []
+              const hasResults = activeResults.length > 0
               const wrongResults = activeResults.filter(r => !r.correct)
 
               return (
@@ -254,7 +255,7 @@ export default function ParentDashboard() {
                             <div>
                               <p style={{ fontSize: 11, color: '#aaa', fontFamily: F.nunito, fontWeight: 700, textTransform: 'uppercase', marginBottom: 6 }}>Оригинал</p>
                               <div style={{ background: '#FFFBF5', borderRadius: 10, padding: '10px 12px', fontSize: '0.82rem', color: '#92400E', fontFamily: F.nunito, lineHeight: 1.7 }}>
-                                {s.results.map((r, i) => <div key={i}>{i + 1}. {r.sentence}</div>)}
+                                {(s.results || []).map((r, i) => <div key={i}>{i + 1}. {r.sentence}</div>)}
                               </div>
                             </div>
                             <div>
@@ -282,7 +283,7 @@ export default function ParentDashboard() {
                             <div>
                               <p style={{ fontSize: 11, color: '#aaa', fontFamily: F.nunito, fontWeight: 700, textTransform: 'uppercase', marginBottom: 6 }}>Оригинал</p>
                               <div style={{ background: '#FFFBF5', borderRadius: 10, padding: '10px 12px', fontSize: '0.82rem', color: '#92400E', fontFamily: F.nunito, lineHeight: 1.7 }}>
-                                {s.results.map((r, i) => <div key={i}>{r.sentence}</div>)}
+                                {(s.results || []).map((r, i) => <div key={i}>{r.sentence}</div>)}
                               </div>
                             </div>
                             <div>
