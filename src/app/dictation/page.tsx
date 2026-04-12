@@ -30,6 +30,9 @@ export default function DictationPage() {
   const [foxMood, setFoxMood] = useState<FoxMood>('happy')
   const [fullInput, setFullInput] = useState('')
   const [results, setResults] = useState<SentenceResult[]>([])
+  const [selfReview, setSelfReview] = useState(false)
+  const [selfEdits, setSelfEdits] = useState<Record<number, string>>({})
+  const [hasParent, setHasParent] = useState<boolean | null>(null)
   const [speed, setSpeed] = useState(1.0)
   const [weeklyCount, setWeeklyCount] = useState(0)
   const [ocrLoading, setOcrLoading] = useState(false)
@@ -48,6 +51,9 @@ export default function DictationPage() {
         if (!data) { router.push('/login'); return }
         if (data.is_parent) { router.push('/parent-dashboard'); return }
         setProfile(data)
+        supabase.from('parent_children').select('parent_id').eq('child_id', data.id).single().then(({ data: parentLink }) => {
+          setHasParent(!!parentLink)
+        })
         supabase.from('dictations').select('*').eq('grade', data.grade)
           .then(({ data: d }) => setDictations(d || []))
 
@@ -590,6 +596,46 @@ export default function DictationPage() {
               </div>
             ))}
           </div>
+          {!hasParent && !selfReview && (
+            <button onClick={() => { setSelfReview(true); const edits: Record<number, string> = {}; results.forEach((r, i) => { if (!r.correct) edits[i] = r.input }); setSelfEdits(edits) }}
+              className="w-full bg-white text-orange-500 border-2 border-orange-400 text-lg font-bold py-4 rounded-2xl mb-3 hover:bg-orange-50 transition-colors">
+              ✏️ Провери сам
+            </button>
+          )}
+          {selfReview && (
+            <div className="bg-white rounded-3xl p-6 shadow-lg mb-4">
+              <p className="text-gray-600 font-bold mb-4 text-center">Поправи грешните изречения:</p>
+              {results.map((r, i) => !r.correct && (
+                <div key={i} className="mb-4">
+                  <p className="text-gray-400 text-xs mb-1">Правилно: <span className="text-green-600 font-bold">{r.sentence}</span></p>
+                  <textarea
+                    value={selfEdits[i] || ''}
+                    onChange={e => setSelfEdits(prev => ({ ...prev, [i]: e.target.value }))}
+                    className="w-full border-2 border-orange-200 rounded-xl p-3 text-sm focus:border-orange-400 outline-none resize-none"
+                    rows={2}
+                  />
+                </div>
+              ))}
+              <button onClick={async () => {
+                const updatedResults = results.map((r, i) => {
+                  if (!r.correct && selfEdits[i] !== undefined) {
+                    const corrected = selfEdits[i].trim() === r.sentence.trim()
+                    return { ...r, selfCorrected: corrected, selfInput: selfEdits[i] }
+                  }
+                  return r
+                })
+                setResults(updatedResults as SentenceResult[])
+                setSelfReview(false)
+                const lastSession = await supabase.from('dictation_sessions').select('id').eq('profile_id', profile?.id || '').order('created_at', { ascending: false }).limit(1).single()
+                if (lastSession.data) {
+                  await supabase.from('dictation_sessions').update({ results: updatedResults, parent_confirmed: true }).eq('id', lastSession.data.id)
+                }
+              }}
+                className="w-full bg-orange-500 text-white font-bold py-3 rounded-2xl hover:bg-orange-600">
+                Запази корекциите ✓
+              </button>
+            </div>
+          )}
           <button onClick={() => router.push('/dashboard')}
             className="w-full bg-orange-500 text-white text-xl font-bold py-4 rounded-2xl hover:bg-orange-600 transition-colors">
             Към началото 🏠
