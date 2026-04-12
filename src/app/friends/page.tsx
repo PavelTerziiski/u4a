@@ -82,18 +82,19 @@ export default function Friends() {
           ) : (
             <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
               {sessions.map((s, i) => {
-                const percent = Math.round((s.score / s.total) * 100)
-                const points = Math.round(percent / 10)
-                const color = percent >= 80 ? '#16A34A' : percent >= 50 ? '#D97706' : '#EF4444'
+                const noScore = s.score === null || s.score === undefined
+                const percent = noScore ? null : Math.round((s.score / s.total) * 100)
+                const points = noScore ? null : Math.round((percent as number) / 10)
+                const color = noScore ? '#9CA3AF' : (percent as number) >= 80 ? '#16A34A' : (percent as number) >= 50 ? '#D97706' : '#EF4444'
                 return (
                   <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 10, background: 'rgba(255,255,255,0.5)', borderRadius: 12, padding: '8px 12px', border: '1.5px solid #FED7AA' }}>
-                    <div style={{ fontSize: '1.3rem' }}>{percent >= 80 ? '🥇' : percent >= 50 ? '🥈' : '🥉'}</div>
+                    <div style={{ fontSize: '1.3rem' }}>{noScore ? '📝' : (percent as number) >= 80 ? '🥇' : (percent as number) >= 50 ? '🥈' : '🥉'}</div>
                     <div style={{ flex: 1 }}>
                       <div style={{ fontFamily: 'Nunito, sans-serif', fontWeight: 800, fontSize: '0.85rem', color: '#92400E' }}>Диктовка #{sessions.length - i}</div>
-                      <div style={{ fontFamily: 'Nunito, sans-serif', fontSize: '0.75rem', color: '#D97706' }}>{s.score}/{s.total} верни · {new Date(s.created_at).toLocaleDateString('bg-BG')}</div>
+                      <div style={{ fontFamily: 'Nunito, sans-serif', fontSize: '0.75rem', color: '#D97706' }}>{noScore ? '—' : `${s.score}/${s.total} верни`} · {new Date(s.created_at).toLocaleDateString('bg-BG')}</div>
                     </div>
-                    <div style={{ fontFamily: 'Russo One, sans-serif', fontSize: '1.1rem', color }}>{percent}%</div>
-                    <div style={{ fontFamily: 'Nunito, sans-serif', fontSize: '0.8rem', color: '#D97706', fontWeight: 800 }}>🌰{points}</div>
+                    <div style={{ fontFamily: 'Russo One, sans-serif', fontSize: '1.1rem', color }}>{noScore ? '—' : `${percent}%`}</div>
+                    <div style={{ fontFamily: 'Nunito, sans-serif', fontSize: '0.8rem', color: '#D97706', fontWeight: 800 }}>🌰{noScore ? '—' : points}</div>
                   </div>
                 )
               })}

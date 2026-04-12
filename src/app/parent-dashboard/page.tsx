@@ -216,7 +216,8 @@ export default function ParentDashboard() {
             )}
 
             {sessions.map((s) => {
-              const percent = Math.round((s.score / s.total) * 100)
+              const noScore = s.score === null || s.score === undefined
+              const percent = noScore ? null : Math.round((s.score / s.total) * 100)
               const isOpen = expanded[s.id]
               const activeResults = s.parent_corrected_results || s.results || []
               const wrongResults = activeResults.filter(r => !r.correct)
@@ -237,7 +238,7 @@ export default function ParentDashboard() {
                       </div>
                     </div>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                      <span style={{ fontFamily: F.russo, fontSize: '1rem', color: percent >= 70 ? '#16A34A' : '#EF4444' }}>{percent}%</span>
+                      <span style={{ fontFamily: F.russo, fontSize: '1rem', color: noScore ? '#9CA3AF' : (percent as number) >= 70 ? '#16A34A' : '#EF4444' }}>{noScore ? '—' : `${percent}%`}</span>
                       {statusBadge(s)}
                       <span style={{ color: '#aaa', fontSize: 12, transform: isOpen ? 'rotate(180deg)' : 'none', display: 'inline-block', transition: 'transform 0.2s' }}>▼</span>
                     </div>
