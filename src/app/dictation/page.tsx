@@ -629,8 +629,12 @@ export default function DictationPage() {
                 })
                 setResults(updatedResults as SentenceResult[])
                 setSelfReview(false)
+                console.log('sessionId:', currentSessionId, 'hasParent:', hasParent)
                 if (currentSessionId) {
-                  await supabase.from('dictation_sessions').update({ results: updatedResults, ...(hasParent ? {} : { parent_confirmed: true }) }).eq('id', currentSessionId)
+                  const { error } = await supabase.from('dictation_sessions').update({ results: updatedResults, ...(hasParent ? {} : { parent_confirmed: true }) }).eq('id', currentSessionId)
+                  console.log('update error:', error)
+                } else {
+                  console.log('NO SESSION ID!')
                 }
               }}
                 className="w-full bg-orange-500 text-white font-bold py-3 rounded-2xl hover:bg-orange-600">
