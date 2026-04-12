@@ -121,7 +121,7 @@ export default function Login() {
           </button>
           <button
             onClick={() => router.push('/forgot-password')}
-            style={{ background: 'none', border: 'none', color: '#7C2D12', fontFamily: 'Nunito, sans-serif', fontSize: '0.85rem', cursor: 'pointer', textDecoration: 'underline', marginBottom: 8 }}
+            style={{ background: 'none', border: 'none', color: '#7C2D12', fontFamily: 'Nunito, sans-serif', fontSize: '0.85rem', cursor: 'pointer', textDecoration: 'underline', marginBottom: 8, width: '100%', textAlign: 'center' }}
           >
             Забравена парола?
           </button>
