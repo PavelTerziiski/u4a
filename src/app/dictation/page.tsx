@@ -596,7 +596,7 @@ export default function DictationPage() {
               </div>
             ))}
           </div>
-          {!hasParent && !selfReview && (
+          {!selfReview && (
             <button onClick={() => { setSelfReview(true); const edits: Record<number, string> = {}; results.forEach((r, i) => { if (!r.correct) edits[i] = r.input }); setSelfEdits(edits) }}
               className="w-full bg-white text-orange-500 border-2 border-orange-400 text-lg font-bold py-4 rounded-2xl mb-3 hover:bg-orange-50 transition-colors">
               ✏️ Провери сам
@@ -628,7 +628,7 @@ export default function DictationPage() {
                 setSelfReview(false)
                 const lastSession = await supabase.from('dictation_sessions').select('id').eq('profile_id', profile?.id || '').order('created_at', { ascending: false }).limit(1).single()
                 if (lastSession.data) {
-                  await supabase.from('dictation_sessions').update({ results: updatedResults, parent_confirmed: true }).eq('id', lastSession.data.id)
+                  await supabase.from('dictation_sessions').update({ results: updatedResults, ...(hasParent ? {} : { parent_confirmed: true }) }).eq('id', lastSession.data.id)
                 }
               }}
                 className="w-full bg-orange-500 text-white font-bold py-3 rounded-2xl hover:bg-orange-600">
