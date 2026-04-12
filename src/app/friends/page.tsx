@@ -23,6 +23,7 @@ export default function Friends() {
           .eq('profile_id', data.id)
           .eq('is_scan', false)
           .eq('parent_confirmed', true)
+          .eq('is_started_only', false)
           .order('created_at', { ascending: false }).limit(20)
         setSessions(sess || [])
         setLoading(false)
