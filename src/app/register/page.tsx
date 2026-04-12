@@ -31,6 +31,8 @@ export default function Register() {
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
   const [isParent, setIsParent] = useState<boolean | null>(null)
+  const [showConfirm, setShowConfirm] = useState(false)
+  const [confirmedEmail, setConfirmedEmail] = useState('')
 
   const handleRegister = async () => {
     setLoading(true)
@@ -62,7 +64,8 @@ export default function Register() {
       if (!profileRes.ok) { const d = await profileRes.json(); throw new Error(d.error || 'Грешка при създаване на профил') }
 
       localStorage.setItem('u4a_username', username)
-      router.push('/dashboard')
+      setConfirmedEmail(email.toLowerCase().trim())
+      setShowConfirm(true)
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Грешка при регистрация')
     } finally {
@@ -75,28 +78,25 @@ export default function Register() {
     setLoading(true)
     setError('')
     try {
-      const { data: authData, error: authError } = await supabase.auth.signUp({
-        email: email.toLowerCase().trim(),
-        password,
-      })
-      if (authError) throw authError
-      if (!authData.user) throw new Error('Грешка при създаване на профил')
+      // Родителите се регистрират директно с service role — без email confirmation
       const profileRes = await fetch('/api/register', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          id: authData.user.id,
           username,
           email: email.toLowerCase().trim(),
-          fox_name: 'Бухал',
-          grade: 0,
-          avatar_id: 3,
-          display_name: username,
+          password,
           is_parent: true,
           parent_plan: 'premium',
         })
       })
       if (!profileRes.ok) { const d = await profileRes.json(); throw new Error(d.error || 'Грешка при създаване на профил') }
+      // Влизаме веднага след регистрация
+      const { error: signInError } = await supabase.auth.signInWithPassword({
+        email: email.toLowerCase().trim(),
+        password,
+      })
+      if (signInError) throw signInError
       localStorage.setItem('u4a_username', username)
       localStorage.setItem('u4a_is_parent', 'true')
       router.push('/parent-dashboard')
@@ -156,6 +156,30 @@ export default function Register() {
         </button>
       </div>
     </div>
+  )
+
+  if (showConfirm) return (
+    <main className="u4a-dash min-h-screen flex flex-col items-center justify-center p-6">
+      <div className="u4a-dash-overlay"></div>
+      <div className="w-full max-w-md text-center" style={{ position: 'relative', zIndex: 1 }}>
+        <div style={{ fontSize: 80 }}>🦊</div>
+        <h1 className="text-3xl font-bold text-gray-700 mt-4 mb-3">Почти готово!</h1>
+        <div className="bg-white rounded-3xl p-6 shadow-lg mb-6">
+          <p className="text-gray-600 mb-2">Изпратихме имейл до:</p>
+          <p className="text-orange-500 font-bold text-lg mb-4">{confirmedEmail}</p>
+          <p className="text-gray-500 text-sm mb-4">
+            🌲 Провери пощата си и кликни на линка за потвърждение. След това ще можеш да влезеш в гората!
+          </p>
+          <div style={{ background: '#FFF7ED', borderRadius: 12, padding: '12px 16px', marginBottom: 16 }}>
+            <p className="text-orange-600 text-xs">💡 Не виждаш имейл? Провери папката "Спам" или изчакай няколко минути.</p>
+          </div>
+        </div>
+        <button onClick={() => router.push('/login')}
+          className="w-full bg-orange-500 text-white font-bold py-4 rounded-2xl text-lg hover:bg-orange-600">
+          Към входа на гората 🌲
+        </button>
+      </div>
+    </main>
   )
 
   return (
