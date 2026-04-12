@@ -119,6 +119,12 @@ export default function Login() {
           >
             {loading ? '⏳ Влизам...' : '🚀 Влез!'}
           </button>
+          <button
+            onClick={() => router.push('/forgot-password')}
+            style={{ background: 'none', border: 'none', color: '#EA580C', fontFamily: 'Nunito, sans-serif', fontSize: '0.85rem', cursor: 'pointer', textDecoration: 'underline', marginBottom: 8 }}
+          >
+            Забравена парола?
+          </button>
 
           <div style={{
             textAlign: 'center', fontFamily: 'Nunito, sans-serif',
