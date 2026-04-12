@@ -220,7 +220,7 @@ export default function ParentDashboard() {
               const percent = noScore ? null : Math.round((s.score / s.total) * 100)
               const isOpen = expanded[s.id]
               const activeResults = s.parent_corrected_results || s.results || []
-              const hasResults = activeResults.length > 0
+
               const wrongResults = activeResults.filter(r => !r.correct)
 
               return (
