@@ -171,7 +171,7 @@ export default function Register() {
             🌲 Провери пощата си и кликни на линка за потвърждение. След това ще можеш да влезеш в гората!
           </p>
           <div style={{ background: '#FFF7ED', borderRadius: 12, padding: '12px 16px', marginBottom: 16 }}>
-            <p className="text-orange-600 text-xs">💡 Не виждаш имейл? Провери папката "Спам" или изчакай няколко минути.</p>
+            <p className="text-orange-600 text-xs">💡 Не виждаш имейл? Провери папката &quot;Спам&quot; или изчакай няколко минути.</p>
           </div>
         </div>
         <button onClick={() => router.push('/login')}
