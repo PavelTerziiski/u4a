@@ -50,9 +50,7 @@ export default function DictationPage() {
         if (!data) { router.push('/login'); return }
         if (data.is_parent) { router.push('/parent-dashboard'); return }
         setProfile(data)
-        supabase.from('parent_children').select('parent_id').eq('child_id', data.id).single().then(({ data: parentLink }) => {
-          setHasParent(!!parentLink)
-        })
+
         supabase.from('dictations').select('*').eq('grade', data.grade)
           .then(({ data: d }) => setDictations(d || []))
 
