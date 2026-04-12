@@ -326,7 +326,7 @@ export default function DictationPage() {
       .single()
     const autoConfirm = !parentLink
     const newSessionId = crypto.randomUUID()
-    const { data: sessionData } = await supabase.from('dictation_sessions').insert({ id: newSessionId,
+    await supabase.from('dictation_sessions').insert({ id: newSessionId,
       profile_id: profile.id,
       dictation_id: selected.id,
       dictation_title: selected.title,
