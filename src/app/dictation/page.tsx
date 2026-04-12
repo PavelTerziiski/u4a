@@ -325,7 +325,8 @@ export default function DictationPage() {
       .eq('child_id', profile.id)
       .single()
     const autoConfirm = !parentLink
-    const { data: sessionData } = await supabase.from('dictation_sessions').insert({
+    const newSessionId = crypto.randomUUID()
+    const { data: sessionData } = await supabase.from('dictation_sessions').insert({ id: newSessionId,
       profile_id: profile.id,
       dictation_id: selected.id,
       dictation_title: selected.title,
@@ -335,7 +336,7 @@ export default function DictationPage() {
       results: newResults,
       parent_confirmed: autoConfirm,
     }).select('id').single()
-    if (sessionData) setCurrentSessionId(sessionData.id)
+    setCurrentSessionId(newSessionId)
     const today = new Date().toISOString().slice(0, 10)
     const lastDate = profile.last_session_date
     const yesterday = new Date(Date.now() - 86400000).toISOString().slice(0, 10)
