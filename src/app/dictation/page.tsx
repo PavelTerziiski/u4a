@@ -30,8 +30,8 @@ export default function DictationPage() {
   const [foxMood, setFoxMood] = useState<FoxMood>('happy')
   const [fullInput, setFullInput] = useState('')
   const [results, setResults] = useState<SentenceResult[]>([])
-  const [currentSessionId, setCurrentSessionId] = useState<string | null>(null)
-  const [hasParent, setHasParent] = useState<boolean | null>(null)
+  // session tracking removed
+  // hasParent removed
   const [speed, setSpeed] = useState(1.0)
   const [weeklyCount, setWeeklyCount] = useState(0)
   const [ocrLoading, setOcrLoading] = useState(false)
