@@ -177,8 +177,8 @@ export default function DictationPage() {
           : lastDate === yesterday
           ? (profile.streak || 0) + 1
           : 1
-        fetch('/api/update-profile', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ profileId: profile.id, updates: { streak: newStreak, last_session_date: today } }) })
-        setProfile(p => p ? { ...p, streak: newStreak, last_session_date: today } : p)
+        fetch('/api/update-profile', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ profileId: profile.id, updates: { total_sessions: (profile.total_sessions || 0) + 1, streak: newStreak, last_session_date: today } }) })
+        setProfile(p => p ? { ...p, streak: newStreak, last_session_date: today, total_sessions: (profile.total_sessions || 0) + 1 } : p)
       })
     }
     speak(sentences[index].text, () => {
