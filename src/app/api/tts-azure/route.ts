@@ -9,11 +9,32 @@ export async function POST(req: NextRequest) {
       ? 'bg-BG-BorislavNeural' 
       : 'bg-BG-KalinaNeural'
 
+    // Речник с думи, където ударението трябва да се коригира
+    const accentFixes: Record<string, string> = {
+      'ранен': 'ранéн',
+      'Ранен': 'Ранéн',
+      'ранена': 'ранéна',
+      'Ранена': 'Ранéна',
+      'ранени': 'ранéни',
+      'паднали': 'паднáли',
+      'загинали': 'загинáли',
+      'живели': 'живéли',
+      'работели': 'работéли',
+      'говорели': 'говорéли',
+      'вървели': 'ървéли',
+      'носели': 'носéли',
+      'пишели': 'пишéли',
+    }
+    let fixedText = text
+    Object.entries(accentFixes).forEach(([wrong, correct]) => {
+      fixedText = fixedText.replaceAll(wrong, correct)
+    })
+
     const ssml = `
       <speak version="1.0" xmlns="http://www.w3.org/2001/10/synthesis" xml:lang="bg-BG">
         <voice name="${voiceName}">
           <prosody rate="${ratePercent}">
-            ${text}
+            ${fixedText}
           </prosody>
         </voice>
       </speak>
