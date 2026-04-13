@@ -181,6 +181,7 @@ export default function DictationPage() {
           streak: newStreak,
           last_session_date: today
         }).eq('id', profile.id)
+        setProfile(p => p ? { ...p, streak: newStreak, last_session_date: today } : p)
       })
     }
     speak(sentences[index].text, () => {
@@ -374,6 +375,7 @@ export default function DictationPage() {
       streak: newStreak,
       last_session_date: today
     }).eq('id', profile.id)
+    setProfile(p => p ? { ...p, streak: newStreak, last_session_date: today } : p)
     setWeeklyCount(c => c + 1)
     setResults(newResults)
     setPhase('done')
