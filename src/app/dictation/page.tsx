@@ -45,6 +45,7 @@ export default function DictationPage() {
   const router = useRouter()
   const [profile, setProfile] = useState<Profile | null>(null)
   const [dictations, setDictations] = useState<Dictation[]>([])
+  const [selectedGrade, setSelectedGrade] = useState<number>(0)
   const [selected, setSelected] = useState<Dictation | null>(null)
   const [phase, setPhase] = useState<'pick' | 'ready' | 'play' | 'write' | 'done' | 'limit'>('pick')
   const [sentenceIndex, setSentenceIndex] = useState(0)
@@ -76,6 +77,7 @@ export default function DictationPage() {
         if (data.is_parent) { router.push('/parent-dashboard'); return }
         setProfile(data)
 
+        setSelectedGrade(data.grade)
         supabase.from('dictations').select('*').eq('grade', data.grade)
           .then(({ data: d }) => setDictations(d || []))
 
@@ -472,6 +474,14 @@ export default function DictationPage() {
               </button>
             ))}
           </div>
+        </div>
+        <div style={{ display: 'flex', gap: 8, marginBottom: 16, flexWrap: 'wrap' }}>
+          {[2, 3, 4, 5].map(g => (
+            <button key={g} onClick={() => changeGrade(g, profile, setDictations, setSelectedGrade)}
+              style={{ padding: '8px 18px', borderRadius: 12, border: '2px solid #FED7AA', fontFamily: 'Russo One, sans-serif', fontSize: '0.9rem', cursor: 'pointer', background: selectedGrade === g ? '#F97316' : 'white', color: selectedGrade === g ? 'white' : '#F97316', fontWeight: 700 }}>
+              {g} клас
+            </button>
+          ))}
         </div>
         {dictations.length === 0 && <p className="text-gray-400 text-center">Няма диктовки за твоя клас.</p>}
         {[
