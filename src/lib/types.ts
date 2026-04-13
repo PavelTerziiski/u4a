@@ -7,9 +7,6 @@ export type Profile = {
   fox_name: string
   password_hash: string
   streak: number
-  category?: string
-  author?: string
-  language?: string
   plan_type: string
   total_sessions: number
   is_premium: boolean
@@ -28,6 +25,10 @@ export type Dictation = {
   sentences: { id: number; text: string }[]
   is_premium: boolean
   created_at: string
+  category?: string
+  author?: string
+  language?: string
+  difficulty?: string
 }
 export type DictationSession = {
   id: string
