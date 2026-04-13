@@ -455,7 +455,6 @@ export default function DictationPage() {
         ].map(({ key, label }) => {
           const group = dictations.filter((d: Dictation) => (d.category || 'original') === key)
           if (group.length === 0) return null
-          const [open, setOpen] = [false, () => {}]
           return (
             <CategorySection key={key} label={label} group={group} startDictation={startDictation} />
           )
