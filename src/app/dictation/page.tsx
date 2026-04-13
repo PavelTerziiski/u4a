@@ -16,6 +16,16 @@ const REPEAT_LIMITS: Record<number, number> = { 2: 4, 3: 3, 4: 2, 5: 1 }
 const CHARS_PER_SECOND: Record<number, number> = { 2: 0.7, 3: 1.0, 4: 1.4, 5: 1.8 }
 const FREE_WEEKLY_LIMIT = 2
 
+function changeGrade(grade: number, profile: Profile | null, setDictations: (d: Dictation[]) => void, setSelectedGrade: (g: number) => void) {
+  if (!profile) return
+  setSelectedGrade(grade)
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
+  const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+  fetch(`${supabaseUrl}/rest/v1/dictations?grade=eq.${grade}&select=*`, {
+    headers: { 'apikey': supabaseKey, 'Authorization': `Bearer ${supabaseKey}` }
+  }).then(r => r.json()).then(d => setDictations(d || []))
+}
+
 function CategorySection({ label, group, startDictation }: { label: string, group: Dictation[], startDictation: (d: Dictation) => void }) {
   const [open, setOpen] = useState(false)
   return (
