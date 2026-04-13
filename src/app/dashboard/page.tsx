@@ -128,10 +128,10 @@ export default function Dashboard() {
           <div className="premium-banner fade-up fade-up-3">
             <div style={{ fontSize: '1.8rem' }}>🌰</div>
             <div style={{ flex: 1 }}>
-              <div className="premium-title">Стани Premium</div>
-              <div className="premium-sub">Неограничени диктовки · Госпожа Лисица & Господин Бухал · 4.50€/мес</div>
+              <div className="premium-title">Опитай Premium Безплатно</div>
+              <div className="premium-sub">7 дни безплатно · Неограничени диктовки · от 4.50€/мес</div>
             </div>
-            <button onClick={handleUpgrade} style={{
+            <button onClick={() => router.push("/plans")} style={{
               background: '#F97316', color: 'white', border: 'none',
               borderRadius: '10px', padding: '7px 12px',
               fontFamily: 'Nunito, sans-serif', fontWeight: 800,

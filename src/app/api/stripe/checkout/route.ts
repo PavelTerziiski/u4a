@@ -1,32 +1,24 @@
 import { NextRequest, NextResponse } from 'next/server'
 import Stripe from 'stripe'
-
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-apiVersion: '2026-03-25.dahlia',
+  apiVersion: '2026-03-25.dahlia',
 })
-
 export async function POST(req: NextRequest) {
   try {
-    const { userId, username } = await req.json()
-
+    const { userId, username, priceId } = await req.json()
+    const price = priceId || process.env.NEXT_PUBLIC_STRIPE_PRICE_ID!
     const session = await stripe.checkout.sessions.create({
       payment_method_types: ['card'],
       mode: 'subscription',
-      line_items: [
-        {
-          price: process.env.NEXT_PUBLIC_STRIPE_PRICE_ID!,
-          quantity: 1,
-        },
-      ],
-      metadata: {
-        userId,
-        username,
+      line_items: [{ price, quantity: 1 }],
+      subscription_data: {
+        trial_period_days: 7,
+        metadata: { userId, username },
       },
-      subscription_data: { metadata: { userId, username } },
+      metadata: { userId, username },
       success_url: `${process.env.NEXT_PUBLIC_APP_URL}/dashboard`,
-      cancel_url: `${process.env.NEXT_PUBLIC_APP_URL}/payment-cancelled`,
+      cancel_url: `${process.env.NEXT_PUBLIC_APP_URL}/plans`,
     })
-
     return NextResponse.json({ url: session.url })
   } catch (error) {
     console.error('Stripe checkout error:', error)
