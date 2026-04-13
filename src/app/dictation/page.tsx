@@ -16,6 +16,31 @@ const REPEAT_LIMITS: Record<number, number> = { 2: 4, 3: 3, 4: 2, 5: 1 }
 const CHARS_PER_SECOND: Record<number, number> = { 2: 0.7, 3: 1.0, 4: 1.4, 5: 1.8 }
 const FREE_WEEKLY_LIMIT = 2
 
+function CategorySection({ label, group, startDictation }: { label: string, group: Dictation[], startDictation: (d: Dictation) => void }) {
+  const [open, setOpen] = useState(false)
+  return (
+    <div style={{ marginBottom: 16 }}>
+      <button onClick={() => setOpen(o => !o)} style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: '#FFF7ED', border: '2px solid #FED7AA', borderRadius: 16, padding: '14px 18px', cursor: 'pointer', marginBottom: open ? 12 : 0 }}>
+        <span style={{ fontFamily: 'Russo One, sans-serif', fontSize: '1rem', color: '#7C2D12' }}>{label}</span>
+        <span style={{ fontSize: '1.2rem', color: '#F97316' }}>{open ? '▲' : '▼'}</span>
+      </button>
+      {open && (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+          {group.map((d: Dictation) => (
+            <button key={d.id} onClick={() => startDictation(d)}
+              className="bg-white rounded-2xl p-6 shadow text-left hover:shadow-md transition-shadow border-2 border-transparent hover:border-orange-300">
+              <h2 className="text-xl font-bold text-gray-700">{d.title}</h2>
+              {d.author && <p style={{ fontSize: '0.8rem', color: '#F97316', fontWeight: 700, marginTop: 2 }}>✍️ {d.author}</p>}
+              <p className="text-orange-500 mt-1">{(d.sentences as Sentence[]).length} изречения • {d.grade} клас</p>
+              {d.is_premium && <span className="text-xs bg-orange-100 text-orange-600 px-2 py-1 rounded-full mt-2 inline-block">⭐ Premium</span>}
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  )
+}
+
 export default function DictationPage() {
   const router = useRouter()
   const [profile, setProfile] = useState<Profile | null>(null)
