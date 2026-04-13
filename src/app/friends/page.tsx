@@ -76,6 +76,7 @@ export default function Friends() {
               <div style={{ fontSize: '0.75rem', fontFamily: 'Nunito, sans-serif', fontWeight: 700, color: '#92400E' }}>Жълъди</div>
             </div>
           </div>
+          <div style={{ textAlign: 'center', fontFamily: 'Nunito, sans-serif', color: '#92400E', fontSize: '0.75rem', fontWeight: 700, padding: '8px 0 4px 0' }}>Списък с последните 20 диктовки</div>
           {sessions.length === 0 ? (
             <div style={{ textAlign: 'center', fontFamily: 'Nunito, sans-serif', color: '#7C2D12', fontSize: '0.9rem', padding: '16px 0', fontWeight: 700 }}>
               Все още няма диктовки. Започни първата си! 🦊
