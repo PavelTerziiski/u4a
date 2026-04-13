@@ -453,13 +453,13 @@ export default function DictationPage() {
           { key: 'original', label: '📝 Оригинални диктовки u4a' },
           { key: 'writers', label: '📚 Текстове от велики български автори' },
         ].map(({ key, label }) => {
-          const group = dictations.filter((d: any) => (d.category || 'original') === key)
+          const group = dictations.filter((d: Dictation) => (d.category || 'original') === key)
           if (group.length === 0) return null
           return (
             <div key={key} style={{ marginBottom: 24 }}>
               <div style={{ fontFamily: 'Russo One, sans-serif', fontSize: '1rem', color: '#7C2D12', marginBottom: 12, paddingLeft: 4 }}>{label}</div>
               <div className="flex flex-col gap-4">
-                {group.map((d: any) => (
+                {group.map((d: Dictation) => (
                   <button key={d.id} onClick={() => startDictation(d)}
                     className="bg-white rounded-2xl p-6 shadow text-left hover:shadow-md transition-shadow border-2 border-transparent hover:border-orange-300">
                     <h2 className="text-xl font-bold text-gray-700">{d.title}</h2>
