@@ -45,7 +45,7 @@ export default function Fox({ mood = 'happy', size = 160, name }: FoxProps) {
             loop
             muted
             playsInline
-            style={{ width: size, height: size, objectFit: 'contain', mixBlendMode: 'multiply' }}
+            style={{ width: size, height: size, objectFit: 'contain', mixBlendMode: 'lighten' }}
           />
         ) : (
           <img
