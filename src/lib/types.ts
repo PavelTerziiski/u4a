@@ -7,6 +7,9 @@ export type Profile = {
   fox_name: string
   password_hash: string
   streak: number
+  category?: string
+  author?: string
+  language?: string
   plan_type: string
   total_sessions: number
   is_premium: boolean
