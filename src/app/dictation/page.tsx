@@ -177,10 +177,7 @@ export default function DictationPage() {
           : lastDate === yesterday
           ? (profile.streak || 0) + 1
           : 1
-        supabase.from('profiles').update({
-          streak: newStreak,
-          last_session_date: today
-        }).eq('id', profile.id)
+        fetch('/api/update-profile', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ profileId: profile.id, updates: { streak: newStreak, last_session_date: today } }) })
         setProfile(p => p ? { ...p, streak: newStreak, last_session_date: today } : p)
       })
     }
@@ -370,11 +367,7 @@ export default function DictationPage() {
       : lastDate === yesterday
       ? (profile.streak || 0) + 1
       : 1
-    await supabase.from('profiles').update({
-      total_sessions: (profile.total_sessions || 0) + 1,
-      streak: newStreak,
-      last_session_date: today
-    }).eq('id', profile.id)
+    await fetch('/api/update-profile', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ profileId: profile.id, updates: { total_sessions: (profile.total_sessions || 0) + 1, streak: newStreak, last_session_date: today } }) })
     setProfile(p => p ? { ...p, streak: newStreak, last_session_date: today } : p)
     setWeeklyCount(c => c + 1)
     setResults(newResults)
