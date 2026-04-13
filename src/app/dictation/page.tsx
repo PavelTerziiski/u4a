@@ -449,16 +449,29 @@ export default function DictationPage() {
           </div>
         </div>
         {dictations.length === 0 && <p className="text-gray-400 text-center">Няма диктовки за твоя клас.</p>}
-        <div className="flex flex-col gap-4">
-          {dictations.map(d => (
-            <button key={d.id} onClick={() => startDictation(d)}
-              className="bg-white rounded-2xl p-6 shadow text-left hover:shadow-md transition-shadow border-2 border-transparent hover:border-orange-300">
-              <h2 className="text-xl font-bold text-gray-700">{d.title}</h2>
-              <p className="text-orange-500 mt-1">{(d.sentences as Sentence[]).length} изречения • {d.grade} клас</p>
-              {d.is_premium && <span className="text-xs bg-orange-100 text-orange-600 px-2 py-1 rounded-full mt-2 inline-block">⭐ Premium</span>}
-            </button>
-          ))}
-        </div>
+        {[
+          { key: 'original', label: '📝 Оригинални диктовки u4a' },
+          { key: 'writers', label: '📚 Текстове от велики български автори' },
+        ].map(({ key, label }) => {
+          const group = dictations.filter((d: any) => (d.category || 'original') === key)
+          if (group.length === 0) return null
+          return (
+            <div key={key} style={{ marginBottom: 24 }}>
+              <div style={{ fontFamily: 'Russo One, sans-serif', fontSize: '1rem', color: '#7C2D12', marginBottom: 12, paddingLeft: 4 }}>{label}</div>
+              <div className="flex flex-col gap-4">
+                {group.map((d: any) => (
+                  <button key={d.id} onClick={() => startDictation(d)}
+                    className="bg-white rounded-2xl p-6 shadow text-left hover:shadow-md transition-shadow border-2 border-transparent hover:border-orange-300">
+                    <h2 className="text-xl font-bold text-gray-700">{d.title}</h2>
+                    {d.author && <p style={{ fontSize: '0.8rem', color: '#F97316', fontWeight: 700, marginTop: 2 }}>✍️ {d.author}</p>}
+                    <p className="text-orange-500 mt-1">{(d.sentences as Sentence[]).length} изречения • {d.grade} клас</p>
+                    {d.is_premium && <span className="text-xs bg-orange-100 text-orange-600 px-2 py-1 rounded-full mt-2 inline-block">⭐ Premium</span>}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )
+        })}
       </div>
     </main>
   )
