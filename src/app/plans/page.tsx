@@ -1,12 +1,13 @@
 'use client'
 import { useState, useEffect } from 'react'
+import type { Profile } from '@/lib/types'
 import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
 
 export default function PlansPage() {
   const router = useRouter()
   const [billing, setBilling] = useState<'monthly' | 'yearly'>('monthly')
-  const [profile, setProfile] = useState<any>(null)
+  const [profile, setProfile] = useState<Profile | null>(null)
   const [loading, setLoading] = useState<string | null>(null)
 
   useEffect(() => {
