@@ -169,6 +169,18 @@ export default function DictationPage() {
         is_started_only: true,
       }).then(() => {
         setWeeklyCount(c => c + 1)
+        const today = new Date().toISOString().slice(0, 10)
+        const lastDate = profile.last_session_date
+        const yesterday = new Date(Date.now() - 86400000).toISOString().slice(0, 10)
+        const newStreak = lastDate === today
+          ? (profile.streak || 0)
+          : lastDate === yesterday
+          ? (profile.streak || 0) + 1
+          : 1
+        supabase.from('profiles').update({
+          streak: newStreak,
+          last_session_date: today
+        }).eq('id', profile.id)
       })
     }
     speak(sentences[index].text, () => {
