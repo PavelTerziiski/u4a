@@ -38,12 +38,23 @@ export default function Fox({ mood = 'happy', size = 160, name }: FoxProps) {
         className={`relative transition-all duration-300 ${animating ? 'scale-110' : 'scale-100'}`}
         style={{ width: size, height: size }}
       >
-        <img
-          src={FOX_IMAGES[currentMood] || '/images/fox.png'}
-          alt="Лисица"
-          className="w-full h-full object-contain transition-opacity duration-300"
-          style={{ width: size, height: size }}
-        />
+        {currentMood === 'writing' ? (
+          <video
+            src="/fox-animation.mp4"
+            autoPlay
+            loop
+            muted
+            playsInline
+            style={{ width: size, height: size, objectFit: 'contain', mixBlendMode: 'screen' }}
+          />
+        ) : (
+          <img
+            src={FOX_IMAGES[currentMood] || '/images/fox.png'}
+            alt="Лисица"
+            className="w-full h-full object-contain transition-opacity duration-300"
+            style={{ width: size, height: size }}
+          />
+        )}
       </div>
       {name && (
         <p className="text-orange-500 font-bold mt-2 text-lg">{name}</p>
