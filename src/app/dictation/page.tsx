@@ -19,7 +19,7 @@ const FREE_WEEKLY_LIMIT = 2
 async function loadForeignDictations(lang: 'en' | 'de', level: 'easy' | 'medium' | 'hard', setFd: (d: Dictation[]) => void) {
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
   const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-  const res = await fetch(`${supabaseUrl}/rest/v1/dictations?language=eq.${lang}&level=eq.${level}&select=*`, {
+  const res = await fetch(`${supabaseUrl}/rest/v1/dictations?language=eq.${lang}&level=eq.${level}&select=*&order=title.asc`, {
     headers: { 'apikey': supabaseKey, 'Authorization': `Bearer ${supabaseKey}` }
   })
   const d = await res.json()
