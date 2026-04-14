@@ -316,7 +316,7 @@ export default function DictationPage() {
             const res = await fetch('/api/explain', {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ sentence: r.sentence, userInput: r.input, grade: selectedGrade, language: selected?.language || 'bg', (selected as any)?.level || null })
+              body: JSON.stringify({ sentence: r.sentence, userInput: r.input, grade: selectedGrade, language: selected?.language || 'bg', level: (selected as any)?.level || null })
             })
             const data = await res.json()
             if (data.explanation) newExplanations[i] = data.explanation
