@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 
 export async function POST(req: NextRequest) {
-  const { sentence, userInput, wrongWords, grade } = await req.json()
+  const { sentence, userInput, grade } = await req.json()
 
   const apiKey = process.env.ANTHROPIC_API_KEY
   if (!apiKey) {
