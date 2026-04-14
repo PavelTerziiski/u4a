@@ -16,16 +16,6 @@ const REPEAT_LIMITS: Record<number, number> = { 2: 4, 3: 3, 4: 2, 5: 1 }
 const CHARS_PER_SECOND: Record<number, number> = { 2: 0.7, 3: 1.0, 4: 1.4, 5: 1.8 }
 const FREE_WEEKLY_LIMIT = 2
 
-async function loadForeignDictations(lang: 'en' | 'de', level: 'easy' | 'medium' | 'hard', setFd: (d: Dictation[]) => void) {
-  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
-  const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-  const res = await fetch(`${supabaseUrl}/rest/v1/dictations?language=eq.${lang}&level=eq.${level}&select=*`, {
-    headers: { 'apikey': supabaseKey, 'Authorization': `Bearer ${supabaseKey}` }
-  })
-  const d = await res.json()
-  setFd(d || [])
-}
-
 function changeGrade(grade: number, profile: Profile | null, setDictations: (d: Dictation[]) => void, setSelectedGrade: (g: number) => void) {
   if (!profile) return
   setSelectedGrade(grade)
@@ -76,15 +66,14 @@ export default function DictationPage() {
   const [foxMood, setFoxMood] = useState<FoxMood>('happy')
   const [fullInput, setFullInput] = useState('')
   const [results, setResults] = useState<SentenceResult[]>([])
+  // session tracking removed
+  // hasParent removed
   const [speed, setSpeed] = useState(1.0)
   const [weeklyCount, setWeeklyCount] = useState(0)
   const [ocrLoading, setOcrLoading] = useState(false)
   const [explanations, setExplanations] = useState<Record<number, string>>({})
   const [loadingExplanations, setLoadingExplanations] = useState(false)
   const [checkoutLoading, setCheckoutLoading] = useState(false)
-  const [foreignLang, setForeignLang] = useState<null | 'en' | 'de'>(null)
-  const [foreignLevel, setForeignLevel] = useState<null | 'easy' | 'medium' | 'hard'>(null)
-  const [foreignDictations, setForeignDictations] = useState<Dictation[]>([])
   const progressTimer = useRef<NodeJS.Timeout | null>(null)
   const currentAudio = useRef<HTMLAudioElement | null>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
@@ -97,9 +86,11 @@ export default function DictationPage() {
         if (!data) { router.push('/login'); return }
         if (data.is_parent) { router.push('/parent-dashboard'); return }
         setProfile(data)
+
         setSelectedGrade(data.grade)
         supabase.from('dictations').select('*').eq('grade', data.grade)
           .then(({ data: d }) => setDictations(d || []))
+
         const weekStart = new Date()
         weekStart.setDate(weekStart.getDate() - weekStart.getDay())
         weekStart.setHours(0, 0, 0, 0)
@@ -140,14 +131,14 @@ export default function DictationPage() {
     }
     setSpeaking(true)
     fetch(profile?.is_premium ? '/api/tts-azure' : '/api/tts', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(
-        profile?.is_premium
-          ? { text, voice: profile?.preferred_voice || 'kalina', speed }
-          : { text, speed: 0.85 * speed, voice: 'male' }
-      )
-    })
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify(
+    profile?.is_premium 
+      ? { text, voice: profile?.preferred_voice || 'kalina', speed } 
+      : { text, speed: 0.85 * speed, voice: 'male' }
+  )
+})
       .then(res => res.json())
       .then(data => {
         if (data.audio) {
@@ -200,6 +191,7 @@ export default function DictationPage() {
     }
     setSentenceIndex(index)
     setFoxMood('happy')
+    // При 3-тото изречение записваме в базата и броим към лимита
     if (index === 2 && profile && selected) {
       const autoConfirm = true
       supabase.from('dictation_sessions').insert({
@@ -328,6 +320,7 @@ export default function DictationPage() {
     )
     setExplanations(newExplanations)
     setLoadingExplanations(false)
+    // Записваме обясненията в базата
     const updatedResults = newResults.map((r, i) => ({
       ...r,
       explanation: newExplanations[i] || null
@@ -402,6 +395,7 @@ export default function DictationPage() {
       results: newResults,
       parent_confirmed: autoConfirm,
     }).select('id').single()
+
     const today = new Date().toISOString().slice(0, 10)
     const lastDate = profile.last_session_date
     const yesterday = new Date(Date.now() - 86400000).toISOString().slice(0, 10)
@@ -510,117 +504,6 @@ export default function DictationPage() {
             <CategorySection key={key} label={label} group={group} startDictation={startDictation} />
           )
         })}
-
-        {/* 🌍 ЧУЖДИ ЕЗИЦИ */}
-        <div style={{ marginTop: 24 }}>
-          <div style={{
-            background: profile?.plan_type === 'max' ? 'linear-gradient(135deg, #EDE9FE, #F5F3FF)' : '#F5F5F5',
-            border: `2px solid ${profile?.plan_type === 'max' ? '#A78BFA' : '#E5E7EB'}`,
-            borderRadius: 16,
-            padding: '14px 18px',
-            marginBottom: 12,
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between'
-          }}>
-            <span style={{ fontFamily: 'Russo One, sans-serif', fontSize: '1rem', color: profile?.plan_type === 'max' ? '#5B21B6' : '#9CA3AF' }}>
-              🌍 Чужди езици
-            </span>
-            {profile?.plan_type !== 'max' && (
-              <span style={{ fontSize: '0.75rem', background: '#7C3AED', color: 'white', borderRadius: 20, padding: '3px 10px', fontWeight: 700 }}>🔒 Max</span>
-            )}
-          </div>
-
-          {profile?.plan_type === 'max' ? (
-            <div>
-              <div style={{ display: 'flex', gap: 10, marginBottom: 12 }}>
-                {[{ code: 'en', label: '🇬🇧 Английски' }, { code: 'de', label: '🇩🇪 Немски' }].map(l => (
-                  <button key={l.code}
-                    onClick={() => { setForeignLang(l.code as 'en' | 'de'); setForeignLevel(null); setForeignDictations([]) }}
-                    style={{
-                      flex: 1,
-                      padding: '10px 0',
-                      borderRadius: 12,
-                      border: `2px solid ${foreignLang === l.code ? '#7C3AED' : '#DDD6FE'}`,
-                      background: foreignLang === l.code ? '#7C3AED' : 'white',
-                      color: foreignLang === l.code ? 'white' : '#5B21B6',
-                      fontWeight: 700,
-                      cursor: 'pointer',
-                      fontSize: '0.9rem'
-                    }}>
-                    {l.label}
-                  </button>
-                ))}
-              </div>
-
-              {foreignLang && (
-                <div style={{ display: 'flex', gap: 8, marginBottom: 12 }}>
-                  {[
-                    { code: 'easy', label: '🟢 Лесно (A1)' },
-                    { code: 'medium', label: '🟡 Средно (A2)' },
-                    { code: 'hard', label: '🔴 Трудно (B1)' }
-                  ].map(lv => (
-                    <button key={lv.code}
-                      onClick={() => {
-                        setForeignLevel(lv.code as 'easy' | 'medium' | 'hard')
-                        loadForeignDictations(foreignLang, lv.code as 'easy' | 'medium' | 'hard', setForeignDictations)
-                      }}
-                      style={{
-                        flex: 1,
-                        padding: '8px 4px',
-                        borderRadius: 12,
-                        border: `2px solid ${foreignLevel === lv.code ? '#7C3AED' : '#DDD6FE'}`,
-                        background: foreignLevel === lv.code ? '#EDE9FE' : 'white',
-                        color: '#5B21B6',
-                        fontWeight: 700,
-                        cursor: 'pointer',
-                        fontSize: '0.75rem'
-                      }}>
-                      {lv.label}
-                    </button>
-                  ))}
-                </div>
-              )}
-
-              {foreignLevel && foreignDictations.length === 0 && (
-                <p style={{ color: '#A78BFA', textAlign: 'center', padding: 16 }}>Няма диктовки за тази комбинация.</p>
-              )}
-
-              {foreignDictations.map(d => (
-                <button key={d.id} onClick={() => startDictation(d)}
-                  style={{
-                    width: '100%',
-                    background: 'white',
-                    border: '2px solid #DDD6FE',
-                    borderRadius: 16,
-                    padding: '16px 20px',
-                    marginBottom: 10,
-                    textAlign: 'left',
-                    cursor: 'pointer',
-                    transition: 'border-color 0.2s'
-                  }}
-                  onMouseEnter={e => (e.currentTarget.style.borderColor = '#7C3AED')}
-                  onMouseLeave={e => (e.currentTarget.style.borderColor = '#DDD6FE')}>
-                  <h2 style={{ fontWeight: 700, color: '#374151', fontSize: '1.1rem' }}>{d.title}</h2>
-                  <p style={{ color: '#7C3AED', fontSize: '0.85rem', marginTop: 4 }}>
-                    {(d.sentences as Sentence[]).length} изречения • {foreignLang === 'en' ? '🇬🇧' : '🇩🇪'} {foreignLevel === 'easy' ? 'A1' : foreignLevel === 'medium' ? 'A2' : 'B1'}
-                  </p>
-                </button>
-              ))}
-            </div>
-          ) : (
-            <div style={{ background: '#F5F3FF', borderRadius: 12, padding: '16px 20px', textAlign: 'center' }}>
-              <p style={{ color: '#7C3AED', fontSize: '0.9rem', marginBottom: 12 }}>
-                Чужди езици се отключват с план <strong>Max</strong> 🌍
-              </p>
-              <button onClick={() => router.push('/plans')}
-                style={{ background: '#7C3AED', color: 'white', border: 'none', borderRadius: 12, padding: '10px 24px', fontWeight: 700, cursor: 'pointer', fontSize: '0.9rem' }}>
-                Виж план Max →
-              </button>
-            </div>
-          )}
-        </div>
-
       </div>
     </main>
   )
