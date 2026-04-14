@@ -2,45 +2,44 @@ import { NextRequest, NextResponse } from 'next/server'
 
 export async function POST(req: NextRequest) {
   try {
-    const { text, voice = 'kalina', speed = 0.85 } = await req.json()
+    const { text, voice = 'kalina', speed = 0.85, lang: dictLang } = await req.json()
     const ratePercent = speed <= 0.75 ? '-30%' : '0%'
 
     let voiceName: string
     let lang: string
 
-    switch (voice) {
-      case 'borisslav':
-        voiceName = 'bg-BG-BorislavNeural'
-        lang = 'bg-BG'
-        break
-      case 'koala':
-        voiceName = 'en-GB-SoniaNeural'
-        lang = 'en-GB'
-        break
-      case 'straus':
-        voiceName = 'en-GB-RyanNeural'
-        lang = 'en-GB'
-        break
-      case 'kalina':
-      default:
-        voiceName = 'bg-BG-KalinaNeural'
-        lang = 'bg-BG'
-        break
+    if (dictLang === 'de') {
+      // Немски диктовки
+      const isFemale = voice === 'koala' || voice === 'kalina'
+      voiceName = isFemale ? 'de-DE-KatjaNeural' : 'de-DE-ConradNeural'
+      lang = 'de-DE'
+    } else if (dictLang === 'en') {
+      // Английски диктовки
+      const isFemale = voice === 'koala' || voice === 'kalina'
+      voiceName = isFemale ? 'en-GB-SoniaNeural' : 'en-GB-RyanNeural'
+      lang = 'en-GB'
+    } else {
+      // Български диктовки
+      switch (voice) {
+        case 'borisslav':
+          voiceName = 'bg-BG-BorislavNeural'
+          lang = 'bg-BG'
+          break
+        case 'kalina':
+        default:
+          voiceName = 'bg-BG-KalinaNeural'
+          lang = 'bg-BG'
+          break
+      }
     }
 
     const accentFixes: Record<string, string> = {
-      'ранен': 'ранéн',
-      'Ранен': 'Ранéн',
-      'ранена': 'ранéна',
-      'Ранена': 'Ранéна',
-      'ранени': 'ранéни',
-      'паднали': 'паднáли',
-      'загинали': 'загинáли',
-      'живели': 'живéли',
-      'работели': 'работéли',
-      'говорели': 'говорéли',
-      'вървели': 'ървéли',
-      'носели': 'носéли',
+      'ранен': 'ранéн', 'Ранен': 'Ранéн',
+      'ранена': 'ранéна', 'Ранена': 'Ранéна',
+      'ранени': 'ранéни', 'паднали': 'паднáли',
+      'загинали': 'загинáли', 'живели': 'живéли',
+      'работели': 'работéли', 'говорели': 'говорéли',
+      'вървели': 'ървéли', 'носели': 'носéли',
       'пишели': 'пишéли',
     }
 
