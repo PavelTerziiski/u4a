@@ -3,13 +3,31 @@ import { NextRequest, NextResponse } from 'next/server'
 export async function POST(req: NextRequest) {
   try {
     const { text, voice = 'kalina', speed = 0.85 } = await req.json()
-  const ratePercent = speed <= 0.75 ? '-30%' : '0%'
+    const ratePercent = speed <= 0.75 ? '-30%' : '0%'
 
-    const voiceName = voice === 'borisslav' 
-      ? 'bg-BG-BorislavNeural' 
-      : 'bg-BG-KalinaNeural'
+    let voiceName: string
+    let lang: string
 
-    // Речник с думи, където ударението трябва да се коригира
+    switch (voice) {
+      case 'borisslav':
+        voiceName = 'bg-BG-BorislavNeural'
+        lang = 'bg-BG'
+        break
+      case 'koala':
+        voiceName = 'en-GB-SoniaNeural'
+        lang = 'en-GB'
+        break
+      case 'straus':
+        voiceName = 'en-GB-RyanNeural'
+        lang = 'en-GB'
+        break
+      case 'kalina':
+      default:
+        voiceName = 'bg-BG-KalinaNeural'
+        lang = 'bg-BG'
+        break
+    }
+
     const accentFixes: Record<string, string> = {
       'ранен': 'ранéн',
       'Ранен': 'Ранéн',
@@ -25,13 +43,16 @@ export async function POST(req: NextRequest) {
       'носели': 'носéли',
       'пишели': 'пишéли',
     }
+
     let fixedText = text
-    Object.entries(accentFixes).forEach(([wrong, correct]) => {
-      fixedText = fixedText.replaceAll(wrong, correct)
-    })
+    if (lang === 'bg-BG') {
+      Object.entries(accentFixes).forEach(([wrong, correct]) => {
+        fixedText = fixedText.replaceAll(wrong, correct)
+      })
+    }
 
     const ssml = `
-      <speak version="1.0" xmlns="http://www.w3.org/2001/10/synthesis" xml:lang="bg-BG">
+      <speak version="1.0" xmlns="http://www.w3.org/2001/10/synthesis" xml:lang="${lang}">
         <voice name="${voiceName}">
           <prosody rate="${ratePercent}">
             ${fixedText}
@@ -61,7 +82,6 @@ export async function POST(req: NextRequest) {
 
     const audioBuffer = await response.arrayBuffer()
     const base64 = Buffer.from(audioBuffer).toString('base64')
-
     return NextResponse.json({ audio: base64 })
   } catch (error) {
     console.error('Azure TTS error:', error)
