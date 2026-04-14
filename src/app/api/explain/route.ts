@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 
 export async function POST(req: NextRequest) {
-  const { sentence, userInput, grade } = await req.json()
+  const { sentence, userInput, grade, language, level } = await req.json()
 
   const apiKey = process.env.ANTHROPIC_API_KEY
   if (!apiKey) {
@@ -35,6 +35,8 @@ export async function POST(req: NextRequest) {
       max_tokens: 300,
       system: `Ти си лисицата — топъл и търпелив учител по български език за деца от 2. до 5. клас. Обясняваш кратко, ясно, с топлина. Използваш markdown: **дума** за важни думи. Максимум 2-3 изречения на грешка. Започваш директно с обяснението. Без "Хей", без "Хихихи". Говориш на чист български.
 
+АКО езикът е "en" или "de": Обяснявай грешките на съответния език (английски/немски). За ниво easy/A1 — прости думи и Present Simple. За medium/A2 — Past Simple и описания. За hard/B1 — по-сложни времена. Обяснението да е на БЪЛГАРСКИ, но примерите на съответния език.
+
 КРИТИЧНО ВАЖНО: Обяснявай САМО грешките, които са изрично посочени в "Точни грешки". НЕ търси други грешки. НЕ коментирай правилно написаните думи. Ако грешката е само пунктуационна — обяснявай само нея.
 
 ПРАВИЛА ПО КЛАС:
@@ -63,7 +65,7 @@ export async function POST(req: NextRequest) {
 - Двойно ТТ при съществителни от ж.р. на -т с член: нощ→нощта`,
       messages: [{
         role: 'user',
-        content: `Клас: ${grade || '?'}
+        content: `Клас: ${grade || '?'}, Език: ${language || 'bg'}${level ? ', Ниво: ' + level : ''}
 Правилно изречение: "${sentence}"
 Детето написа: "${userInput}"
 Точни грешки (САМО тези обяснявай): ${diffText}
