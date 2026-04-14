@@ -65,7 +65,7 @@ export default function Dashboard() {
               border: '1.5px solid #FED7AA', borderRadius: '99px',
               padding: '4px 10px', fontSize: '0.75rem',
               fontWeight: 800, color: '#92400E', fontFamily: 'Nunito, sans-serif'
-            }>{profile?.plan_type === 'max' ? '🌍 Max' : '⭐ Premium'}</div>
+            }}>{profile?.plan_type === 'max' ? '🌍 Max' : '⭐ Premium'}</div>
           )}
           <button onClick={() => { localStorage.removeItem('u4a_username'); router.push('/') }} style={{
             background: '#EF4444', color: 'white', border: 'none',
