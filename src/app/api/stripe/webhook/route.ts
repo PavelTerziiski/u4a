@@ -61,14 +61,6 @@ export async function POST(req: NextRequest) {
         stripe_subscription_id: subscription.id,
       }).eq('stripe_customer_id', customerId)
     }
-
-    // Cancel at period end — все още активен, но маркираме
-    if (subscription.cancel_at_period_end) {
-      const periodEnd = new Date((subscription as any).current_period_end * 1000).toISOString()
-      await supabase.from('profiles').update({
-        premium_expires_at: periodEnd,
-      }).eq('stripe_customer_id', customerId)
-    }
   }
 
   // ✅ Абонаментът реално изтече
