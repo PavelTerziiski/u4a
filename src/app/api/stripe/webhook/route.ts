@@ -1,9 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server'
 import Stripe from 'stripe'
 import { createClient } from '@supabase/supabase-js'
+
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
   apiVersion: '2026-03-25.dahlia',
 })
+
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
   process.env.SUPABASE_SERVICE_ROLE_KEY!
@@ -17,6 +19,7 @@ const MAX_PRICE_IDS = [
 export async function POST(req: NextRequest) {
   const body = await req.text()
   const signature = req.headers.get('stripe-signature')!
+
   let event: Stripe.Event
   try {
     event = stripe.webhooks.constructEvent(body, signature, process.env.STRIPE_WEBHOOK_SECRET!)
@@ -25,6 +28,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Invalid signature' }, { status: 400 })
   }
 
+  // ✅ Нов абонамент (checkout)
   if (event.type === 'checkout.session.completed') {
     const session = event.data.object as Stripe.Checkout.Session
     const userId = session.metadata?.userId
@@ -42,12 +46,39 @@ export async function POST(req: NextRequest) {
     }
   }
 
+  // ✅ Upgrade / Downgrade / Reactivation през Customer Portal
+  if (event.type === 'customer.subscription.updated') {
+    const subscription = event.data.object as Stripe.Subscription
+    const customerId = subscription.customer as string
+    const priceId = subscription.items.data[0]?.price?.id
+    const isMax = MAX_PRICE_IDS.includes(priceId)
+    const status = subscription.status
+
+    if (status === 'active' || status === 'trialing') {
+      await supabase.from('profiles').update({
+        is_premium: true,
+        plan_type: isMax ? 'max' : 'premium',
+        stripe_subscription_id: subscription.id,
+      }).eq('stripe_customer_id', customerId)
+    }
+
+    // Cancel at period end — все още активен, но маркираме
+    if (subscription.cancel_at_period_end) {
+      const periodEnd = new Date(subscription.current_period_end * 1000).toISOString()
+      await supabase.from('profiles').update({
+        premium_expires_at: periodEnd,
+      }).eq('stripe_customer_id', customerId)
+    }
+  }
+
+  // ✅ Абонаментът реално изтече
   if (event.type === 'customer.subscription.deleted') {
     const subscription = event.data.object as Stripe.Subscription
     const customerId = subscription.customer as string
     await supabase.from('profiles').update({
       is_premium: false,
       plan_type: 'free',
+      stripe_subscription_id: null,
     }).eq('stripe_customer_id', customerId)
   }
 
