@@ -16,6 +16,12 @@ const AVATARS = [
   { id: 8, file: 'wolf.png', name: 'Вълче' },
 ]
 
+const PLAN_LABELS: Record<string, { label: string; emoji: string; color: string }> = {
+  free: { label: 'Free', emoji: '🌱', color: '#F97316' },
+  premium: { label: 'Premium', emoji: '⭐', color: '#F97316' },
+  max: { label: 'Max', emoji: '👑', color: '#7C3AED' },
+}
+
 export default function Settings() {
   const router = useRouter()
   const [profile, setProfile] = useState<Profile | null>(null)
@@ -26,6 +32,7 @@ export default function Settings() {
   const [selectedAvatar, setSelectedAvatar] = useState<number>(1)
   const [selectedVoice, setSelectedVoice] = useState<string>('kalina')
   const [playingVoice, setPlayingVoice] = useState<string | null>(null)
+  const [portalLoading, setPortalLoading] = useState(false)
 
   useEffect(() => {
     const username = localStorage.getItem('u4a_username')
@@ -81,6 +88,23 @@ export default function Settings() {
     if (data.url) window.location.href = data.url
   }
 
+  const handlePortal = async () => {
+    if (!profile) return
+    setPortalLoading(true)
+    try {
+      const res = await fetch('/api/stripe/portal', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId: profile.id })
+      })
+      const data = await res.json()
+      if (data.url) window.location.href = data.url
+    } catch {
+      // ignore
+    }
+    setPortalLoading(false)
+  }
+
   const handleSave = async () => {
     if (!profile) return
     setSaving(true)
@@ -99,6 +123,9 @@ export default function Settings() {
       setProfile({ ...profile, fox_name: displayName, avatar_id: selectedAvatar, preferred_voice: selectedVoice })
     }
   }
+
+  const currentPlan = profile?.plan_type || 'free'
+  const planInfo = PLAN_LABELS[currentPlan] || PLAN_LABELS.free
 
   if (loading) return (
     <main className="min-h-screen flex items-center justify-center" style={{ background: 'linear-gradient(135deg, #FFF8F0 0%, #FEF3E2 100%)' }}>
@@ -132,6 +159,39 @@ export default function Settings() {
 
       <div className="dash-content" style={{ paddingBottom: 100 }}>
 
+        {/* ПЛАНОВЕ */}
+        <div className="greeting-card fade-up" style={{ marginBottom: 16, background: currentPlan === 'max' ? 'linear-gradient(135deg, #EDE9FE, #F5F3FF)' : 'white', border: currentPlan === 'max' ? '2px solid #A78BFA' : '2px solid #FED7AA' }}>
+          <div style={{ fontFamily: 'Russo One, sans-serif', fontSize: '1rem', color: currentPlan === 'max' ? '#5B21B6' : '#92400E', marginBottom: 12 }}>
+            💳 Моят план
+          </div>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+              <span style={{ fontSize: '2rem' }}>{planInfo.emoji}</span>
+              <div>
+                <div style={{ fontFamily: 'Russo One, sans-serif', fontSize: '1.2rem', color: planInfo.color }}>{planInfo.label}</div>
+                <div style={{ fontFamily: 'Nunito, sans-serif', fontSize: '0.75rem', color: '#92400E' }}>
+                  {currentPlan === 'free' && '2 диктовки седмично'}
+                  {currentPlan === 'premium' && 'Неограничени диктовки'}
+                  {currentPlan === 'max' && 'Всичко + чужди езици'}
+                </div>
+              </div>
+            </div>
+          </div>
+          <div style={{ display: 'flex', gap: 8 }}>
+            {currentPlan !== 'max' && (
+              <button onClick={() => router.push('/plans')} style={{ flex: 1, padding: '10px 0', borderRadius: 12, border: 'none', background: currentPlan === 'max' ? '#7C3AED' : '#F97316', color: 'white', fontFamily: 'Nunito, sans-serif', fontWeight: 800, fontSize: '0.9rem', cursor: 'pointer' }}>
+                ⬆️ Смени план
+              </button>
+            )}
+            {currentPlan !== 'free' && (
+              <button onClick={handlePortal} disabled={portalLoading} style={{ flex: 1, padding: '10px 0', borderRadius: 12, border: '2px solid #FED7AA', background: 'white', color: '#92400E', fontFamily: 'Nunito, sans-serif', fontWeight: 800, fontSize: '0.9rem', cursor: 'pointer', opacity: portalLoading ? 0.6 : 1 }}>
+                {portalLoading ? '⏳...' : '⚙️ Управлявай'}
+              </button>
+            )}
+          </div>
+        </div>
+
+        {/* ИМЕ */}
         <div className="greeting-card fade-up" style={{ marginBottom: 16 }}>
           <div style={{ fontFamily: 'Russo One, sans-serif', fontSize: '1rem', color: '#92400E', marginBottom: 10 }}>
             ✏️ Показвано име
@@ -153,6 +213,7 @@ export default function Settings() {
           </div>
         </div>
 
+        {/* АВАТАР */}
         <div className="greeting-card fade-up fade-up-1" style={{ marginBottom: 16 }}>
           <div style={{ fontFamily: 'Russo One, sans-serif', fontSize: '1rem', color: '#92400E', marginBottom: 12 }}>
             🐾 Избери аватар
@@ -178,6 +239,7 @@ export default function Settings() {
           </div>
         </div>
 
+        {/* ГЛАСОВЕ */}
         <div className="greeting-card fade-up fade-up-2" style={{ marginBottom: 16 }}>
           <div style={{ fontFamily: 'Russo One, sans-serif', fontSize: '1rem', color: '#92400E', marginBottom: 12 }}>
             🎙️ Глас на лисицата
@@ -251,16 +313,82 @@ export default function Settings() {
             )}
           </div>
 
-          {!profile?.is_premium && (
-            <>
+          {/* Max гласове */}
+          <div
+            onClick={() => profile?.plan_type === 'max' && setSelectedVoice('koala')}
+            style={{
+              display: 'flex', alignItems: 'center', gap: 12,
+              padding: '12px 14px', borderRadius: 14,
+              border: selectedVoice === 'koala' ? '2.5px solid #7C3AED' : '2px solid #DDD6FE',
+              background: selectedVoice === 'koala' ? '#EDE9FE' : 'rgba(255,255,255,0.5)',
+              marginBottom: 10,
+              cursor: profile?.plan_type === 'max' ? 'pointer' : 'default',
+              opacity: profile?.plan_type === 'max' ? 1 : 0.5
+            }}
+          >
+            <div style={{ fontSize: '1.8rem' }}>🐨</div>
+            <div style={{ flex: 1 }}>
+              <div style={{ fontFamily: 'Nunito, sans-serif', fontWeight: 800, color: '#5B21B6', fontSize: '0.95rem' }}>Госпожа Коала</div>
+              <div style={{ fontFamily: 'Nunito, sans-serif', fontSize: '0.75rem', color: '#7C3AED' }}>Многоезичен женски глас · EN & DE</div>
+            </div>
+            {profile?.plan_type === 'max' ? (
+              <button
+                onClick={e => { e.stopPropagation(); playVoicePreview('koala') }}
+                style={{
+                  background: playingVoice === 'koala' ? '#DDD6FE' : '#7C3AED',
+                  color: 'white', border: 'none', borderRadius: 99,
+                  padding: '6px 12px', fontFamily: 'Nunito, sans-serif',
+                  fontWeight: 800, fontSize: '0.8rem', cursor: 'pointer'
+                }}
+              >
+                {playingVoice === 'koala' ? '▶ ...' : '▶ Чуй'}
+              </button>
+            ) : (
+              <div style={{ fontSize: '0.75rem', color: '#7C3AED', fontFamily: 'Nunito, sans-serif', fontWeight: 800 }}>🔒 Max</div>
+            )}
+          </div>
 
-              <button onClick={handleUpgrade} style={{
-                background: '#F97316', color: 'white', border: 'none',
-                borderRadius: 12, padding: '10px 0', width: '100%',
-                fontFamily: 'Nunito, sans-serif', fontWeight: 800,
-                fontSize: '0.95rem', cursor: 'pointer', marginTop: 8
-              }}>🌰 Стани Premium · 4.50€/мес</button>
-            </>
+          <div
+            onClick={() => profile?.plan_type === 'max' && setSelectedVoice('straus')}
+            style={{
+              display: 'flex', alignItems: 'center', gap: 12,
+              padding: '12px 14px', borderRadius: 14,
+              border: selectedVoice === 'straus' ? '2.5px solid #7C3AED' : '2px solid #DDD6FE',
+              background: selectedVoice === 'straus' ? '#EDE9FE' : 'rgba(255,255,255,0.5)',
+              marginBottom: 10,
+              cursor: profile?.plan_type === 'max' ? 'pointer' : 'default',
+              opacity: profile?.plan_type === 'max' ? 1 : 0.5
+            }}
+          >
+            <div style={{ fontSize: '1.8rem' }}>🦩</div>
+            <div style={{ flex: 1 }}>
+              <div style={{ fontFamily: 'Nunito, sans-serif', fontWeight: 800, color: '#5B21B6', fontSize: '0.95rem' }}>Господин Щраус</div>
+              <div style={{ fontFamily: 'Nunito, sans-serif', fontSize: '0.75rem', color: '#7C3AED' }}>Многоезичен мъжки глас · EN & DE</div>
+            </div>
+            {profile?.plan_type === 'max' ? (
+              <button
+                onClick={e => { e.stopPropagation(); playVoicePreview('straus') }}
+                style={{
+                  background: playingVoice === 'straus' ? '#DDD6FE' : '#7C3AED',
+                  color: 'white', border: 'none', borderRadius: 99,
+                  padding: '6px 12px', fontFamily: 'Nunito, sans-serif',
+                  fontWeight: 800, fontSize: '0.8rem', cursor: 'pointer'
+                }}
+              >
+                {playingVoice === 'straus' ? '▶ ...' : '▶ Чуй'}
+              </button>
+            ) : (
+              <div style={{ fontSize: '0.75rem', color: '#7C3AED', fontFamily: 'Nunito, sans-serif', fontWeight: 800 }}>🔒 Max</div>
+            )}
+          </div>
+
+          {!profile?.is_premium && (
+            <button onClick={handleUpgrade} style={{
+              background: '#F97316', color: 'white', border: 'none',
+              borderRadius: 12, padding: '10px 0', width: '100%',
+              fontFamily: 'Nunito, sans-serif', fontWeight: 800,
+              fontSize: '0.95rem', cursor: 'pointer', marginTop: 8
+            }}>🌰 Стани Premium · 4.50€/мес</button>
           )}
         </div>
 
