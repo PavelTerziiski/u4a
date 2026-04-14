@@ -502,7 +502,6 @@ export default function DictationPage() {
         {dictations.length === 0 && <p className="text-gray-400 text-center">Няма диктовки за твоя клас.</p>}
         {[
           { key: 'original', label: '📝 Оригинални диктовки u4a' },
-          { key: 'writers', label: '📚 Адаптации от велики български автори' },
         ].map(({ key, label }) => {
           const group = dictations.filter((d: Dictation) => (d.category || 'original') === key)
           if (group.length === 0) return null
