@@ -360,10 +360,10 @@ export default function Settings() {
               opacity: profile?.plan_type === 'max' ? 1 : 0.5
             }}
           >
-            <div style={{ fontSize: '1.8rem' }}>🦩</div>
+            <div style={{ fontSize: '1.8rem' }}>🦒</div>
             <div style={{ flex: 1 }}>
-              <div style={{ fontFamily: 'Nunito, sans-serif', fontWeight: 800, color: '#5B21B6', fontSize: '0.95rem' }}>Господин Щраус</div>
-              <div style={{ fontFamily: 'Nunito, sans-serif', fontSize: '0.75rem', color: '#7C3AED' }}>Многоезичен мъжки глас · EN & DE</div>
+              <div style={{ fontFamily: 'Nunito, sans-serif', fontWeight: 800, color: '#5B21B6', fontSize: '0.95rem' }}>Господин Жираф</div>
+              <div style={{ fontFamily: 'Nunito, sans-serif', fontSize: '0.75rem', color: '#7C3AED' }}>Мъжки глас · строг и знаещ</div>
             </div>
             {profile?.plan_type === 'max' ? (
               <button
