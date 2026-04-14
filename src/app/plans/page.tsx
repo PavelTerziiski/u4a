@@ -20,13 +20,21 @@ export default function PlansPage() {
   const handleCheckout = async (priceId: string) => {
     if (!profile) return
     setLoading(priceId)
-    const res = await fetch('/api/stripe/checkout', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ userId: profile.id, username: profile.username, priceId }),
-    })
-    const data = await res.json()
-    if (data.url) window.location.href = data.url
+    try {
+      const res = await fetch('/api/stripe/checkout', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId: profile.id, username: profile.username, priceId }),
+      })
+      const data = await res.json()
+      if (data.url) {
+        window.location.href = data.url
+      } else if (data.upgraded) {
+        router.push('/dashboard')
+      }
+    } catch {
+      // ignore
+    }
     setLoading(null)
   }
 
@@ -36,13 +44,25 @@ export default function PlansPage() {
   const maxYearly = process.env.NEXT_PUBLIC_STRIPE_MAX_YEARLY!
 
   const currentPlan = profile?.plan_type || 'free'
+  const hasBeenCustomer = !!profile?.stripe_customer_id
+
+  const getButtonLabel = (targetPlan: 'premium' | 'max', priceId: string) => {
+    if (currentPlan === targetPlan) return 'Текущ план'
+    if (loading === priceId) return 'Зарежда...'
+    if (currentPlan === 'premium' && targetPlan === 'max') return 'Ъпгрейд към Max →'
+    if (hasBeenCustomer) return 'Абонирай се →'
+    return 'Опитай безплатно 7 дни'
+  }
+
+  const isUpgrade = (targetPlan: 'premium' | 'max') =>
+    currentPlan === 'premium' && targetPlan === 'max'
 
   return (
     <div style={{ minHeight: '100vh', background: 'linear-gradient(135deg, #FFF7ED 0%, #FFEDD5 100%)', padding: '40px 20px', fontFamily: 'Nunito, sans-serif' }}>
       <div style={{ maxWidth: 900, margin: '0 auto' }}>
         <div style={{ textAlign: 'center', marginBottom: 32 }}>
           <h1 style={{ fontFamily: 'Russo One, sans-serif', fontSize: '2rem', color: '#7C2D12', margin: 0 }}>Избери своя план</h1>
-          <p style={{ color: '#92400E', marginTop: 8 }}>7 дни безплатно за всеки платен план</p>
+          <p style={{ color: '#92400E', marginTop: 8 }}>{hasBeenCustomer ? 'Промени своя план по всяко време' : '7 дни безплатно за всеки платен план'}</p>
           <div style={{ display: 'inline-flex', background: '#FED7AA', borderRadius: 99, padding: 4, marginTop: 16, gap: 4 }}>
             <button onClick={() => setBilling('monthly')} style={{ padding: '8px 20px', borderRadius: 99, border: 'none', cursor: 'pointer', fontFamily: 'Nunito, sans-serif', fontWeight: 700, fontSize: '0.9rem', background: billing === 'monthly' ? '#F97316' : 'transparent', color: billing === 'monthly' ? 'white' : '#92400E' }}>Месечно</button>
             <button onClick={() => setBilling('yearly')} style={{ padding: '8px 20px', borderRadius: 99, border: 'none', cursor: 'pointer', fontFamily: 'Nunito, sans-serif', fontWeight: 700, fontSize: '0.9rem', background: billing === 'yearly' ? '#F97316' : 'transparent', color: billing === 'yearly' ? 'white' : '#92400E' }}>Годишно <span style={{ fontSize: '0.75rem', background: '#16A34A', color: 'white', borderRadius: 99, padding: '2px 6px', marginLeft: 4 }}>-2 месеца</span></button>
@@ -58,7 +78,7 @@ export default function PlansPage() {
             <div style={{ fontSize: '2rem', fontWeight: 900, color: '#F97316' }}>0€</div>
             <div style={{ color: '#92400E', fontSize: '0.85rem', marginBottom: 20 }}>завинаги</div>
             <ul style={{ listStyle: 'none', padding: 0, margin: '0 0 24px', display: 'flex', flexDirection: 'column', gap: 8 }}>
-              {['3 диктовки на седмица', 'Госпожа Лисица', 'Резултати и статистика'].map(f => (
+              {['2 диктовки на седмица', 'Госпожа Лисица', 'Резултати и статистика'].map(f => (
                 <li key={f} style={{ display: 'flex', alignItems: 'center', gap: 8, color: '#7C2D12', fontSize: '0.9rem' }}>
                   <span style={{ color: '#16A34A' }}>✓</span> {f}
                 </li>
@@ -81,8 +101,11 @@ export default function PlansPage() {
                 </li>
               ))}
             </ul>
-            <button onClick={() => handleCheckout(billing === 'monthly' ? premiumMonthly : premiumYearly)} disabled={currentPlan === 'premium' || !!loading} style={{ width: '100%', padding: '12px', borderRadius: 12, border: 'none', background: currentPlan === 'premium' ? '#FED7AA' : '#F97316', color: 'white', fontFamily: 'Nunito, sans-serif', fontWeight: 700, fontSize: '1rem', cursor: currentPlan === 'premium' ? 'default' : 'pointer' }}>
-              {currentPlan === 'premium' ? 'Текущ план' : loading === (billing === 'monthly' ? premiumMonthly : premiumYearly) ? 'Зарежда...' : 'Опитай безплатно 7 дни'}
+            <button
+              onClick={() => handleCheckout(billing === 'monthly' ? premiumMonthly : premiumYearly)}
+              disabled={currentPlan === 'premium' || !!loading}
+              style={{ width: '100%', padding: '12px', borderRadius: 12, border: 'none', background: currentPlan === 'premium' ? '#FED7AA' : '#F97316', color: 'white', fontFamily: 'Nunito, sans-serif', fontWeight: 700, fontSize: '1rem', cursor: currentPlan === 'premium' ? 'default' : 'pointer' }}>
+              {getButtonLabel('premium', billing === 'monthly' ? premiumMonthly : premiumYearly)}
             </button>
           </div>
 
@@ -101,8 +124,16 @@ export default function PlansPage() {
                 </li>
               ))}
             </ul>
-            <button onClick={() => handleCheckout(billing === 'monthly' ? maxMonthly : maxYearly)} disabled={currentPlan === 'max' || !!loading} style={{ width: '100%', padding: '12px', borderRadius: 12, border: 'none', background: currentPlan === 'max' ? '#4338CA' : 'linear-gradient(90deg, #818CF8, #C084FC)', color: 'white', fontFamily: 'Nunito, sans-serif', fontWeight: 700, fontSize: '1rem', cursor: currentPlan === 'max' ? 'default' : 'pointer' }}>
-              {currentPlan === 'max' ? 'Текущ план' : loading === (billing === 'monthly' ? maxMonthly : maxYearly) ? 'Зарежда...' : 'Опитай безплатно 7 дни'}
+            {isUpgrade('max') && (
+              <p style={{ color: '#C7D2FE', fontSize: '0.78rem', marginBottom: 10, textAlign: 'center' }}>
+                💜 Доплащаш само разликата за оставащите дни
+              </p>
+            )}
+            <button
+              onClick={() => handleCheckout(billing === 'monthly' ? maxMonthly : maxYearly)}
+              disabled={currentPlan === 'max' || !!loading}
+              style={{ width: '100%', padding: '12px', borderRadius: 12, border: 'none', background: currentPlan === 'max' ? '#4338CA' : 'linear-gradient(90deg, #818CF8, #C084FC)', color: 'white', fontFamily: 'Nunito, sans-serif', fontWeight: 700, fontSize: '1rem', cursor: currentPlan === 'max' ? 'default' : 'pointer' }}>
+              {getButtonLabel('max', billing === 'monthly' ? maxMonthly : maxYearly)}
             </button>
           </div>
         </div>
