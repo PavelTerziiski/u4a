@@ -9,8 +9,8 @@ export async function POST(req: NextRequest) {
   }
 
   // Построяваме точно сравнение: правилна дума → написаното от детето
-  const correctWords = sentence.match(/[\wа-яА-ЯёЁ]+/gu) || []
-  const userWords = userInput.match(/[\wа-яА-ЯёЁ]+/gu) || []
+  const correctWords = sentence.match(/[а-яА-ЯёЁa-zA-Z0-9]+/gi) || []
+  const userWords = userInput.match(/[а-яА-ЯёЁa-zA-Z0-9]+/gi) || []
   const differences: string[] = []
   correctWords.forEach((word: string, i: number) => {
     const userWord = userWords[i] || '(липсва)'
