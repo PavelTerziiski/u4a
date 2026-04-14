@@ -31,6 +31,7 @@ export type Dictation = {
   author?: string
   language?: string
   difficulty?: string
+  level?: string
 }
 export type DictationSession = {
   id: string
