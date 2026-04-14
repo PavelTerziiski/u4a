@@ -311,7 +311,7 @@ export default function DictationPage() {
     await Promise.all(
       newResults.map(async (r, i) => {
         if (!r.correct) {
-          const wrongWords = r.wordResults.filter(w => !w.correct).map(w => w.word)
+          // wrongWords removed
           try {
             const res = await fetch('/api/explain', {
               method: 'POST',
