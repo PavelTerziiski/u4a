@@ -16,6 +16,8 @@ export type Profile = {
   preferred_voice?: string
   parent_plan?: string
   email?: string
+  stripe_customer_id?: string
+  stripe_subscription_id?: string
 }
 export type Dictation = {
   id: string
