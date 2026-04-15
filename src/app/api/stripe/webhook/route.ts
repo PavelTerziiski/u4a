@@ -23,7 +23,7 @@ async function createOrder(session: Stripe.Checkout.Session, priceId: string | u
 
   // 1. Запис в orders
   const { data: order, error } = await supabase.from('orders').insert({
-    profile_id: session.metadata?.userId ?? null,
+    profile_id: null,
     stripe_payment_intent_id: session.payment_intent as string ?? null,
     stripe_invoice_id: session.invoice as string ?? null,
     stripe_checkout_session_id: session.id,
