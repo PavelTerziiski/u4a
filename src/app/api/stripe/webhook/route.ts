@@ -20,6 +20,47 @@ const MAX_PRICE_IDS = [
   process.env.NEXT_PUBLIC_STRIPE_MAX_YEARLY,
 ]
 
+function buildEmailHtml(order: {
+  customer_name: string | null,
+  plan_type: string,
+  billing_period: string,
+  amount_eur: number,
+  document_number: string,
+}) {
+  const planName = order.plan_type === 'max' ? 'Max' : 'Premium'
+  const period = order.billing_period === 'yearly' ? '12 месеца' : '1 месец'
+  const greeting = order.customer_name ? order.customer_name : 'приятелю'
+  return `
+    <div style="font-family:Arial,sans-serif;max-width:480px;margin:0 auto;background:#FFF7ED;border-radius:16px;padding:32px;text-align:center;">
+      <div style="font-size:64px;margin-bottom:16px;">&#129418;</div>
+      <h1 style="color:#EA580C;font-size:24px;margin-bottom:8px;">Благодаря за абонамента!</h1>
+      <p style="color:#78350F;font-size:16px;margin-bottom:24px;">
+        Здравей, ${greeting}!<br/>
+        Прикачен е твоят документ за продажба.<br/>
+        Горската школа те чака! &#127794;
+      </p>
+      <table style="width:100%;border-collapse:collapse;margin:24px 0;text-align:left;">
+        <tr style="background:#FEF3C7;">
+          <td style="padding:10px 14px;color:#92400E;">Услуга</td>
+          <td style="padding:10px 14px;font-weight:bold;color:#78350F;">${planName} абонамент &mdash; ${period}</td>
+        </tr>
+        <tr>
+          <td style="padding:10px 14px;color:#92400E;">Сума</td>
+          <td style="padding:10px 14px;font-weight:bold;color:#78350F;">${order.amount_eur} EUR</td>
+        </tr>
+        <tr style="background:#FEF3C7;">
+          <td style="padding:10px 14px;color:#92400E;">Документ №</td>
+          <td style="padding:10px 14px;font-weight:bold;color:#78350F;">${order.document_number}</td>
+        </tr>
+      </table>
+      <p style="color:#92400E;font-size:12px;margin-top:24px;">
+        Документът е издаден по чл. 52о от Наредба Н-18 и е валиден без подпис и печат.
+      </p>
+      <p style="color:#aaa;font-size:11px;margin-top:16px;">u4a.bg &mdash; Диктовки за деца &#127794;</p>
+    </div>
+  `
+}
+
 async function createOrder(session: Stripe.Checkout.Session, priceId: string | undefined, isMax: boolean) {
   const billingPeriod = priceId?.includes('yearly') ? 'yearly' : 'monthly'
   const amount = (session.amount_total ?? 0) / 100
@@ -59,7 +100,6 @@ async function createOrder(session: Stripe.Checkout.Session, priceId: string | u
       orderId: order.id,
     })
 
-    // Качи в Storage
     const filePath = `${order.id}.pdf`
     const { error: uploadError } = await supabase.storage
       .from('documents')
@@ -79,39 +119,15 @@ async function createOrder(session: Stripe.Checkout.Session, priceId: string | u
       document_sent_at: new Date().toISOString(),
     }).eq('id', order.id)
 
-    // Изпрати имейл с документа
     if (order.customer_email) {
       await resend.emails.send({
         from: 'u4a.bg <noreply@u4a.bg>',
         to: order.customer_email,
-        subject: `Документ за продажба ${order.document_number} — u4a.bg`,
-        html: `
-          <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; padding: 40px 20px;">
-            <h2 style="color: #2D8B84;">Благодаря за абонамента! 🎉</h2>
-            <p>Здравейте${order.customer_name ? `, ${order.customer_name}` : ''},</p>
-            <p>Прикачен е вашият документ за продажба <strong>${order.document_number}</strong>.</p>
-            <table style="width: 100%; border-collapse: collapse; margin: 24px 0;">
-              <tr style="background: #F0FAFA;">
-                <td style="padding: 10px 14px; color: #7B9E9C;">Услуга</td>
-                <td style="padding: 10px 14px; font-weight: bold;">${order.plan_type === 'max' ? 'Max' : 'Premium'} абонамент — ${order.billing_period === 'yearly' ? '12 месеца' : '1 месец'}</td>
-              </tr>
-              <tr>
-                <td style="padding: 10px 14px; color: #7B9E9C;">Сума</td>
-                <td style="padding: 10px 14px; font-weight: bold;">${order.amount_eur} EUR</td>
-              </tr>
-              <tr style="background: #F0FAFA;">
-                <td style="padding: 10px 14px; color: #7B9E9C;">Документ №</td>
-                <td style="padding: 10px 14px; font-weight: bold;">${order.document_number}</td>
-              </tr>
-            </table>
-            <p style="color: #7B9E9C; font-size: 13px;">Документът е издаден по чл. 52о от Наредба Н-18 и е валиден без подпис и печат.</p>
-            <hr style="border: none; border-top: 1px solid #E0F5F4; margin: 24px 0;">
-            <p style="color: #7B9E9C; font-size: 12px;">u4a.bg — Диктовки за деца</p>
-          </div>
-        `,
+        subject: '🦊 Твоят документ за продажба — u4a.bg',
+        html: buildEmailHtml(order),
         attachments: [
           {
-            filename: `${order.document_number}.pdf`,
+            filename: order.document_number + '.pdf',
             content: pdfBuffer,
           }
         ]
