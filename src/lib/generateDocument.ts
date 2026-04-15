@@ -1,26 +1,35 @@
-import { Document, Page, Text, View, StyleSheet, pdf } from '@react-pdf/renderer'
+import { Document, Page, Text, View, StyleSheet, pdf, Font } from '@react-pdf/renderer'
 import QRCode from 'qrcode'
 import React from 'react'
+import path from 'path'
+
+Font.register({
+  family: 'Roboto',
+  fonts: [
+    { src: path.join(process.cwd(), 'public/fonts/Roboto-Regular.ttf'), fontWeight: 'normal' },
+    { src: path.join(process.cwd(), 'public/fonts/Roboto-Bold.ttf'), fontWeight: 'bold' },
+  ]
+})
 
 const styles = StyleSheet.create({
-  page: { padding: 40, fontSize: 10, fontFamily: 'Helvetica', color: '#1a1a1a' },
+  page: { padding: 40, fontSize: 10, fontFamily: 'Roboto', color: '#1a1a1a' },
   header: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 30, borderBottom: '2px solid #4ECDC4', paddingBottom: 16 },
-  title: { fontSize: 18, fontFamily: 'Helvetica-Bold', color: '#2D8B84' },
+  title: { fontSize: 18, fontWeight: 'bold', color: '#2D8B84' },
   subtitle: { fontSize: 10, color: '#7B9E9C', marginTop: 4 },
-  docNumber: { fontSize: 11, fontFamily: 'Helvetica-Bold', textAlign: 'right' },
+  docNumber: { fontSize: 11, fontWeight: 'bold', textAlign: 'right' },
   section: { marginBottom: 16 },
-  sectionTitle: { fontSize: 9, fontFamily: 'Helvetica-Bold', color: '#7B9E9C', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 6 },
+  sectionTitle: { fontSize: 9, fontWeight: 'bold', color: '#7B9E9C', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 6 },
   row: { flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 4, borderBottom: '1px solid #F0F0F0' },
   label: { color: '#7B9E9C', flex: 1 },
-  value: { fontFamily: 'Helvetica-Bold', flex: 2, textAlign: 'right' },
+  value: { fontWeight: 'bold', flex: 2, textAlign: 'right' },
   totalRow: { flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 8, marginTop: 8, borderTop: '2px solid #4ECDC4' },
-  totalLabel: { fontSize: 12, fontFamily: 'Helvetica-Bold' },
-  totalValue: { fontSize: 14, fontFamily: 'Helvetica-Bold', color: '#2D8B84' },
+  totalLabel: { fontSize: 12, fontWeight: 'bold' },
+  totalValue: { fontSize: 14, fontWeight: 'bold', color: '#2D8B84' },
   footer: { marginTop: 30, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-end' },
   footerText: { fontSize: 9, color: '#AAAAAA' },
   qrImage: { width: 80, height: 80 },
   badge: { backgroundColor: '#F0FAFA', padding: '6 10', borderRadius: 4, marginBottom: 8 },
-  badgeText: { color: '#2D8B84', fontSize: 9, fontFamily: 'Helvetica-Bold' },
+  badgeText: { color: '#2D8B84', fontSize: 9, fontWeight: 'bold' },
 })
 
 interface OrderData {
@@ -45,7 +54,6 @@ function formatPlanName(planType: string, billingPeriod: string): string {
 }
 
 export async function generateOrderPDF(order: OrderData): Promise<Buffer> {
-  // QR код съдържание по Наредба Н-18 Приложение № 18а
   const qrContent = [
     order.documentNumber,
     order.date,
@@ -60,7 +68,6 @@ export async function generateOrderPDF(order: OrderData): Promise<Buffer> {
   const DocComponent = () =>
     React.createElement(Document, null,
       React.createElement(Page, { size: 'A4', style: styles.page },
-        // Header
         React.createElement(View, { style: styles.header },
           React.createElement(View, null,
             React.createElement(Text, { style: styles.title }, 'u4a.bg'),
@@ -73,7 +80,6 @@ export async function generateOrderPDF(order: OrderData): Promise<Buffer> {
           ),
         ),
 
-        // Продавач
         React.createElement(View, { style: styles.section },
           React.createElement(Text, { style: styles.sectionTitle }, 'Продавач'),
           React.createElement(View, { style: styles.badge },
@@ -83,7 +89,6 @@ export async function generateOrderPDF(order: OrderData): Promise<Buffer> {
           ),
         ),
 
-        // Купувач
         React.createElement(View, { style: styles.section },
           React.createElement(Text, { style: styles.sectionTitle }, 'Купувач'),
           React.createElement(View, { style: styles.row },
@@ -96,7 +101,6 @@ export async function generateOrderPDF(order: OrderData): Promise<Buffer> {
           ) : null,
         ),
 
-        // Услуга
         React.createElement(View, { style: styles.section },
           React.createElement(Text, { style: styles.sectionTitle }, 'Услуга'),
           React.createElement(View, { style: styles.row },
@@ -117,13 +121,11 @@ export async function generateOrderPDF(order: OrderData): Promise<Buffer> {
           ),
         ),
 
-        // Сума
         React.createElement(View, { style: styles.totalRow },
           React.createElement(Text, { style: styles.totalLabel }, 'Обща сума'),
           React.createElement(Text, { style: styles.totalValue }, `${order.amountEur.toFixed(2)} EUR`),
         ),
 
-        // Референции
         React.createElement(View, { style: { ...styles.section, marginTop: 20 } },
           React.createElement(Text, { style: styles.sectionTitle }, 'Референции'),
           React.createElement(View, { style: styles.row },
@@ -136,7 +138,6 @@ export async function generateOrderPDF(order: OrderData): Promise<Buffer> {
           ),
         ),
 
-        // Footer с QR
         React.createElement(View, { style: styles.footer },
           React.createElement(View, null,
             React.createElement(Text, { style: styles.footerText }, 'Документът е издаден по чл. 52о от Наредба Н-18'),
