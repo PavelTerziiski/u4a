@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import Stripe from 'stripe'
 import { createClient } from '@supabase/supabase-js'
+import { generateOrderPDF } from '@/lib/generateDocument'
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
   apiVersion: '2026-03-25.dahlia',
@@ -20,7 +21,8 @@ async function createOrder(session: Stripe.Checkout.Session, priceId: string | u
   const billingPeriod = priceId?.includes('yearly') ? 'yearly' : 'monthly'
   const amount = (session.amount_total ?? 0) / 100
 
-  await supabase.from('orders').insert({
+  // 1. Запис в orders
+  const { data: order, error } = await supabase.from('orders').insert({
     profile_id: session.metadata?.userId ?? null,
     stripe_payment_intent_id: session.payment_intent as string ?? null,
     stripe_invoice_id: session.invoice as string ?? null,
@@ -32,7 +34,54 @@ async function createOrder(session: Stripe.Checkout.Session, priceId: string | u
     status: 'paid',
     customer_email: session.customer_details?.email ?? null,
     customer_name: session.customer_details?.name ?? null,
-  })
+  }).select().single()
+
+  if (error || !order) {
+    console.error('Order insert error:', error)
+    return
+  }
+
+  // 2. Генерирай PDF
+  try {
+    const pdfBuffer = await generateOrderPDF({
+      documentNumber: order.document_number,
+      date: new Date(order.created_at).toLocaleDateString('bg-BG', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' }),
+      sellerName: process.env.SELLER_NAME!,
+      sellerEik: process.env.SELLER_EIK!,
+      sellerAddress: process.env.SELLER_ADDRESS!,
+      customerEmail: order.customer_email ?? '',
+      customerName: order.customer_name ?? undefined,
+      planType: order.plan_type,
+      billingPeriod: order.billing_period,
+      amountEur: order.amount_eur,
+      paymentIntentId: order.stripe_payment_intent_id ?? '',
+      orderId: order.id,
+    })
+
+    // 3. Качи в Supabase Storage
+    const filePath = `${order.id}.pdf`
+    const { error: uploadError } = await supabase.storage
+      .from('documents')
+      .upload(filePath, pdfBuffer, { contentType: 'application/pdf', upsert: false })
+
+    if (uploadError) {
+      console.error('PDF upload error:', uploadError)
+      return
+    }
+
+    // 4. Запази URL в orders
+    const { data: urlData } = supabase.storage
+      .from('documents')
+      .getPublicUrl(filePath)
+
+    await supabase.from('orders').update({
+      document_url: urlData.publicUrl,
+    }).eq('id', order.id)
+
+    console.log('✅ Document generated:', order.document_number)
+  } catch (pdfError) {
+    console.error('PDF generation error:', pdfError)
+  }
 }
 
 export async function POST(req: NextRequest) {
@@ -66,7 +115,7 @@ export async function POST(req: NextRequest) {
       }).eq('id', userId)
     }
 
-    // 📝 Запис в orders
+    // 📝 Запис в orders + генерирай документ
     await createOrder(session, priceId, isMax)
   }
 
