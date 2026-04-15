@@ -143,7 +143,7 @@ export async function generateOrderPDF(order: OrderData): Promise<Buffer> {
             React.createElement(Text, { style: { ...styles.footerText, marginTop: 2 } }, 'и е валиден без подпис и печат.'),
             React.createElement(Text, { style: { ...styles.footerText, marginTop: 8, color: '#4ECDC4' } }, 'u4a.bg — Диктовки за деца'),
           ),
-          React.createElement('Image' as any, { style: styles.qrImage, src: qrDataUrl }),
+          React.createElement('Image' as unknown as React.ElementType, { style: styles.qrImage, src: qrDataUrl }),
         ),
       )
     )
