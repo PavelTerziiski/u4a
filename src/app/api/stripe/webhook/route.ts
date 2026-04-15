@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import Stripe from 'stripe'
 import { createClient } from '@supabase/supabase-js'
 import { generateOrderPDF } from '@/lib/generateDocument'
+import { Resend } from 'resend'
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
   apiVersion: '2026-03-25.dahlia',
@@ -12,6 +13,8 @@ const supabase = createClient(
   process.env.SUPABASE_SERVICE_ROLE_KEY!
 )
 
+const resend = new Resend(process.env.RESEND_API_KEY!)
+
 const MAX_PRICE_IDS = [
   process.env.NEXT_PUBLIC_STRIPE_MAX_MONTHLY,
   process.env.NEXT_PUBLIC_STRIPE_MAX_YEARLY,
@@ -21,7 +24,6 @@ async function createOrder(session: Stripe.Checkout.Session, priceId: string | u
   const billingPeriod = priceId?.includes('yearly') ? 'yearly' : 'monthly'
   const amount = (session.amount_total ?? 0) / 100
 
-  // 1. Запис в orders
   const { data: order, error } = await supabase.from('orders').insert({
     profile_id: null,
     stripe_payment_intent_id: session.payment_intent as string ?? null,
@@ -41,7 +43,6 @@ async function createOrder(session: Stripe.Checkout.Session, priceId: string | u
     return
   }
 
-  // 2. Генерирай PDF
   try {
     const pdfBuffer = await generateOrderPDF({
       documentNumber: order.document_number,
@@ -58,7 +59,7 @@ async function createOrder(session: Stripe.Checkout.Session, priceId: string | u
       orderId: order.id,
     })
 
-    // 3. Качи в Supabase Storage
+    // Качи в Storage
     const filePath = `${order.id}.pdf`
     const { error: uploadError } = await supabase.storage
       .from('documents')
@@ -69,18 +70,58 @@ async function createOrder(session: Stripe.Checkout.Session, priceId: string | u
       return
     }
 
-    // 4. Запази URL в orders
     const { data: urlData } = supabase.storage
       .from('documents')
       .getPublicUrl(filePath)
 
     await supabase.from('orders').update({
       document_url: urlData.publicUrl,
+      document_sent_at: new Date().toISOString(),
     }).eq('id', order.id)
+
+    // Изпрати имейл с документа
+    if (order.customer_email) {
+      await resend.emails.send({
+        from: 'u4a.bg <noreply@u4a.bg>',
+        to: order.customer_email,
+        subject: `Документ за продажба ${order.document_number} — u4a.bg`,
+        html: `
+          <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; padding: 40px 20px;">
+            <h2 style="color: #2D8B84;">Благодаря за абонамента! 🎉</h2>
+            <p>Здравейте${order.customer_name ? `, ${order.customer_name}` : ''},</p>
+            <p>Прикачен е вашият документ за продажба <strong>${order.document_number}</strong>.</p>
+            <table style="width: 100%; border-collapse: collapse; margin: 24px 0;">
+              <tr style="background: #F0FAFA;">
+                <td style="padding: 10px 14px; color: #7B9E9C;">Услуга</td>
+                <td style="padding: 10px 14px; font-weight: bold;">${order.plan_type === 'max' ? 'Max' : 'Premium'} абонамент — ${order.billing_period === 'yearly' ? '12 месеца' : '1 месец'}</td>
+              </tr>
+              <tr>
+                <td style="padding: 10px 14px; color: #7B9E9C;">Сума</td>
+                <td style="padding: 10px 14px; font-weight: bold;">${order.amount_eur} EUR</td>
+              </tr>
+              <tr style="background: #F0FAFA;">
+                <td style="padding: 10px 14px; color: #7B9E9C;">Документ №</td>
+                <td style="padding: 10px 14px; font-weight: bold;">${order.document_number}</td>
+              </tr>
+            </table>
+            <p style="color: #7B9E9C; font-size: 13px;">Документът е издаден по чл. 52о от Наредба Н-18 и е валиден без подпис и печат.</p>
+            <hr style="border: none; border-top: 1px solid #E0F5F4; margin: 24px 0;">
+            <p style="color: #7B9E9C; font-size: 12px;">u4a.bg — Диктовки за деца</p>
+          </div>
+        `,
+        attachments: [
+          {
+            filename: `${order.document_number}.pdf`,
+            content: pdfBuffer,
+          }
+        ]
+      })
+      console.log('✅ Email sent to:', order.customer_email)
+    }
 
     console.log('✅ Document generated:', order.document_number)
   } catch (pdfError) {
-    console.error('PDF generation error:', pdfError)
+    console.error('PDF/Email error:', pdfError)
   }
 }
 
@@ -96,7 +137,6 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Invalid signature' }, { status: 400 })
   }
 
-  // ✅ Нов абонамент (checkout)
   if (event.type === 'checkout.session.completed') {
     const session = event.data.object as Stripe.Checkout.Session
     const userId = session.metadata?.userId
@@ -115,11 +155,9 @@ export async function POST(req: NextRequest) {
       }).eq('id', userId)
     }
 
-    // 📝 Запис в orders + генерирай документ
     await createOrder(session, priceId, isMax)
   }
 
-  // ✅ Upgrade / Downgrade / Reactivation през Customer Portal
   if (event.type === 'customer.subscription.updated') {
     const subscription = event.data.object as Stripe.Subscription
     const customerId = subscription.customer as string
@@ -136,7 +174,6 @@ export async function POST(req: NextRequest) {
     }
   }
 
-  // ✅ Абонаментът реално изтече
   if (event.type === 'customer.subscription.deleted') {
     const subscription = event.data.object as Stripe.Subscription
     const customerId = subscription.customer as string
