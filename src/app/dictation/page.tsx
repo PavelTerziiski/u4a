@@ -12,8 +12,8 @@ type Sentence = { id: number; text: string }
 type WordResult = { word: string; correct: boolean; input: string; errorType: 'none' | 'spelling' | 'punctuation' | 'capitalization' }
 type SentenceResult = { sentence: string; input: string; wordResults: WordResult[]; correct: boolean }
 
-const REPEAT_LIMITS: Record<number, number> = { 2: 4, 3: 3, 4: 2, 5: 1 }
-const CHARS_PER_SECOND: Record<number, number> = { 2: 0.7, 3: 1.0, 4: 1.4, 5: 1.8 }
+const REPEAT_LIMITS: Record<number, number> = { 1: 5, 2: 4, 3: 3, 4: 2 }
+const CHARS_PER_SECOND: Record<number, number> = { 1: 0.5, 2: 0.7, 3: 1.0, 4: 1.4 }
 const FREE_WEEKLY_LIMIT = 2
 
 async function loadForeignDictations(lang: 'en' | 'de', level: 'easy' | 'medium' | 'hard', setFd: (d: Dictation[]) => void) {
@@ -492,7 +492,7 @@ export default function DictationPage() {
           </div>
         </div>
         <div style={{ display: 'flex', gap: 8, marginBottom: 16, flexWrap: 'wrap' }}>
-          {[2, 3, 4, 5].map(g => (
+          {[1, 2, 3, 4].map(g => (
             <button key={g} onClick={() => changeGrade(g, profile, setDictations, setSelectedGrade)}
               style={{ padding: '8px 18px', borderRadius: 12, border: '2px solid #FED7AA', fontFamily: 'Russo One, sans-serif', fontSize: '0.9rem', cursor: 'pointer', background: selectedGrade === g ? '#F97316' : 'white', color: selectedGrade === g ? 'white' : '#F97316', fontWeight: 700 }}>
               {g} клас

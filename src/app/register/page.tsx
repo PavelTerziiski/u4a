@@ -5,7 +5,7 @@ import { supabase } from '@/lib/supabase'
 import '../dashboard/dashboard.css'
 
 const FOX_NAMES = ['Лисиче', 'Лисан', 'Лиско', 'Фокси', 'свое']
-const GRADES = [2, 3, 4, 5]
+const GRADES = [1, 2, 3, 4]
 
 const AVATARS = [
   { id: 1, file: 'fox.png', name: 'Лисица' },
