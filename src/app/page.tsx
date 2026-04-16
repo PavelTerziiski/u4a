@@ -28,7 +28,7 @@ export default function Home() {
           fontFamily: 'Nunito, sans-serif', fontWeight: 700,
           color: '#92400E', fontSize: '1.1rem', marginBottom: 32,
           textAlign: 'center'
-        }}>Диктовки за деца 2–5 клас 🌰</p>
+        }}>Диктовки за деца 1–4 клас 🌰</p>
 
         <div className="greeting-card" style={{ width: '100%', maxWidth: 400, marginBottom: 16, textAlign: 'center' }}>
           <div style={{ fontSize: '1.5rem', marginBottom: 8 }}>🦊</div>

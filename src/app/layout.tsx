@@ -3,7 +3,7 @@ import "./globals.css";
 
 export const metadata: Metadata = {
   title: "u4a — Диктовки за деца",
-  description: "Диктовки за деца 2-5 клас с изкуствен интелект",
+  description: "Диктовки за деца 1-4 клас с изкуствен интелект",
 };
 
 export default function RootLayout({
