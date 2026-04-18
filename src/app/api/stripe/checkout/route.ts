@@ -35,7 +35,7 @@ export async function POST(req: NextRequest) {
             price,
           }],
           proration_behavior: 'create_prorations',
-          metadata: { userId, username },
+          metadata: { userId, username, site: 'u4a' },
         })
         return NextResponse.json({ upgraded: true, subscriptionId: updatedSubscription.id })
       }
@@ -48,10 +48,10 @@ export async function POST(req: NextRequest) {
       line_items: [{ price, quantity: 1 }],
       customer: profile?.stripe_customer_id || undefined,
       subscription_data: {
-        metadata: { userId, username },
+        metadata: { userId, username, site: 'u4a' },
         ...(!hasBeenCustomer && { trial_period_days: 7 }),
       },
-      metadata: { userId, username },
+      metadata: { userId, username, site: 'u4a' },
       success_url: `${process.env.NEXT_PUBLIC_APP_URL}/dashboard`,
       cancel_url: `${process.env.NEXT_PUBLIC_APP_URL}/plans`,
     }
