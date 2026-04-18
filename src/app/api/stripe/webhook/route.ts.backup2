@@ -201,29 +201,5 @@ export async function POST(req: NextRequest) {
     }).eq('stripe_customer_id', customerId)
   }
 
-  if (event.type === 'invoice.payment_succeeded') {
-    const invoice = event.data.object as Stripe.Invoice
-    // Пропускаме първото плащане - то се обработва от checkout.session.completed
-    if (invoice.billing_reason === 'subscription_create') {
-      return NextResponse.json({ received: true })
-    }
-    const customerId = invoice.customer as string
-    const priceId = (invoice.lines.data[0] as any)?.price?.id
-    const isMax = MAX_PRICE_IDS.includes(priceId)
-    const billingPeriod = priceId?.includes('yearly') ? 'yearly' : 'monthly'
-    const amount = (invoice.amount_paid ?? 0) / 100
-    const { data: profile } = await supabase.from('profiles').select('id').eq('stripe_customer_id', customerId).single()
-    await supabase.from('orders').insert({
-      profile_id: profile?.id ?? null,
-      stripe_payment_intent_id: (invoice as any).payment_intent as string ?? null,
-      stripe_invoice_id: invoice.id,
-      amount_eur: amount,
-      currency: invoice.currency?.toUpperCase() ?? 'EUR',
-      plan_type: isMax ? 'max' : 'premium',
-      billing_period: billingPeriod,
-      status: 'paid',
-      customer_email: invoice.customer_email ?? null,
-    })
-  }
   return NextResponse.json({ received: true })
 }
