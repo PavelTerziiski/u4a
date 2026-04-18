@@ -54,13 +54,16 @@ function formatPlanName(planType: string, billingPeriod: string): string {
 }
 
 export async function generateOrderPDF(order: OrderData): Promise<Buffer> {
+  const napShopNumber = process.env.NAP_SHOP_NUMBER || 'RF0006354'
   const qrContent = [
+    napShopNumber,
     order.documentNumber,
     order.date,
     order.sellerEik,
     order.amountEur.toFixed(2),
     'EUR',
     order.paymentIntentId,
+    order.orderId,
   ].join('|')
 
   const qrDataUrl = await QRCode.toDataURL(qrContent, { width: 200, margin: 1 })
