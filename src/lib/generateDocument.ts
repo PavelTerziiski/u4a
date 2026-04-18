@@ -1,4 +1,4 @@
-import { Document, Page, Text, View, StyleSheet, pdf, Font } from '@react-pdf/renderer'
+import { Document, Page, Text, View, StyleSheet, pdf, Font, Image } from '@react-pdf/renderer'
 import QRCode from 'qrcode'
 import React from 'react'
 import path from 'path'
@@ -147,7 +147,7 @@ export async function generateOrderPDF(order: OrderData): Promise<Buffer> {
             React.createElement(Text, { style: { ...styles.footerText, marginTop: 2 } }, 'и е валиден без подпис и печат.'),
             React.createElement(Text, { style: { ...styles.footerText, marginTop: 8, color: '#4ECDC4' } }, 'u4a.bg — Диктовки за деца'),
           ),
-          React.createElement('Image' as unknown as React.ElementType, { style: styles.qrImage, src: qrDataUrl }),
+          React.createElement(Image, { style: styles.qrImage, src: qrDataUrl }),
         ),
       )
     )
