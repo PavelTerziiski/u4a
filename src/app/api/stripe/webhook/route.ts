@@ -87,7 +87,7 @@ async function createOrder(session: Stripe.Checkout.Session, priceId: string | u
   try {
     const pdfBuffer = await generateOrderPDF({
       documentNumber: order.document_number,
-      date: new Date(order.created_at).toLocaleDateString('bg-BG', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' }),
+      date: new Date(order.created_at).toLocaleDateString('bg-BG', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit', timeZone: 'Europe/Sofia' }),
       sellerName: process.env.SELLER_NAME!,
       sellerEik: process.env.SELLER_EIK!,
       sellerAddress: process.env.SELLER_ADDRESS!,
