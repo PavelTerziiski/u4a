@@ -208,13 +208,15 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ received: true })
     }
     const customerId = invoice.customer as string
-    const priceId = (invoice.lines.data[0] as any)?.price?.id
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const priceId = ((invoice.lines.data[0] as any)?.price?.id as string | undefined)
     const isMax = MAX_PRICE_IDS.includes(priceId)
     const billingPeriod = priceId?.includes('yearly') ? 'yearly' : 'monthly'
     const amount = (invoice.amount_paid ?? 0) / 100
     const { data: profile } = await supabase.from('profiles').select('id').eq('stripe_customer_id', customerId).single()
     await supabase.from('orders').insert({
       profile_id: profile?.id ?? null,
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       stripe_payment_intent_id: (invoice as any).payment_intent as string ?? null,
       stripe_invoice_id: invoice.id,
       amount_eur: amount,
