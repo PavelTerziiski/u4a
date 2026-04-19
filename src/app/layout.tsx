@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  icons: { icon: "/favicon.png" },
+  icons: { icon: "/favicon.ico", apple: "/apple-touch-icon.png" },
   title: "u4a — Диктовки за деца",
   description: "Диктовки за деца 1-4 клас с изкуствен интелект",
 };
