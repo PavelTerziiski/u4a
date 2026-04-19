@@ -145,7 +145,7 @@ export default function DictationPage() {
       body: JSON.stringify(
         profile?.is_premium
           ? { text, lang: selected?.language, voice: (selected?.language === 'en' || selected?.language === 'de') ? (profile?.preferred_voice === 'straus' ? 'straus' : 'koala') : (profile?.preferred_voice || 'kalina'), speed }
-          : { text, speed: 0.85 * speed, voice: 'male' }
+          : { text, speed: speed === 0.7 ? 0.75 : 0.92, voice: 'male' }
       )
     })
       .then(res => res.json())
