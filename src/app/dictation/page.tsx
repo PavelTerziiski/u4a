@@ -161,22 +161,23 @@ export default function DictationPage() {
       .then(res => res.blob())
       .then(blob => {
         if (blob.size > 0) {
-          const url = URL.createObjectURL(blob)
-          if (!currentAudio.current) {
-            currentAudio.current = new Audio()
-          }
-          const audio = currentAudio.current
-          audio.onended = () => {
-            setSpeaking(false)
-            currentAudio.current = null
-            URL.revokeObjectURL(url)
-            if (onDone) onDone()
-          }
-          audio.src = url
-          audio.load()
-          audio.play().catch(() => {
-            setSpeaking(false)
-            if (onDone) onDone()
+          blob.arrayBuffer().then(arrayBuffer => {
+            const ctx = audioCtx.current || new (window.AudioContext || (window as unknown as {webkitAudioContext: typeof AudioContext}).webkitAudioContext)()
+            audioCtx.current = ctx
+            ctx.decodeAudioData(arrayBuffer, (decoded) => {
+              const source = ctx.createBufferSource()
+              source.buffer = decoded
+              source.connect(ctx.destination)
+              source.onended = () => {
+                setSpeaking(false)
+                currentAudio.current = null
+                if (onDone) onDone()
+              }
+              source.start(0)
+            }, () => {
+              setSpeaking(false)
+              if (onDone) onDone()
+            })
           })
         } else {
           setSpeaking(false)
