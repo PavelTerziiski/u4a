@@ -172,7 +172,8 @@ export default function DictationPage() {
           }
           const playPromise = audio.play()
           if (playPromise !== undefined) {
-            playPromise.catch(() => {
+            playPromise.catch((err) => {
+              console.error('Safari audio error:', err)
               setSpeaking(false)
               if (onDone) onDone()
             })
