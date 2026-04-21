@@ -83,7 +83,7 @@ export async function POST(req: NextRequest) {
     return new NextResponse(audioBuffer, {
       headers: {
         'Content-Type': 'audio/mpeg',
-        'Content-Length': audioBuffer.length.toString(),
+        'Content-Length': audioBuffer.byteLength.toString(),
         'Cache-Control': 'no-cache',
       }
     })
