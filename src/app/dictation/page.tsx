@@ -162,20 +162,25 @@ export default function DictationPage() {
       .then(data => {
         if (data.audio) {
           const audio = new Audio()
+          audio.preload = 'auto'
           audio.src = `data:audio/mpeg;base64,${data.audio}`
           currentAudio.current = audio
+          audio.oncanplaythrough = () => {
+            audio.oncanplaythrough = null
+            const playPromise = audio.play()
+            if (playPromise !== undefined) {
+              playPromise.catch(() => {
+                setSpeaking(false)
+                if (onDone) onDone()
+              })
+            }
+          }
           audio.onended = () => {
             setSpeaking(false)
             currentAudio.current = null
             if (onDone) onDone()
           }
-          const playPromise = audio.play()
-          if (playPromise !== undefined) {
-            playPromise.catch(() => {
-              setSpeaking(false)
-              if (onDone) onDone()
-            })
-          }
+          audio.load()
         } else {
           setSpeaking(false)
           if (onDone) onDone()
