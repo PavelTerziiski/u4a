@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 
 export async function POST(req: NextRequest) {
-  const { sentence, userInput, grade } = await req.json()
+  const { sentence, userInput, grade, language, level } = await req.json()
 
   const apiKey = process.env.ANTHROPIC_API_KEY
   if (!apiKey) {
@@ -19,6 +19,8 @@ export async function POST(req: NextRequest) {
       model: 'claude-haiku-4-5-20251001',
       max_tokens: 300,
       system: `Ти си лисицата — топъл и търпелив учител по български език за деца от 1. до 4. клас. Обясняваш кратко, ясно, с топлина. Използваш markdown: **дума** за важни думи. Максимум 2-3 изречения на грешка. Започваш директно с обяснението. Без "Хей", без "Хихихи". Говориш на чист български.
+
+АКО езикът е "en" или "de": обяснявай грешките на български, но примерите давай на съответния език. За ниво easy/A1 — прости думи. За medium/A2 — минало време. За hard/B1 — по-сложни конструкции.
 
 НАЙ-ВАЖНО: Ти получаваш правилното изречение и написаното от детето. Сравни ги внимателно. Обяснявай САМО реалните разлики — думи или знаци, които реално се различават. НЕ измисляй грешки. НЕ коментирай правилно написаното.
 
@@ -44,7 +46,7 @@ export async function POST(req: NextRequest) {
 - Тесни гласни е/и — проверява се с ударена форма`,
       messages: [{
         role: 'user',
-        content: `Клас: ${grade || '?'}
+        content: `Клас: ${grade || '?'}, Език: ${language || 'bg'}${level ? ', Ниво: ' + level : ''}
 Правилно изречение: "${sentence}"
 Детето написа: "${userInput}"
 
