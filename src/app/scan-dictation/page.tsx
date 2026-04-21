@@ -110,28 +110,34 @@ export default function ScanDictationPage() {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ text, voice, speed: speedRef.current })
     })
-    const data = await res.json()
-    if (data.audio) {
-      const audio = new Audio(`data:audio/mpeg;base64,${data.audio}`)
-      currentAudio.current = audio
-      audio.onended = () => {
-        setSpeaking(false)
-        currentAudio.current = null
-        setPausing(true); setPauseProgress(0)
-        let step = 0
-        const steps = 50
-        const pauseMs = Math.max(3000, Math.round((text.length / (1.4 / speedRef.current)) * 1000))
-        progressTimer.current = setInterval(() => {
-          step++
-          setPauseProgress(Math.round((step / steps) * 100))
-          if (step >= steps) {
-            clearInterval(progressTimer.current!)
-            setPausing(false); setPauseProgress(0)
-            onDone()
-          }
-        }, pauseMs / steps)
-      }
-      audio.play()
+    const blob = await res.blob()
+    if (blob.size > 0) {
+      const arrayBuffer = await blob.arrayBuffer()
+      const AudioCtx = window.AudioContext || (window as unknown as {webkitAudioContext: typeof AudioContext}).webkitAudioContext
+      const ctx = new AudioCtx()
+      ctx.decodeAudioData(arrayBuffer, (decoded) => {
+        const source = ctx.createBufferSource()
+        source.buffer = decoded
+        source.connect(ctx.destination)
+        source.onended = () => {
+          setSpeaking(false)
+          currentAudio.current = null
+          setPausing(true); setPauseProgress(0)
+          let step = 0
+          const steps = 50
+          const pauseMs = Math.max(3000, Math.round((text.length / (1.4 / speedRef.current)) * 1000))
+          progressTimer.current = setInterval(() => {
+            step++
+            setPauseProgress(Math.round((step / steps) * 100))
+            if (step >= steps) {
+              clearInterval(progressTimer.current!)
+              setPausing(false); setPauseProgress(0)
+              onDone()
+            }
+          }, pauseMs / steps)
+        }
+        source.start(0)
+      }, () => { setSpeaking(false); onDone() })
     } else { setSpeaking(false); onDone() }
   }
 
