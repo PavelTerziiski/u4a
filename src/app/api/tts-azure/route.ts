@@ -80,8 +80,13 @@ export async function POST(req: NextRequest) {
     }
 
     const audioBuffer = await response.arrayBuffer()
-    const base64 = Buffer.from(audioBuffer).toString('base64')
-    return NextResponse.json({ audio: base64 })
+    return new NextResponse(audioBuffer, {
+      headers: {
+        'Content-Type': 'audio/mpeg',
+        'Content-Length': audioBuffer.length.toString(),
+        'Cache-Control': 'no-cache',
+      }
+    })
   } catch (error) {
     console.error('Azure TTS error:', error)
     return NextResponse.json({ error: 'TTS failed' }, { status: 500 })

@@ -1,16 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server'
-
 export async function POST(req: NextRequest) {
   const body = await req.json()
   const { text, speed = 1.0, voice = 'female' } = body
-
   const apiKey = process.env.GOOGLE_TTS_API_KEY
   if (!apiKey) {
     return NextResponse.json({ error: 'No API key' }, { status: 500 })
   }
-
   const isMale = voice === 'male'
-
   const response = await fetch(
     `https://texttospeech.googleapis.com/v1/text:synthesize?key=${apiKey}`,
     {
@@ -29,11 +25,16 @@ export async function POST(req: NextRequest) {
       })
     }
   )
-
   const data = await response.json()
   if (!data.audioContent) {
     return NextResponse.json({ error: 'No audio', details: data }, { status: 500 })
   }
-
-  return NextResponse.json({ audio: data.audioContent })
+  const audioBuffer = Buffer.from(data.audioContent, 'base64')
+  return new NextResponse(audioBuffer, {
+    headers: {
+      'Content-Type': 'audio/mpeg',
+      'Content-Length': audioBuffer.length.toString(),
+      'Cache-Control': 'no-cache',
+    }
+  })
 }

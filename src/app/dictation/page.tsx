@@ -158,29 +158,25 @@ export default function DictationPage() {
           : { text, speed: speed === 0.7 ? 0.75 : 0.92, voice: 'male' }
       )
     })
-      .then(res => res.json())
-      .then(data => {
-        if (data.audio) {
-          const audio = new Audio()
-          audio.preload = 'auto'
-          audio.src = `data:audio/mpeg;base64,${data.audio}`
+      .then(res => res.blob())
+      .then(blob => {
+        if (blob.size > 0) {
+          const url = URL.createObjectURL(blob)
+          const audio = new Audio(url)
           currentAudio.current = audio
-          audio.oncanplaythrough = () => {
-            audio.oncanplaythrough = null
-            const playPromise = audio.play()
-            if (playPromise !== undefined) {
-              playPromise.catch(() => {
-                setSpeaking(false)
-                if (onDone) onDone()
-              })
-            }
-          }
           audio.onended = () => {
             setSpeaking(false)
             currentAudio.current = null
+            URL.revokeObjectURL(url)
             if (onDone) onDone()
           }
-          audio.load()
+          const playPromise = audio.play()
+          if (playPromise !== undefined) {
+            playPromise.catch(() => {
+              setSpeaking(false)
+              if (onDone) onDone()
+            })
+          }
         } else {
           setSpeaking(false)
           if (onDone) onDone()
