@@ -135,11 +135,13 @@ export default function Dashboard() {
           ✏️ Започни диктовка!
         </button>
 
+        {profile?.is_premium && (
         <div className="fade-up fade-up-4">
           <button className="secondary-btn" onClick={() => router.push('/scan-dictation')}>
             📷 Снимай текст и лисицата го чете
           </button>
         </div>
+        )}
       </div>
 
       <div className="bottom-nav">

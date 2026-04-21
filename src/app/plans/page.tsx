@@ -78,7 +78,7 @@ export default function PlansPage() {
             <div style={{ fontSize: '2rem', fontWeight: 900, color: '#F97316' }}>0€</div>
             <div style={{ color: '#92400E', fontSize: '0.85rem', marginBottom: 20 }}>завинаги</div>
             <ul style={{ listStyle: 'none', padding: 0, margin: '0 0 24px', display: 'flex', flexDirection: 'column', gap: 8 }}>
-              {['2 диктовки на седмица', 'Господин Бобър', 'Резултати и статистика'].map(f => (
+              {['2 диктовки на седмица', '🎙️ Базов глас: Господин Бобър', 'Резултати и статистика'].map(f => (
                 <li key={f} style={{ display: 'flex', alignItems: 'center', gap: 8, color: '#7C2D12', fontSize: '0.9rem' }}>
                   <span style={{ color: '#16A34A' }}>✓</span> {f}
                 </li>
@@ -95,7 +95,7 @@ export default function PlansPage() {
             <div style={{ fontSize: '2rem', fontWeight: 900, color: '#F97316' }}>{billing === 'monthly' ? '4.50€' : '45€'}</div>
             <div style={{ color: '#92400E', fontSize: '0.85rem', marginBottom: 20 }}>{billing === 'monthly' ? 'на месец' : 'на година (2 месеца безплатно)'}</div>
             <ul style={{ listStyle: 'none', padding: 0, margin: '0 0 24px', display: 'flex', flexDirection: 'column', gap: 8 }}>
-              {['Неограничени диктовки', 'Госпожа Лисица & Господин Бухал', 'Магическа горска диктовка 🌰', 'Подробна статистика'].map(f => (
+              {['Неограничени диктовки', '🎙️ 2 специални гласа: Госпожа Лисица & Господин Бухал', '📷 Снимай текст от учебника', '🦊 Обяснения на грешките от лисицата', 'Подробна статистика'].map(f => (
                 <li key={f} style={{ display: 'flex', alignItems: 'center', gap: 8, color: '#7C2D12', fontSize: '0.9rem' }}>
                   <span style={{ color: '#16A34A' }}>✓</span> {f}
                 </li>
