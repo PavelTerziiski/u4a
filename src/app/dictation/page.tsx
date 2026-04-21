@@ -160,25 +160,24 @@ export default function DictationPage() {
     })
       .then(res => res.blob())
       .then(blob => {
-        alert('blob size: ' + blob.size + ' type: ' + blob.type)
         if (blob.size > 0) {
           const url = URL.createObjectURL(blob)
-          const audio = new Audio(url)
-          currentAudio.current = audio
+          if (!currentAudio.current) {
+            currentAudio.current = new Audio()
+          }
+          const audio = currentAudio.current
           audio.onended = () => {
             setSpeaking(false)
             currentAudio.current = null
             URL.revokeObjectURL(url)
             if (onDone) onDone()
           }
-          const playPromise = audio.play()
-          if (playPromise !== undefined) {
-            playPromise.catch((err) => {
-              console.error('Safari audio error:', err)
-              setSpeaking(false)
-              if (onDone) onDone()
-            })
-          }
+          audio.src = url
+          audio.load()
+          audio.play().catch(() => {
+            setSpeaking(false)
+            if (onDone) onDone()
+          })
         } else {
           setSpeaking(false)
           if (onDone) onDone()
@@ -653,7 +652,7 @@ export default function DictationPage() {
         <h2 className="text-2xl font-bold text-gray-700 mt-6 mb-2">{selected.title}</h2>
         <p className="text-gray-500 mb-2">{(selected.sentences as Sentence[]).length} изречения</p>
         <p className="text-gray-500 mb-8">Вземи молив и хартия. Когато си готов, натисни бутона!</p>
-        <button onClick={() => { unlockAudio(); setPhase('play'); readSentence(selected.sentences as Sentence[], 0, selected.grade) }}
+        <button onClick={() => { unlockAudio(); currentAudio.current = new Audio(); setPhase('play'); readSentence(selected.sentences as Sentence[], 0, selected.grade) }}
           className="w-full bg-orange-500 text-white text-2xl font-bold py-6 rounded-2xl hover:bg-orange-600 transition-colors shadow-lg">
           Готов съм! ✏️
         </button>
