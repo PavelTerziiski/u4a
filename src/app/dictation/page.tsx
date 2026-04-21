@@ -151,14 +151,21 @@ export default function DictationPage() {
       .then(res => res.json())
       .then(data => {
         if (data.audio) {
-          const audio = new Audio(`data:audio/mpeg;base64,${data.audio}`)
+          const audio = new Audio()
+          audio.src = `data:audio/mpeg;base64,${data.audio}`
           currentAudio.current = audio
           audio.onended = () => {
             setSpeaking(false)
             currentAudio.current = null
             if (onDone) onDone()
           }
-          audio.play()
+          const playPromise = audio.play()
+          if (playPromise !== undefined) {
+            playPromise.catch(() => {
+              setSpeaking(false)
+              if (onDone) onDone()
+            })
+          }
         } else {
           setSpeaking(false)
           if (onDone) onDone()
