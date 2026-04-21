@@ -160,6 +160,7 @@ export default function DictationPage() {
     })
       .then(res => res.blob())
       .then(blob => {
+        alert('blob size: ' + blob.size + ' type: ' + blob.type)
         if (blob.size > 0) {
           const url = URL.createObjectURL(blob)
           const audio = new Audio(url)
