@@ -54,21 +54,6 @@ export default function ParentView() {
       })
   }, [])
 
-  const loadChildren = async (parentId: string) => {
-    const { data: links } = await supabase.from('parent_children').select('child_id').eq('parent_id', parentId)
-    if (!links || links.length === 0) return
-    const ids = links.map((l: {child_id: string}) => l.child_id)
-    const { data: kids } = await supabase.from('profiles').select('*').in('id', ids)
-    if (kids) setChildren(kids)
-  }
-
-  const loadSessions = async (childId: string) => {
-    const { data } = await supabase.from('dictation_sessions').select('*')
-      .eq('profile_id', childId).order('created_at', { ascending: false }).limit(30)
-    if (data) setSessions(data)
-  }
-
-  const selectChild = (child: Child) => { setSelectedChild(child); loadSessions(child.id) }
 
   const handleAddChild = async () => {
     setAddLoading(true); setAddError('')
