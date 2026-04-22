@@ -49,7 +49,7 @@ export default function ParentView() {
         if (!data) { router.push('/login'); return }
         if (data.is_parent) { router.push('/parent-dashboard'); return }
         setParent(data)
-        loadSessions(data.id)
+        setTimeout(() => loadSessions(data.id), 0)
       })
   }, [])
 
