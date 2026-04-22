@@ -125,6 +125,9 @@ export default function Register() {
             style={{ width: '100%', background: 'rgba(255,255,255,0.95)', color: '#EA580C', fontFamily: 'Russo One, sans-serif', fontSize: '1.1rem', padding: '16px', borderRadius: 16, border: 'none', cursor: 'pointer' }}>
             Аз съм родител
           </button>
+          <p style={{ color: '#FED7AA', fontSize: '0.75rem', marginTop: 10, lineHeight: 1.4 }}>
+            👆 Ако си родител и регистрираш детето си — избери &quot;Аз съм дете&quot;
+          </p>
         </div>
         <button onClick={() => router.push('/login')} style={{ marginTop: 16, color: '#EA580C', background: 'none', border: 'none', cursor: 'pointer' }}>
           ← Назад към вход
