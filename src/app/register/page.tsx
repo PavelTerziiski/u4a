@@ -108,33 +108,7 @@ export default function Register() {
   }
 
 
-  if (isParent === null) return (
-    <div className="u4a-dash">
-      <div className="u4a-dash-overlay" />
-      <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '24px 16px', position: 'relative', zIndex: 1 }}>
-        <div style={{ background: 'linear-gradient(135deg, #F97316, #EA580C)', borderRadius: 28, padding: '28px 24px', width: '100%', maxWidth: 440, boxShadow: '0 8px 32px rgba(249,115,22,0.3)', textAlign: 'center', boxSizing: 'border-box' }}>
-          <img src="/fox-logo.png" alt="" style={{ width: 100, marginBottom: 16, background: '#3d1a00', borderRadius: 16, padding: 8 }} />
-          <h2 style={{ color: 'white', fontFamily: 'Russo One, sans-serif', marginBottom: 8 }}>Добре дошъл в гората!</h2>
-          <p style={{ color: '#FED7AA', marginBottom: 24, fontSize: '0.9rem' }}>Кой създава профил?</p>
-          <button onClick={() => { setIsParent(false); setStep(1) }}
-            style={{ width: '100%', background: 'white', color: '#EA580C', fontFamily: 'Russo One, sans-serif',
-              fontSize: '1.1rem', padding: '16px', borderRadius: 16, border: 'none', cursor: 'pointer', marginBottom: 12 }}>
-            Аз съм дете
-          </button>
-          <button onClick={() => { setIsParent(true); setStep(1) }}
-            style={{ width: '100%', background: 'rgba(255,255,255,0.95)', color: '#EA580C', fontFamily: 'Russo One, sans-serif', fontSize: '1.1rem', padding: '16px', borderRadius: 16, border: 'none', cursor: 'pointer' }}>
-            Аз съм родител
-          </button>
-          <p style={{ color: '#FED7AA', fontSize: '0.75rem', marginTop: 10, lineHeight: 1.4 }}>
-            👆 Ако си родител и регистрираш детето си — избери &quot;Аз съм дете&quot;
-          </p>
-        </div>
-        <button onClick={() => router.push('/login')} style={{ marginTop: 16, color: '#EA580C', background: 'none', border: 'none', cursor: 'pointer' }}>
-          ← Назад към вход
-        </button>
-      </div>
-    </div>
-  )
+  if (isParent === null) { setIsParent(false); return null }
 
   if (isParent === true && step === 1) return (
     <div className="u4a-dash">
