@@ -41,6 +41,12 @@ export default function ParentView() {
   const [editText, setEditText] = useState('')
   const [confirmLoading, setConfirmLoading] = useState<string | null>(null)
 
+  const loadSessions = async (profileId: string) => {
+    const { data } = await supabase.from('dictation_sessions').select('*')
+      .eq('profile_id', profileId).order('created_at', { ascending: false }).limit(30)
+    if (data) setSessions(data)
+  }
+
   useEffect(() => {
     const username = localStorage.getItem('u4a_username')
     if (!username) { router.push('/login'); return }
