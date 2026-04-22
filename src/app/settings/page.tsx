@@ -426,7 +426,7 @@ export default function Settings() {
           </span>
           Диктовки
         </div>
-        <div className="nav-item">
+        <div className="nav-item" onClick={() => router.push('/friends')}>
           <span style={{background:'white',borderRadius:'50%',width:72,height:72,display:'flex',alignItems:'center',justifyContent:'center',marginBottom:2,boxShadow:'0 2px 8px rgba(0,0,0,0.15)'}}>
             <img src="/icons/friends.png" style={{width:44,height:44,objectFit:'contain'}} />
           </span>
@@ -438,13 +438,13 @@ export default function Settings() {
           </span>
           Настройки
         </div>
-      </div>
         <div className="nav-item" onClick={() => router.push('/parent-view')}>
           <span style={{background:'white',borderRadius:'50%',width:56,height:56,display:'flex',alignItems:'center',justifyContent:'center',marginBottom:2,boxShadow:'0 2px 8px rgba(0,0,0,0.15)'}}>
             <span style={{fontSize:28}}>👨‍👩‍👧</span>
           </span>
           За родителя
         </div>
+      </div>
     </div>
   )
 }
