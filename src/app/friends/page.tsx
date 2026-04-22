@@ -139,6 +139,12 @@ export default function Friends() {
           Настройки
         </div>
       </div>
+        <div className="nav-item" onClick={() => router.push('/parent-view')}>
+          <span style={{background:'white',borderRadius:'50%',width:56,height:56,display:'flex',alignItems:'center',justifyContent:'center',marginBottom:2,boxShadow:'0 2px 8px rgba(0,0,0,0.15)'}}>
+            <span style={{fontSize:28}}>👨‍👩‍👧</span>
+          </span>
+          За родителя
+        </div>
     </div>
   )
 }
