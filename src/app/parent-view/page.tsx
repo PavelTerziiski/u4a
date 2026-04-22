@@ -30,7 +30,7 @@ export default function ParentView() {
   const router = useRouter()
   const [parent, setParent] = useState<{id: string; email: string; username: string; is_parent: boolean} | null>(null)
   const [children, setChildren] = useState<Child[]>([])
-  const [selectedChild, setSelectedChild] = useState<Child | null>(null)
+  const [selectedChild, _setSelectedChild] = useState<Child | null>(null)
   const [sessions, setSessions] = useState<Session[]>([])
   const [showAddChild, setShowAddChild] = useState(false)
   const [childEmail, setChildEmail] = useState('')
