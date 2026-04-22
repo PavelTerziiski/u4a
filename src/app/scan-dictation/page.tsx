@@ -40,6 +40,7 @@ export default function ScanDictationPage() {
   const ocrFileInputRef = useRef<HTMLInputElement>(null)
   const currentAudio = useRef<HTMLAudioElement | null>(null)
   const progressTimer = useRef<NodeJS.Timeout | null>(null)
+  const audioCtxRef = useRef<AudioContext | null>(null)
 
   useEffect(() => {
     const username = localStorage.getItem('u4a_username')
@@ -114,7 +115,9 @@ export default function ScanDictationPage() {
     if (blob.size > 0) {
       const arrayBuffer = await blob.arrayBuffer()
       const AudioCtx = window.AudioContext || (window as unknown as {webkitAudioContext: typeof AudioContext}).webkitAudioContext
-      const ctx = new AudioCtx()
+      if (!audioCtxRef.current) audioCtxRef.current = new AudioCtx()
+      const ctx = audioCtxRef.current
+      ctx.resume()
       ctx.decodeAudioData(arrayBuffer, (decoded) => {
         const source = ctx.createBufferSource()
         source.buffer = decoded
@@ -375,7 +378,7 @@ export default function ScanDictationPage() {
             </button>
           ))}
         </div>
-        <button onClick={() => { const AC = window.AudioContext || (window as unknown as {webkitAudioContext: typeof AudioContext}).webkitAudioContext; const ctx = new AC(); ctx.resume(); setRepeatsLeft(3); readAll(0) }}
+        <button onClick={() => { const AC = window.AudioContext || (window as unknown as {webkitAudioContext: typeof AudioContext}).webkitAudioContext; if (!audioCtxRef.current) audioCtxRef.current = new AC(); audioCtxRef.current.resume(); setRepeatsLeft(3); readAll(0) }}
           className="w-full bg-orange-500 text-white text-xl font-bold py-5 rounded-2xl hover:bg-orange-600 shadow-lg mb-3">
           Готов съм! ✏️
         </button>
