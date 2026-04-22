@@ -375,7 +375,7 @@ export default function ScanDictationPage() {
             </button>
           ))}
         </div>
-        <button onClick={() => { setRepeatsLeft(3); readAll(0) }}
+        <button onClick={() => { const AC = window.AudioContext || (window as unknown as {webkitAudioContext: typeof AudioContext}).webkitAudioContext; const ctx = new AC(); ctx.resume(); setRepeatsLeft(3); readAll(0) }}
           className="w-full bg-orange-500 text-white text-xl font-bold py-5 rounded-2xl hover:bg-orange-600 shadow-lg mb-3">
           Готов съм! ✏️
         </button>
