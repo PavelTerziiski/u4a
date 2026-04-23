@@ -87,6 +87,7 @@ export default function DictationPage() {
   const [foreignDictations, setForeignDictations] = useState<Dictation[]>([])
   const progressTimer = useRef<NodeJS.Timeout | null>(null)
   const currentAudio = useRef<HTMLAudioElement | null>(null)
+  const currentSource = useRef<AudioBufferSourceNode | null>(null)
   const audioCtx = useRef<AudioContext | null>(null)
   const unlockAudio = () => {
     if (!audioCtx.current) {
@@ -123,6 +124,10 @@ export default function DictationPage() {
   }, [])
 
   const stopAll = () => {
+    if (currentSource.current) {
+      try { currentSource.current.stop() } catch {}
+      currentSource.current = null
+    }
     if (currentAudio.current) {
       currentAudio.current.pause()
       currentAudio.current = null
@@ -135,6 +140,10 @@ export default function DictationPage() {
 
   useEffect(() => {
     return () => {
+      if (currentSource.current) {
+        try { currentSource.current.stop() } catch {}
+        currentSource.current = null
+      }
       if (currentAudio.current) {
         currentAudio.current.pause()
         currentAudio.current = null
@@ -173,6 +182,7 @@ export default function DictationPage() {
                 currentAudio.current = null
                 if (onDone) onDone()
               }
+              currentSource.current = source
               source.start(0)
             }, () => {
               setSpeaking(false)
@@ -665,7 +675,7 @@ export default function DictationPage() {
   // ЧЕТЕНЕ
   if (phase === 'play' && selected) {
     const sentences = selected.sentences as Sentence[]
-    const repeatLimit = REPEAT_LIMITS[selected.grade] ?? 0
+    const repeatLimit = REPEAT_LIMITS[selected.grade] ?? (selected.language && selected.language !== 'bg' ? 3 : 0)
     return (
       <main className="u4a-dash min-h-screen flex flex-col items-center justify-center p-6">
       <div className="u4a-dash-overlay"></div>
