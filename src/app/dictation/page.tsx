@@ -273,7 +273,7 @@ export default function DictationPage() {
     setSelected(d)
     setPhase('ready')
     setSentenceIndex(0)
-    setRepeatsLeft(REPEAT_LIMITS[grade] ?? 0)
+    setRepeatsLeft(REPEAT_LIMITS[grade] ?? (selected?.language && selected?.language !== 'bg' ? 3 : 0))
     setFoxMood('happy')
     setFullInput('')
     setExplanations({})
