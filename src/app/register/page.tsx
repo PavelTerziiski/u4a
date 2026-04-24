@@ -72,8 +72,8 @@ export default function Register() {
         body: JSON.stringify({ email: email.toLowerCase().trim(), eventName: 'Lead' })
       }).catch(() => {})
       // Facebook Pixel Lead event
-      if (typeof window !== 'undefined' && (window as any).fbq) {
-        (window as any).fbq('track', 'Lead')
+      if (typeof window !== 'undefined' && (window as unknown as {fbq?: (a: string, b: string) => void}).fbq) {
+        (window as unknown as {fbq: (a: string, b: string) => void}).fbq('track', 'Lead')
       }
       setShowConfirm(true)
     } catch (e) {
