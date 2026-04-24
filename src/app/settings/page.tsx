@@ -66,13 +66,16 @@ export default function Settings() {
           speed: 1
         })
       })
-      const data = await res.json()
-      const audioBuffer = Uint8Array.from(atob(data.audio), c => c.charCodeAt(0))
-      const blob = new Blob([audioBuffer], { type: 'audio/mpeg' })
-      const url = URL.createObjectURL(blob)
-      const audio = new Audio(url)
-      audio.onended = () => setPlayingVoice(null)
-      audio.play()
+      const blob = await res.blob()
+      const arrayBuffer = await blob.arrayBuffer()
+      const ctx = new (window.AudioContext || (window as unknown as {webkitAudioContext: typeof AudioContext}).webkitAudioContext)()
+      ctx.decodeAudioData(arrayBuffer, (decoded) => {
+        const source = ctx.createBufferSource()
+        source.buffer = decoded
+        source.connect(ctx.destination)
+        source.onended = () => setPlayingVoice(null)
+        source.start(0)
+      }, () => setPlayingVoice(null))
     } catch {
       setPlayingVoice(null)
     }
