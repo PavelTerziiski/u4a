@@ -65,6 +65,16 @@ export default function Register() {
 
       localStorage.setItem('u4a_username', username)
       setConfirmedEmail(email.toLowerCase().trim())
+      // Facebook CAPI Lead event
+      fetch('/api/facebook', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: email.toLowerCase().trim(), eventName: 'Lead' })
+      }).catch(() => {})
+      // Facebook Pixel Lead event
+      if (typeof window !== 'undefined' && (window as any).fbq) {
+        (window as any).fbq('track', 'Lead')
+      }
       setShowConfirm(true)
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Грешка при регистрация')
