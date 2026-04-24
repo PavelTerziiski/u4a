@@ -19,6 +19,7 @@ export default function RootLayout({
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="default" />
         <meta name="theme-color" content="#F97316" />
+        <meta name="facebook-domain-verification" content="xlq7rr7lp5ovbkiz0foqdg8iym5333" />
         <link rel="manifest" href="/manifest.json" />
         <script dangerouslySetInnerHTML={{ __html: `
           !function(f,b,e,v,n,t,s)
