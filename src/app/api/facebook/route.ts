@@ -30,7 +30,7 @@ export async function POST(req: NextRequest) {
     )
     const data = await res.json()
     return NextResponse.json({ ok: true, data })
-  } catch (e) {
+  } catch {
     return NextResponse.json({ ok: false }, { status: 500 })
   }
 }
