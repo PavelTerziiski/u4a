@@ -368,7 +368,7 @@ export default function Settings() {
             <div style={{ fontSize: '1.8rem' }}>🦒</div>
             <div style={{ flex: 1 }}>
               <div style={{ fontFamily: 'Nunito, sans-serif', fontWeight: 800, color: '#5B21B6', fontSize: '0.95rem' }}>Господин Жираф</div>
-              <div style={{ fontFamily: 'Nunito, sans-serif', fontSize: '0.75rem', color: '#7C3AED' }}>Мъжки глас · строг и знаещ</div>
+              <div style={{ fontFamily: 'Nunito, sans-serif', fontSize: '0.75rem', color: '#7C3AED' }}>Многоезичен мъжки глас · EN & DE</div>
             </div>
             {(profile?.plan_type === 'max' || isTrial) ? (
               <button
@@ -387,7 +387,7 @@ export default function Settings() {
             )}
           </div>
 
-          {!profile?.is_premium && (
+          {!profile?.is_premium && !isTrial && (
             <button onClick={handleUpgrade} style={{
               background: '#F97316', color: 'white', border: 'none',
               borderRadius: 12, padding: '10px 0', width: '100%',

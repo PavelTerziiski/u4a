@@ -92,6 +92,7 @@ export default function DictationPage() {
   const [foreignLevel, setForeignLevel] = useState<null | 'easy' | 'medium' | 'hard'>(null)
   const [foreignDictations, setForeignDictations] = useState<Dictation[]>([])
   const progressTimer = useRef<NodeJS.Timeout | null>(null)
+  const stoppedRef = useRef<boolean>(false)
   const currentAudio = useRef<HTMLAudioElement | null>(null)
   const currentSource = useRef<AudioBufferSourceNode | null>(null)
   const audioCtx = useRef<AudioContext | null>(null)
@@ -130,6 +131,7 @@ export default function DictationPage() {
   }, [])
 
   const stopAll = () => {
+    stoppedRef.current = true
     if (currentSource.current) {
       try { currentSource.current.stop() } catch {}
       currentSource.current = null
@@ -170,7 +172,7 @@ export default function DictationPage() {
       body: JSON.stringify(
         profile?.is_premium
           ? { text, lang: selected?.language, voice: (selected?.language === 'en' || selected?.language === 'de') ? (profile?.preferred_voice === 'straus' ? 'straus' : 'koala') : (profile?.preferred_voice || 'kalina'), speed }
-          : { text, speed: speed === 0.7 ? 0.75 : 0.92, voice: 'male' }
+          : { text, speed: speed === 0.7 ? 0.75 : 0.92, voice: profile?.preferred_voice || 'kalina' }
       )
     })
       .then(res => res.blob())
@@ -189,7 +191,7 @@ export default function DictationPage() {
                 if (onDone) onDone()
               }
               currentSource.current = source
-              source.start(0)
+              if (!stoppedRef.current) { source.start(0) }
             }, () => {
               setSpeaking(false)
               if (onDone) onDone()
@@ -276,7 +278,7 @@ export default function DictationPage() {
       return
     }
     const grade = d.grade
-    setSelected(d)
+    stoppedRef.current = false; setSelected(d)
     setPhase('ready')
     setSentenceIndex(0)
     setRepeatsLeft(REPEAT_LIMITS[grade] ?? (d.language && d.language !== 'bg' ? 3 : 0))
