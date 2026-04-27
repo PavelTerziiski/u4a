@@ -71,7 +71,7 @@ export default function PlansPage() {
 
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: 20 }}>
           {/* FREE */}
-          <div style={{ background: 'white', borderRadius: 24, padding: 28, border: currentPlan === 'free' ? '3px solid #F97316' : '2px solid #FED7AA', position: 'relative' }}>
+          <div style={{ background: 'white', borderRadius: 24, padding: 28, border: currentPlan === 'free' ? '3px solid #F97316' : '2px solid #FED7AA', position: 'relative', display: 'none' }}>
             {currentPlan === 'free' && <div style={{ position: 'absolute', top: -12, left: '50%', transform: 'translateX(-50%)', background: '#F97316', color: 'white', borderRadius: 99, padding: '2px 14px', fontSize: '0.75rem', fontWeight: 700 }}>Твоят план</div>}
             <div style={{ fontSize: '1.5rem', marginBottom: 8 }}>🌱</div>
             <h2 style={{ fontFamily: 'Russo One, sans-serif', color: '#7C2D12', margin: '0 0 4px' }}>Free</h2>

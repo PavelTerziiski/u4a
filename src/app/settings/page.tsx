@@ -17,7 +17,7 @@ const AVATARS = [
 ]
 
 const PLAN_LABELS: Record<string, { label: string; emoji: string; color: string }> = {
-  free: { label: 'Free', emoji: '🌱', color: '#F97316' },
+  free: { label: 'Пробен период', emoji: '🎯', color: '#F97316' },
   premium: { label: 'Premium', emoji: '⭐', color: '#F97316' },
   max: { label: 'Max', emoji: '👑', color: '#7C3AED' },
 }
@@ -173,7 +173,7 @@ export default function Settings() {
               <div>
                 <div style={{ fontFamily: 'Russo One, sans-serif', fontSize: '1.2rem', color: planInfo.color }}>{planInfo.label}</div>
                 <div style={{ fontFamily: 'Nunito, sans-serif', fontSize: '0.75rem', color: '#92400E' }}>
-                  {currentPlan === 'free' && '2 диктовки седмично'}
+                  {currentPlan === 'free' && '6 безплатни диктовки'}
                   {currentPlan === 'premium' && 'Неограничени диктовки'}
                   {currentPlan === 'max' && 'Всичко + чужди езици'}
                 </div>
