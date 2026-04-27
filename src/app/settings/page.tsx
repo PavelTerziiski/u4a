@@ -126,10 +126,10 @@ export default function Settings() {
       setProfile({ ...profile, fox_name: displayName, avatar_id: selectedAvatar, preferred_voice: selectedVoice })
     }
   }
+
   const currentPlan = profile?.plan_type || 'free'
   const isTrial = !profile?.is_premium && (profile?.total_sessions || 0) < 6
-  const planInfo = PLAN_LABELS[currentPlan] || PLAN_LABELS['free']
-
+  const planInfo = PLAN_LABELS[currentPlan] || PLAN_LABELS.free
 
   if (loading) return (
     <main className="min-h-screen flex items-center justify-center" style={{ background: 'linear-gradient(135deg, #FFF8F0 0%, #FEF3E2 100%)' }}>
@@ -326,8 +326,8 @@ export default function Settings() {
               border: selectedVoice === 'koala' ? '2.5px solid #7C3AED' : '2px solid #DDD6FE',
               background: selectedVoice === 'koala' ? '#EDE9FE' : 'rgba(255,255,255,0.5)',
               marginBottom: 10,
-              cursor: (profile?.plan_type === 'max' || isTrial) ? 'pointer' : 'default',
-              opacity: (profile?.plan_type === 'max' || isTrial) ? 1 : 0.5
+              cursor: profile?.plan_type === 'max' ? 'pointer' : 'default',
+              opacity: profile?.plan_type === 'max' ? 1 : 0.5
             }}
           >
             <div style={{ fontSize: '1.8rem' }}>🐨</div>
@@ -336,11 +336,6 @@ export default function Settings() {
               <div style={{ fontFamily: 'Nunito, sans-serif', fontSize: '0.75rem', color: '#7C3AED' }}>Многоезичен женски глас · EN & DE</div>
             </div>
             {(profile?.plan_type === 'max' || isTrial) ? (
-              <span></span>
-            ) : (
-              <span style={{ fontSize: '0.75rem', color: '#7C3AED', fontFamily: 'Nunito, sans-serif', fontWeight: 800 }}>🔒 Max</span>
-            )}
-            {false ? (
               <button
                 onClick={e => { e.stopPropagation(); playVoicePreview('koala') }}
                 style={{
@@ -350,11 +345,11 @@ export default function Settings() {
                   fontWeight: 800, fontSize: '0.8rem', cursor: 'pointer'
                 }}
               >
-                {playingVoice === 'koala' ? '▶ ...' : '🎵 EN & DE'}
+                {playingVoice === 'koala' ? '▶ ...' : '▶ Чуй'}
               </button>
             ) : (
-            ) : (
-              <div></div>
+              <div style={{ fontSize: '0.75rem', color: '#7C3AED', fontFamily: 'Nunito, sans-serif', fontWeight: 800 }}>🔒 Max</div>
+            )}
           </div>
 
           <div
@@ -365,21 +360,16 @@ export default function Settings() {
               border: selectedVoice === 'straus' ? '2.5px solid #7C3AED' : '2px solid #DDD6FE',
               background: selectedVoice === 'straus' ? '#EDE9FE' : 'rgba(255,255,255,0.5)',
               marginBottom: 10,
-              cursor: (profile?.plan_type === 'max' || isTrial) ? 'pointer' : 'default',
-              opacity: (profile?.plan_type === 'max' || isTrial) ? 1 : 0.5
+              cursor: profile?.plan_type === 'max' ? 'pointer' : 'default',
+              opacity: profile?.plan_type === 'max' ? 1 : 0.5
             }}
           >
             <div style={{ fontSize: '1.8rem' }}>🦒</div>
             <div style={{ flex: 1 }}>
               <div style={{ fontFamily: 'Nunito, sans-serif', fontWeight: 800, color: '#5B21B6', fontSize: '0.95rem' }}>Господин Жираф</div>
-              <div style={{ fontFamily: 'Nunito, sans-serif', fontSize: '0.75rem', color: '#7C3AED' }}>Мъжки глас · EN & DE</div>
+              <div style={{ fontFamily: 'Nunito, sans-serif', fontSize: '0.75rem', color: '#7C3AED' }}>Мъжки глас · строг и знаещ</div>
             </div>
             {(profile?.plan_type === 'max' || isTrial) ? (
-              <span></span>
-            ) : (
-              <span style={{ fontSize: '0.75rem', color: '#7C3AED', fontFamily: 'Nunito, sans-serif', fontWeight: 800 }}>🔒 Max</span>
-            )}
-            {false ? (
               <button
                 onClick={e => { e.stopPropagation(); playVoicePreview('straus') }}
                 style={{
@@ -389,13 +379,14 @@ export default function Settings() {
                   fontWeight: 800, fontSize: '0.8rem', cursor: 'pointer'
                 }}
               >
-                {playingVoice === 'koala' ? '▶ ...' : '🎵 EN & DE'}
+                {playingVoice === 'koala' ? '▶ ...' : '▶ Чуй'}
               </button>
             ) : (
-            ) : (
-              <div></div>
+              <div style={{ fontSize: '0.75rem', color: '#7C3AED', fontFamily: 'Nunito, sans-serif', fontWeight: 800 }}>🔒 Max</div>
+            )}
           </div>
-          {!profile?.is_premium && !isTrial && (
+
+          {!profile?.is_premium && (
             <button onClick={handleUpgrade} style={{
               background: '#F97316', color: 'white', border: 'none',
               borderRadius: 12, padding: '10px 0', width: '100%',
