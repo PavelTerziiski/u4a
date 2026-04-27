@@ -67,7 +67,12 @@ export default function DictationPage() {
   const [dictations, setDictations] = useState<Dictation[]>([])
   const [selectedGrade, setSelectedGrade] = useState<number>(0)
   const [selected, setSelected] = useState<Dictation | null>(null)
-  const [phase, setPhase] = useState<'pick' | 'ready' | 'play' | 'write' | 'done' | 'limit'>('pick')
+  const [phase, setPhase] = useState<'pick' | 'ready' | 'play' | 'write' | 'done' | 'limit' | 'survey'>('pick')
+  const [surveyUseful, setSurveyUseful] = useState('')
+  const [surveyDislike, setSurveyDislike] = useState('')
+  const [surveyFeature, setSurveyFeature] = useState('')
+  const [surveyRecommend, setSurveyRecommend] = useState('')
+  const [surveyLoading, setSurveyLoading] = useState(false)
   const [sentenceIndex, setSentenceIndex] = useState(0)
   const [repeatsLeft, setRepeatsLeft] = useState(0)
   const [speaking, setSpeaking] = useState(false)
@@ -445,7 +450,12 @@ export default function DictationPage() {
     setProfile(p => p ? { ...p, streak: newStreak, last_session_date: today } : p)
     // weeklyCount removed
     setResults(newResults)
-    setPhase('done')
+    const newTotal = (profile?.total_sessions || 0) + 1
+    if (!profile?.is_premium && newTotal === 3) {
+      setPhase('survey')
+    } else {
+      setPhase('done')
+    }
     fetchExplanations(newResults)
   }
 
@@ -466,6 +476,63 @@ export default function DictationPage() {
   }
 
   // ЛИМИТ
+  // SURVEY
+  if (phase === 'survey') return (
+    <main className="u4a-dash min-h-screen flex flex-col items-center justify-center p-6">
+      <div className="u4a-dash-overlay"></div>
+      <div className="w-full max-w-md">
+        <div className="text-center mb-6">
+          <div style={{ fontSize: '3rem' }}>🦊</div>
+          <h2 style={{ fontFamily: 'Russo One, sans-serif', color: '#92400E', fontSize: '1.4rem', margin: '8px 0 4px' }}>Лисицата има нужда от теб!</h2>
+          <p style={{ color: '#D97706', fontSize: '0.9rem', marginBottom: 8 }}>Отдели 2 минути да ни кажеш какво мислиш</p>
+          <div style={{ background: 'linear-gradient(135deg, #FEF3C7, #FDE68A)', borderRadius: 12, padding: '10px 16px', display: 'inline-block' }}>
+            <span style={{ fontWeight: 800, color: '#92400E', fontSize: '0.95rem' }}>🎁 Получаваш 7 дни Max план безплатно!</span>
+          </div>
+        </div>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+          <div>
+            <label style={{ fontFamily: 'Nunito, sans-serif', fontWeight: 700, color: '#92400E', fontSize: '0.85rem', display: 'block', marginBottom: 4 }}>Какво намираш за полезно?</label>
+            <textarea value={surveyUseful} onChange={e => setSurveyUseful(e.target.value)} rows={2}
+              style={{ width: '100%', borderRadius: 10, border: '2px solid #FED7AA', padding: '8px 12px', fontFamily: 'Nunito, sans-serif', fontSize: '0.9rem', resize: 'none', boxSizing: 'border-box' }} />
+          </div>
+          <div>
+            <label style={{ fontFamily: 'Nunito, sans-serif', fontWeight: 700, color: '#92400E', fontSize: '0.85rem', display: 'block', marginBottom: 4 }}>Какво не ти харесва или намираш за незавършено?</label>
+            <textarea value={surveyDislike} onChange={e => setSurveyDislike(e.target.value)} rows={2}
+              style={{ width: '100%', borderRadius: 10, border: '2px solid #FED7AA', padding: '8px 12px', fontFamily: 'Nunito, sans-serif', fontSize: '0.9rem', resize: 'none', boxSizing: 'border-box' }} />
+          </div>
+          <div>
+            <label style={{ fontFamily: 'Nunito, sans-serif', fontWeight: 700, color: '#92400E', fontSize: '0.85rem', display: 'block', marginBottom: 4 }}>Какво още би искал да включва приложението?</label>
+            <textarea value={surveyFeature} onChange={e => setSurveyFeature(e.target.value)} rows={2}
+              style={{ width: '100%', borderRadius: 10, border: '2px solid #FED7AA', padding: '8px 12px', fontFamily: 'Nunito, sans-serif', fontSize: '0.9rem', resize: 'none', boxSizing: 'border-box' }} />
+          </div>
+          <div>
+            <label style={{ fontFamily: 'Nunito, sans-serif', fontWeight: 700, color: '#92400E', fontSize: '0.85rem', display: 'block', marginBottom: 4 }}>Би ли препоръчал на приятел? Как би го представил?</label>
+            <textarea value={surveyRecommend} onChange={e => setSurveyRecommend(e.target.value)} rows={2}
+              style={{ width: '100%', borderRadius: 10, border: '2px solid #FED7AA', padding: '8px 12px', fontFamily: 'Nunito, sans-serif', fontSize: '0.9rem', resize: 'none', boxSizing: 'border-box' }} />
+          </div>
+        </div>
+        <button
+          onClick={async () => {
+            setSurveyLoading(true)
+            await fetch('/api/survey', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ profileId: profile?.id, useful: surveyUseful, dislike: surveyDislike, featureRequest: surveyFeature, recommend: surveyRecommend })
+            })
+            setProfile(p => p ? { ...p, plan_type: 'max', is_premium: true } : p)
+            setSurveyLoading(false)
+            setPhase('done')
+          }}
+          disabled={surveyLoading}
+          style={{ width: '100%', marginTop: 16, background: '#F97316', color: 'white', border: 'none', borderRadius: 16, padding: '14px', fontFamily: 'Nunito, sans-serif', fontWeight: 800, fontSize: '1rem', cursor: 'pointer' }}>
+          {surveyLoading ? '⏳ Изпращане...' : '🎁 Изпрати и получи 7 дни Max →'}
+        </button>
+        <button onClick={() => setPhase('done')} style={{ width: '100%', marginTop: 8, background: 'transparent', color: '#D97706', border: 'none', fontFamily: 'Nunito, sans-serif', fontSize: '0.85rem', cursor: 'pointer' }}>
+          Пропусни
+        </button>
+      </div>
+    </main>
+  )
   if (phase === 'limit') return (
     <main className="u4a-dash min-h-screen flex flex-col items-center justify-center p-6">
       <div className="u4a-dash-overlay"></div>
