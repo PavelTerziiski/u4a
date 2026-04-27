@@ -35,7 +35,7 @@ export default function SurveyScreen({ profileId, onDone }: Props) {
           {fields.map(({ label, value, set }) => (
             <div key={label}>
               <label style={{ fontFamily: 'Nunito, sans-serif', fontWeight: 700, color: '#92400E', fontSize: '0.85rem', display: 'block', marginBottom: 4 }}>{label}</label>
-              <textarea value={value} onChange={e => set(e.target.value)} rows={2} style={{ width: '100%', borderRadius: 10, border: '2px solid #FED7AA', padding: '8px 12px', fontFamily: 'Nunito, sans-serif', fontSize: '0.9rem', resize: 'none', boxSizing: 'border-box' }} />
+              <textarea value={value} onChange={e => set(e.target.value)} rows={2} style={{ width: '100%', borderRadius: 10, border: '2px solid #FED7AA', padding: '8px 12px', fontFamily: 'Nunito, sans-serif', fontSize: '0.9rem', resize: 'none', boxSizing: 'border-box', color: '#1F1F1F' }} />
             </div>
           ))}
         </div>
