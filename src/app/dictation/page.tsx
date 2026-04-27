@@ -542,8 +542,8 @@ export default function DictationPage() {
         {/* 🌍 ЧУЖДИ ЕЗИЦИ */}
         <div style={{ marginTop: 24 }}>
           <div style={{
-            background: profile?.plan_type === 'max' ? 'linear-gradient(135deg, #EDE9FE, #F5F3FF)' : '#F5F5F5',
-            border: `2px solid ${profile?.plan_type === 'max' ? '#A78BFA' : '#E5E7EB'}`,
+            background: (profile?.plan_type === 'max' || totalSessions < FREE_TOTAL_LIMIT) ? 'linear-gradient(135deg, #EDE9FE, #F5F3FF)' : '#F5F5F5',
+            border: `2px solid ${(profile?.plan_type === 'max' || totalSessions < FREE_TOTAL_LIMIT) ? '#A78BFA' : '#E5E7EB'}`,
             borderRadius: 16,
             padding: '14px 18px',
             marginBottom: 12,
@@ -551,15 +551,15 @@ export default function DictationPage() {
             alignItems: 'center',
             justifyContent: 'space-between'
           }}>
-            <span style={{ fontFamily: 'Russo One, sans-serif', fontSize: '1rem', color: profile?.plan_type === 'max' ? '#5B21B6' : '#9CA3AF' }}>
+            <span style={{ fontFamily: 'Russo One, sans-serif', fontSize: '1rem', color: (profile?.plan_type === 'max' || totalSessions < FREE_TOTAL_LIMIT) ? '#5B21B6' : '#9CA3AF' }}>
               🌍 Чужди езици
             </span>
-            {profile?.plan_type !== 'max' && (
+            {profile?.plan_type !== 'max' && totalSessions >= FREE_TOTAL_LIMIT && (
               <span style={{ fontSize: '0.75rem', background: '#7C3AED', color: 'white', borderRadius: 20, padding: '3px 10px', fontWeight: 700 }}>🔒 Max</span>
             )}
           </div>
 
-          {profile?.plan_type === 'max' ? (
+          {(profile?.plan_type === 'max' || totalSessions < FREE_TOTAL_LIMIT) ? (
             <div>
               <div style={{ display: 'flex', gap: 10, marginBottom: 12 }}>
                 {[{ code: 'en', label: '🇬🇧 Английски' }, { code: 'de', label: '🇩🇪 Немски' }].map(l => (
