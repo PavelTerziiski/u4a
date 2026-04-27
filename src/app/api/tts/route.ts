@@ -6,7 +6,7 @@ export async function POST(req: NextRequest) {
   if (!apiKey) {
     return NextResponse.json({ error: 'No API key' }, { status: 500 })
   }
-  const isMale = voice === 'male'
+  const isMale = voice === 'male' || voice === 'borisslav' || voice === 'straus'
   const response = await fetch(
     `https://texttospeech.googleapis.com/v1/text:synthesize?key=${apiKey}`,
     {
