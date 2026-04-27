@@ -166,13 +166,13 @@ export default function DictationPage() {
       currentAudio.current = null
     }
     setSpeaking(true)
-    fetch(profile?.is_premium ? '/api/tts-azure' : '/api/tts', {
+    fetch('/api/tts-azure', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(
-        profile?.is_premium
-          ? { text, lang: selected?.language, voice: (selected?.language === 'en' || selected?.language === 'de') ? (profile?.preferred_voice === 'straus' ? 'straus' : 'koala') : (profile?.preferred_voice || 'kalina'), speed }
-          : { text, speed: speed === 0.7 ? 0.75 : 0.92, voice: profile?.preferred_voice || 'kalina' }
+        { text, lang: selected?.language, voice: (selected?.language === 'en' || selected?.language === 'de') ? (profile?.preferred_voice === 'straus' ? 'straus' : 'koala') : (profile?.preferred_voice || 'kalina'), speed }
+
+
       )
     })
       .then(res => res.blob())
