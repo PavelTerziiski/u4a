@@ -14,7 +14,7 @@ type WordResult = { word: string; correct: boolean; input: string; errorType: 'n
 type SentenceResult = { sentence: string; input: string; wordResults: WordResult[]; correct: boolean }
 
 const REPEAT_LIMITS: Record<number, number> = { 1: 5, 2: 4, 3: 3, 4: 2 }
-const CHARS_PER_SECOND: Record<number, number> = { 1: 0.6, 2: 0.85, 3: 1.2, 4: 1.5 }
+const CHARS_PER_SECOND: Record<number, number> = { 1: 0.75, 2: 1.0, 3: 1.4, 4: 1.7 }
 const FREE_TOTAL_LIMIT = 6
 
 async function loadForeignDictations(lang: 'en' | 'de', level: 'easy' | 'medium' | 'hard', setFd: (d: Dictation[]) => void) {
