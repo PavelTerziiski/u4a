@@ -118,7 +118,7 @@ export default function PlansPage() {
             <div style={{ fontSize: '2rem', fontWeight: 900, color: '#A5B4FC' }}>{billing === 'monthly' ? '7.50€' : '75€'}</div>
             <div style={{ color: '#C7D2FE', fontSize: '0.85rem', marginBottom: 20 }}>{billing === 'monthly' ? 'на месец' : 'на година (2 месеца безплатно)'}</div>
             <ul style={{ listStyle: 'none', padding: 0, margin: '0 0 24px', display: 'flex', flexDirection: 'column', gap: 8 }}>
-              {['Всичко от Premium', 'Английски и немски диктовки', 'Нива A1 / A2 / B1', 'Госпожа Коала & Господин Щраус', 'Приоритетна поддръжка'].map(f => (
+              {['Всичко от Premium', 'Английски и немски диктовки', 'Нива A1 / A2 / B1', 'Госпожа Коала & Господин Жираф', 'Приоритетна поддръжка'].map(f => (
                 <li key={f} style={{ display: 'flex', alignItems: 'center', gap: 8, color: '#E0E7FF', fontSize: '0.9rem' }}>
                   <span style={{ color: '#86EFAC' }}>✓</span> {f}
                 </li>
