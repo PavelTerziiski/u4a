@@ -471,7 +471,7 @@ export default function DictationPage() {
       <div className="u4a-dash-overlay"></div>
       <div className="w-full max-w-md text-center">
         <Fox mood="sad" size={160} />
-        <h2 className="text-2xl font-bold text-gray-700 mt-6 mb-2">Достигна седмичния лимит</h2>
+        <h2 className="text-2xl font-bold text-gray-700 mt-6 mb-2">Пробният период приключи 🦊</h2>
         <p className="text-gray-500 mb-2">Безплатният план включва {FREE_TOTAL_LIMIT} пробни диктовки.</p>
         <p className="text-gray-500 mb-8">Нова седмица — нови диктовки! 🗓️</p>
         <div className="bg-orange-100 rounded-2xl p-6 mb-6">
@@ -507,7 +507,7 @@ export default function DictationPage() {
         <h1 className="text-2xl font-bold text-gray-700 mb-2">Избери диктовка</h1>
         {!profile?.is_premium && (
           <div className="bg-orange-100 rounded-2xl p-3 mb-4 flex items-center justify-between">
-            <p className="text-orange-700 text-sm">Безплатни диктовки тази седмица:</p>
+            <p className="text-orange-700 text-sm">Пробни диктовки:</p>
             <p className="text-orange-700 font-bold">{totalSessions}/{FREE_TOTAL_LIMIT}</p>
           </div>
         )}
