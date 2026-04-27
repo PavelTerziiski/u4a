@@ -161,6 +161,7 @@ export default function DictationPage() {
   }, [])
 
   const speak = (text: string, onDone?: () => void) => {
+    if (stoppedRef.current) return
     if (currentAudio.current) {
       currentAudio.current.pause()
       currentAudio.current = null
@@ -188,23 +189,23 @@ export default function DictationPage() {
               source.onended = () => {
                 setSpeaking(false)
                 currentAudio.current = null
-                if (onDone) onDone()
+                if (onDone && !stoppedRef.current) onDone()
               }
               currentSource.current = source
               if (!stoppedRef.current) { source.start(0) }
             }, () => {
               setSpeaking(false)
-              if (onDone) onDone()
+              if (onDone && !stoppedRef.current) onDone()
             })
           })
         } else {
           setSpeaking(false)
-          if (onDone) onDone()
+          if (onDone && !stoppedRef.current) onDone()
         }
       })
       .catch(() => {
         setSpeaking(false)
-        if (onDone) onDone()
+        if (onDone && !stoppedRef.current) onDone()
       })
   }
 
@@ -218,6 +219,7 @@ export default function DictationPage() {
     const steps = 50
     const stepMs = pauseMs / steps
     let step = 0
+    clearInterval(progressTimer.current!)
     progressTimer.current = setInterval(() => {
       step++
       setPauseProgress(Math.round((step / steps) * 100))
@@ -225,7 +227,7 @@ export default function DictationPage() {
         clearInterval(progressTimer.current!)
         setPausing(false)
         setPauseProgress(0)
-        onDone()
+        if (!stoppedRef.current) onDone()
       }
     }, stepMs)
   }
