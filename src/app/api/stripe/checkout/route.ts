@@ -49,7 +49,7 @@ export async function POST(req: NextRequest) {
       customer: profile?.stripe_customer_id || undefined,
       subscription_data: {
         metadata: { userId, username, site: 'u4a' },
-        ...(!hasBeenCustomer && { trial_period_days: 7 }),
+        // trial removed — 6 free dictations in app instead
       },
       metadata: { userId, username, site: 'u4a' },
       success_url: `${process.env.NEXT_PUBLIC_APP_URL}/dashboard`,
