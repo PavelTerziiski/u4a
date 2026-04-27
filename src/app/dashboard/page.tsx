@@ -24,7 +24,7 @@ export default function Dashboard() {
       .then(({ data }) => {
         if (!data) { router.push('/login'); return }
         if (data.is_parent) { router.push('/parent-dashboard'); return }
-        setProfile(data)
+        const now2 = new Date(); const expired2 = data.premium_expires_at && new Date(data.premium_expires_at) < now2 && !data.stripe_subscription_id; if (expired2) { fetch("/api/update-profile", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ profileId: data.id, updates: { plan_type: "free", is_premium: false } }) }); setProfile({ ...data, plan_type: "free", is_premium: false }) } else { setProfile(data) }
         setLoading(false)
       })
   }, [])

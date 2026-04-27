@@ -110,7 +110,7 @@ export default function DictationPage() {
       .then(({ data }) => {
         if (!data) { router.push('/login'); return }
         if (data.is_parent) { router.push('/parent-dashboard'); return }
-        setProfile(data)
+        const now = new Date(); const expired = data.premium_expires_at && new Date(data.premium_expires_at) < now && !data.stripe_subscription_id; if (expired) { fetch("/api/update-profile", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ profileId: data.id, updates: { plan_type: "free", is_premium: false } }) }); setProfile({ ...data, plan_type: "free", is_premium: false }) } else { setProfile(data) }
         setSelectedGrade(data.grade)
         supabase.from('dictations').select('*').eq('grade', data.grade)
           .then(({ data: d }) => setDictations(d || []))
