@@ -326,8 +326,8 @@ export default function Settings() {
               border: selectedVoice === 'koala' ? '2.5px solid #7C3AED' : '2px solid #DDD6FE',
               background: selectedVoice === 'koala' ? '#EDE9FE' : 'rgba(255,255,255,0.5)',
               marginBottom: 10,
-              cursor: profile?.plan_type === 'max' ? 'pointer' : 'default',
-              opacity: profile?.plan_type === 'max' ? 1 : 0.5
+              cursor: (profile?.plan_type === 'max' || isTrial) ? 'pointer' : 'default',
+              opacity: (profile?.plan_type === 'max' || isTrial) ? 1 : 0.5
             }}
           >
             <div style={{ fontSize: '1.8rem' }}>🐨</div>
@@ -360,8 +360,8 @@ export default function Settings() {
               border: selectedVoice === 'straus' ? '2.5px solid #7C3AED' : '2px solid #DDD6FE',
               background: selectedVoice === 'straus' ? '#EDE9FE' : 'rgba(255,255,255,0.5)',
               marginBottom: 10,
-              cursor: profile?.plan_type === 'max' ? 'pointer' : 'default',
-              opacity: profile?.plan_type === 'max' ? 1 : 0.5
+              cursor: (profile?.plan_type === 'max' || isTrial) ? 'pointer' : 'default',
+              opacity: (profile?.plan_type === 'max' || isTrial) ? 1 : 0.5
             }}
           >
             <div style={{ fontSize: '1.8rem' }}>🦒</div>
@@ -385,8 +385,7 @@ export default function Settings() {
               <div style={{ fontSize: '0.75rem', color: '#7C3AED', fontFamily: 'Nunito, sans-serif', fontWeight: 800 }}>🔒 Max</div>
             )}
           </div>
-
-          {!profile?.is_premium && (
+          {!profile?.is_premium && !isTrial && (
             <button onClick={handleUpgrade} style={{
               background: '#F97316', color: 'white', border: 'none',
               borderRadius: 12, padding: '10px 0', width: '100%',
@@ -394,6 +393,7 @@ export default function Settings() {
               fontSize: '0.95rem', cursor: 'pointer', marginTop: 8
             }}>🌰 Стани Premium · 4.50€/мес</button>
           )}
+        </div>
         </div>
 
         <button
