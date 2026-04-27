@@ -51,7 +51,7 @@ export default function PlansPage() {
     if (loading === priceId) return 'Зарежда...'
     if (currentPlan === 'premium' && targetPlan === 'max') return 'Ъпгрейд към Max →'
     if (hasBeenCustomer) return 'Абонирай се →'
-    return 'Опитай безплатно 7 дни'
+    return 'Абонирай се'
   }
 
   const isUpgrade = (targetPlan: 'premium' | 'max') =>
@@ -62,7 +62,7 @@ export default function PlansPage() {
       <div style={{ maxWidth: 900, margin: '0 auto' }}>
         <div style={{ textAlign: 'center', marginBottom: 32 }}>
           <h1 style={{ fontFamily: 'Russo One, sans-serif', fontSize: '2rem', color: '#7C2D12', margin: 0 }}>Избери своя план</h1>
-          <p style={{ color: '#92400E', marginTop: 8 }}>{hasBeenCustomer ? 'Промени своя план по всяко време' : '7 дни безплатно за всеки платен план'}</p>
+          <p style={{ color: '#92400E', marginTop: 8 }}>{hasBeenCustomer ? 'Промени своя план по всяко време' : 'Неограничени диктовки · Отказ по всяко време'}</p>
           <div style={{ display: 'inline-flex', background: '#FED7AA', borderRadius: 99, padding: 4, marginTop: 16, gap: 4 }}>
             <button onClick={() => setBilling('monthly')} style={{ padding: '8px 20px', borderRadius: 99, border: 'none', cursor: 'pointer', fontFamily: 'Nunito, sans-serif', fontWeight: 700, fontSize: '0.9rem', background: billing === 'monthly' ? '#F97316' : 'transparent', color: billing === 'monthly' ? 'white' : '#92400E' }}>Месечно</button>
             <button onClick={() => setBilling('yearly')} style={{ padding: '8px 20px', borderRadius: 99, border: 'none', cursor: 'pointer', fontFamily: 'Nunito, sans-serif', fontWeight: 700, fontSize: '0.9rem', background: billing === 'yearly' ? '#F97316' : 'transparent', color: billing === 'yearly' ? 'white' : '#92400E' }}>Годишно <span style={{ fontSize: '0.75rem', background: '#16A34A', color: 'white', borderRadius: 99, padding: '2px 6px', marginLeft: 4 }}>-2 месеца</span></button>

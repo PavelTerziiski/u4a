@@ -417,7 +417,7 @@ export default function Settings() {
       </div>
 
       <div style={{ textAlign: 'center', padding: '16px 0 8px', color: '#92400E', fontFamily: 'Nunito, sans-serif', fontSize: '0.85rem' }}>
-        Въпроси? Пишете ни на <a href="mailto:support@u4a.bg" style={{ color: '#F97316', fontWeight: 700 }}>support@u4a.bg</a>
+        Въпроси? Пишете ни на <a href="mailto:roditelyat@gmail.com" style={{ color: '#F97316', fontWeight: 700 }}>roditelyat@gmail.com</a>
       </div>
       <div className="bottom-nav">
         <div className="nav-item" onClick={() => router.push('/dashboard')}>
