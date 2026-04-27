@@ -128,6 +128,7 @@ export default function Settings() {
   }
 
   const currentPlan = profile?.plan_type || 'free'
+  const isTrial = !profile?.is_premium && (profile?.total_sessions || 0) < 6
   const planInfo = PLAN_LABELS[currentPlan] || PLAN_LABELS.free
 
   if (loading) return (
@@ -249,7 +250,7 @@ export default function Settings() {
           </div>
 
           <div
-            onClick={() => profile?.is_premium && setSelectedVoice('kalina')}
+            onClick={() => (profile?.is_premium || isTrial) && setSelectedVoice('kalina')}
             style={{
               display: 'flex', alignItems: 'center', gap: 12,
               padding: '12px 14px', borderRadius: 14,
@@ -283,7 +284,7 @@ export default function Settings() {
           </div>
 
           <div
-            onClick={() => profile?.is_premium && setSelectedVoice('borisslav')}
+            onClick={() => (profile?.is_premium || isTrial) && setSelectedVoice('borisslav')}
             style={{
               display: 'flex', alignItems: 'center', gap: 12,
               padding: '12px 14px', borderRadius: 14,
@@ -318,7 +319,7 @@ export default function Settings() {
 
           {/* Max гласове */}
           <div
-            onClick={() => profile?.plan_type === 'max' && setSelectedVoice('koala')}
+            onClick={() => (profile?.plan_type === 'max' || isTrial) && setSelectedVoice('koala')}
             style={{
               display: 'flex', alignItems: 'center', gap: 12,
               padding: '12px 14px', borderRadius: 14,
@@ -334,7 +335,7 @@ export default function Settings() {
               <div style={{ fontFamily: 'Nunito, sans-serif', fontWeight: 800, color: '#5B21B6', fontSize: '0.95rem' }}>Госпожа Коала</div>
               <div style={{ fontFamily: 'Nunito, sans-serif', fontSize: '0.75rem', color: '#7C3AED' }}>Многоезичен женски глас · EN & DE</div>
             </div>
-            {profile?.plan_type === 'max' ? (
+            {(profile?.plan_type === 'max' || isTrial) ? (
               <button
                 onClick={e => { e.stopPropagation(); playVoicePreview('koala') }}
                 style={{
@@ -352,7 +353,7 @@ export default function Settings() {
           </div>
 
           <div
-            onClick={() => profile?.plan_type === 'max' && setSelectedVoice('straus')}
+            onClick={() => (profile?.plan_type === 'max' || isTrial) && setSelectedVoice('straus')}
             style={{
               display: 'flex', alignItems: 'center', gap: 12,
               padding: '12px 14px', borderRadius: 14,
@@ -368,7 +369,7 @@ export default function Settings() {
               <div style={{ fontFamily: 'Nunito, sans-serif', fontWeight: 800, color: '#5B21B6', fontSize: '0.95rem' }}>Господин Жираф</div>
               <div style={{ fontFamily: 'Nunito, sans-serif', fontSize: '0.75rem', color: '#7C3AED' }}>Мъжки глас · строг и знаещ</div>
             </div>
-            {profile?.plan_type === 'max' ? (
+            {(profile?.plan_type === 'max' || isTrial) ? (
               <button
                 onClick={e => { e.stopPropagation(); playVoicePreview('straus') }}
                 style={{
