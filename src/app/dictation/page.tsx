@@ -77,7 +77,7 @@ export default function DictationPage() {
   const [fullInput, setFullInput] = useState('')
   const [results, setResults] = useState<SentenceResult[]>([])
   const [speed, setSpeed] = useState(1.0)
-  const [weeklyCount, setWeeklyCount] = useState(0) // legacy
+  // const [weeklyCount, setWeeklyCount] = useState(0) // legacy removed
   const totalSessions = profile?.total_sessions || 0
   const [ocrLoading, setOcrLoading] = useState(false)
   const [explanations, setExplanations] = useState<Record<number, string>>({})
