@@ -188,7 +188,7 @@ export default function Settings() {
                 ⬆️ Смени план
               </button>
             )}
-            {currentPlan !== 'free' && (
+            {profile?.stripe_customer_id && (
               <button onClick={handlePortal} disabled={portalLoading} style={{ flex: 1, padding: '10px 0', borderRadius: 12, border: '2px solid #FED7AA', background: 'white', color: '#92400E', fontFamily: 'Nunito, sans-serif', fontWeight: 800, fontSize: '0.9rem', cursor: 'pointer', opacity: portalLoading ? 0.6 : 1 }}>
                 {portalLoading ? '⏳...' : '⚙️ Управлявай'}
               </button>

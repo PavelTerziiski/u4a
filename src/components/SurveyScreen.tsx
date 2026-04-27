@@ -29,7 +29,7 @@ export default function SurveyScreen({ profileId, onDone }: Props) {
             <div style={{ fontFamily: 'Russo One, sans-serif', fontSize: '2.4rem', color: '#FEF3C7', lineHeight: 1.1, marginBottom: 16 }}>БЕЗПЛАТНО! 🎁</div>
             <div style={{ fontFamily: 'Nunito, sans-serif', fontSize: '1rem', color: 'white', lineHeight: 1.5 }}>Отговори на 4 бързи въпроса и получи<br/><strong>пълен достъп без карта!</strong></div>
           </div>
-          <p style={{ fontFamily: 'Nunito, sans-serif', color: '#92400E', fontSize: '0.85rem' }}>⏱️ Отнема само 2 минути</p>
+          <p style={{ fontFamily: 'Nunito, sans-serif', color: '#1F1F1F', fontSize: '0.85rem' }}>⏱️ Отнема само 2 минути</p>
         </div>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
           {fields.map(({ label, value, set }) => (

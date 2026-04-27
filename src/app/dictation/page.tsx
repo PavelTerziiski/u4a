@@ -477,7 +477,7 @@ export default function DictationPage() {
   }
 
   // ЛИМИТ
-  if (phase === 'survey') return <SurveyScreen profileId={profile?.id || ''} onDone={(got) => { if (got) setProfile(p => p ? { ...p, plan_type: 'max', is_premium: true, survey_completed: true } : p); setPhase('done') }} />
+  if (phase === 'survey') return <SurveyScreen profileId={profile?.id || ''} onDone={(got) => { if (got) setProfile(p => p ? { ...p, plan_type: 'max', is_premium: true, survey_completed: true } : p); router.push('/dashboard') }} />
   if (phase === 'limit') return (
     <main className="u4a-dash min-h-screen flex flex-col items-center justify-center p-6">
       <div className="u4a-dash-overlay"></div>
