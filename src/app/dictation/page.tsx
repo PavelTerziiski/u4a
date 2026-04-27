@@ -443,7 +443,7 @@ export default function DictationPage() {
       : 1
     await fetch('/api/update-profile', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ profileId: profile.id, updates: { total_sessions: (profile.total_sessions || 0) + 1, streak: newStreak, last_session_date: today } }) })
     setProfile(p => p ? { ...p, streak: newStreak, last_session_date: today } : p)
-    setWeeklyCount(c => c + 1)
+    // weeklyCount removed
     setResults(newResults)
     setPhase('done')
     fetchExplanations(newResults)
