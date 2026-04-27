@@ -498,9 +498,9 @@ export default function DictationPage() {
       <div className="u4a-dash-overlay"></div>
       <div className="max-w-md mx-auto">
         <button onClick={() => router.push('/dashboard')} className="text-orange-400 mb-6 flex items-center gap-2">← Назад</button>
-        <button onClick={() => profile?.is_premium ? router.push('/scan-dictation') : router.push('/plans')}
+        <button onClick={() => totalSessions < FREE_TOTAL_LIMIT || profile?.is_premium ? router.push('/scan-dictation') : router.push('/plans')}
           className="w-full bg-white border-2 border-orange-300 text-orange-500 font-bold py-3 rounded-2xl hover:bg-orange-50 transition-colors mb-4 flex items-center justify-center gap-2">
-          📷 Снимай текст и лисицата го чете {!profile?.is_premium && <span className="text-xs bg-orange-100 px-2 py-1 rounded-full ml-1">⭐ Premium</span>}
+          📷 Снимай текст и лисицата го чете {!profile?.is_premium && totalSessions >= FREE_TOTAL_LIMIT && <span className="text-xs bg-orange-100 px-2 py-1 rounded-full ml-1">⭐ Premium</span>}
         </button>
         <h1 className="text-2xl font-bold text-gray-700 mb-2">Избери диктовка</h1>
         {!profile?.is_premium && (
