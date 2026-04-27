@@ -767,7 +767,7 @@ export default function DictationPage() {
               parent_confirmed: autoConfirm,
               is_started_only: false,
             })
-            setWeeklyCount(c => c + 1)
+            // weeklyCount removed
             router.push('/dashboard')
           }}
             className="w-full bg-white text-orange-500 border-2 border-orange-300 font-bold py-4 rounded-2xl hover:bg-orange-50 transition-colors">
