@@ -456,7 +456,7 @@ export default function DictationPage() {
     // weeklyCount removed
     setResults(newResults)
     const newTotal = (profile?.total_sessions || 0) + 1
-    if (!profile?.is_premium && newTotal === 3) {
+    if (!profile?.is_premium && newTotal === 3 || newTotal === 4) {
       setPhase('survey')
     } else {
       setPhase('done')
@@ -524,7 +524,7 @@ export default function DictationPage() {
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify({ profileId: profile?.id, useful: surveyUseful, dislike: surveyDislike, featureRequest: surveyFeature, recommend: surveyRecommend })
             })
-            setProfile(p => p ? { ...p, plan_type: 'max', is_premium: true } : p)
+            setProfile(p => p ? { ...p, plan_type: 'max', is_premium: true, survey_completed: true } : p)
             setSurveyLoading(false)
             setPhase('done')
           }}

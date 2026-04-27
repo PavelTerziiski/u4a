@@ -16,6 +16,8 @@ export type Profile = {
   preferred_voice?: string
   parent_plan?: string
   email?: string
+  survey_completed?: boolean
+  premium_expires_at?: string
   stripe_customer_id?: string
   stripe_subscription_id?: string
 }
