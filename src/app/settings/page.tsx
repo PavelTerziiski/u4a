@@ -129,6 +129,7 @@ export default function Settings() {
 
   const currentPlan = profile?.plan_type || 'free'
   const isTrial = !profile?.is_premium && (profile?.total_sessions || 0) < 6
+  const isTrial = !profile?.is_premium && (profile?.total_sessions || 0) < 6
   const planInfo = PLAN_LABELS[currentPlan] || PLAN_LABELS.free
 
   if (loading) return (
