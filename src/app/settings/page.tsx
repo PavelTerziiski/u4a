@@ -327,8 +327,8 @@ export default function Settings() {
               border: selectedVoice === 'koala' ? '2.5px solid #7C3AED' : '2px solid #DDD6FE',
               background: selectedVoice === 'koala' ? '#EDE9FE' : 'rgba(255,255,255,0.5)',
               marginBottom: 10,
-              cursor: profile?.plan_type === 'max' ? 'pointer' : 'default',
-              opacity: profile?.plan_type === 'max' ? 1 : 0.5
+              cursor: (profile?.plan_type === 'max' || isTrial) ? 'pointer' : 'default',
+              opacity: (profile?.plan_type === 'max' || isTrial) ? 1 : 0.5
             }}
           >
             <div style={{ fontSize: '1.8rem' }}>🐨</div>
@@ -361,8 +361,8 @@ export default function Settings() {
               border: selectedVoice === 'straus' ? '2.5px solid #7C3AED' : '2px solid #DDD6FE',
               background: selectedVoice === 'straus' ? '#EDE9FE' : 'rgba(255,255,255,0.5)',
               marginBottom: 10,
-              cursor: profile?.plan_type === 'max' ? 'pointer' : 'default',
-              opacity: profile?.plan_type === 'max' ? 1 : 0.5
+              cursor: (profile?.plan_type === 'max' || isTrial) ? 'pointer' : 'default',
+              opacity: (profile?.plan_type === 'max' || isTrial) ? 1 : 0.5
             }}
           >
             <div style={{ fontSize: '1.8rem' }}>🦒</div>
