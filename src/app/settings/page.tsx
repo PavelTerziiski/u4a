@@ -394,7 +394,6 @@ export default function Settings() {
             }}>🌰 Стани Premium · 4.50€/мес</button>
           )}
         </div>
-        </div>
 
         <button
           className="main-btn fade-up fade-up-3"
