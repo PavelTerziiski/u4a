@@ -335,6 +335,11 @@ export default function Settings() {
               <div style={{ fontFamily: 'Nunito, sans-serif', fontWeight: 800, color: '#5B21B6', fontSize: '0.95rem' }}>Госпожа Коала</div>
               <div style={{ fontFamily: 'Nunito, sans-serif', fontSize: '0.75rem', color: '#7C3AED' }}>Многоезичен женски глас · EN & DE</div>
             </div>
+            {(profile?.plan_type === 'max' || isTrial) ? (
+              <span></span>
+            ) : (
+              <span style={{ fontSize: '0.75rem', color: '#7C3AED', fontFamily: 'Nunito, sans-serif', fontWeight: 800 }}>🔒 Max</span>
+            )}
             {false ? (
               <button
                 onClick={e => { e.stopPropagation(); playVoicePreview('koala') }}
@@ -367,8 +372,13 @@ export default function Settings() {
             <div style={{ fontSize: '1.8rem' }}>🦒</div>
             <div style={{ flex: 1 }}>
               <div style={{ fontFamily: 'Nunito, sans-serif', fontWeight: 800, color: '#5B21B6', fontSize: '0.95rem' }}>Господин Жираф</div>
-              <div style={{ fontFamily: 'Nunito, sans-serif', fontSize: '0.75rem', color: '#7C3AED' }}>Мъжки глас · строг и знаещ</div>
+              <div style={{ fontFamily: 'Nunito, sans-serif', fontSize: '0.75rem', color: '#7C3AED' }}>Мъжки глас · EN & DE</div>
             </div>
+            {(profile?.plan_type === 'max' || isTrial) ? (
+              <span></span>
+            ) : (
+              <span style={{ fontSize: '0.75rem', color: '#7C3AED', fontFamily: 'Nunito, sans-serif', fontWeight: 800 }}>🔒 Max</span>
+            )}
             {false ? (
               <button
                 onClick={e => { e.stopPropagation(); playVoicePreview('straus') }}
