@@ -244,7 +244,7 @@ export default function DictationPage() {
         parent_confirmed: autoConfirm,
         is_started_only: true,
       }).then(() => {
-        setWeeklyCount(c => c + 1)
+        // weeklyCount removed
         const today = new Date().toISOString().slice(0, 10)
         const lastDate = profile.last_session_date
         const yesterday = new Date(Date.now() - 86400000).toISOString().slice(0, 10)
