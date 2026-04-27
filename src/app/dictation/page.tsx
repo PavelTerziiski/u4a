@@ -211,7 +211,8 @@ export default function DictationPage() {
 
   const startPause = (text: string, grade: number, onDone: () => void) => {
     const chars = text.length
-    const charsPerSec = CHARS_PER_SECOND[grade] || 1.0
+    const isForeign = selected?.language === 'en' || selected?.language === 'de'
+    const charsPerSec = isForeign ? 3.5 : (CHARS_PER_SECOND[grade] || 1.0)
     const pauseMs = Math.round((chars / charsPerSec) * 1000 / speed)
     setPausing(true)
     setPauseProgress(0)
