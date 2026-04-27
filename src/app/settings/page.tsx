@@ -257,8 +257,8 @@ export default function Settings() {
               border: selectedVoice === 'kalina' ? '2.5px solid #F97316' : '2px solid #FED7AA',
               background: selectedVoice === 'kalina' ? '#FFF7ED' : 'rgba(255,255,255,0.5)',
               marginBottom: 10,
-              cursor: profile?.is_premium ? 'pointer' : 'default',
-              opacity: profile?.is_premium ? 1 : 0.6
+              cursor: (profile?.is_premium || isTrial) ? 'pointer' : 'default',
+              opacity: (profile?.is_premium || isTrial) ? 1 : 0.6
             }}
           >
             <div style={{ fontSize: '1.8rem' }}>🦊</div>
@@ -266,7 +266,7 @@ export default function Settings() {
               <div style={{ fontFamily: 'Nunito, sans-serif', fontWeight: 800, color: '#92400E', fontSize: '0.95rem' }}>Госпожа Лисица</div>
               <div style={{ fontFamily: 'Nunito, sans-serif', fontSize: '0.75rem', color: '#D97706' }}>Женски глас · топъл и приказен</div>
             </div>
-            {profile?.is_premium ? (
+            {(profile?.is_premium || isTrial) ? (
               <button
                 onClick={e => { e.stopPropagation(); playVoicePreview('kalina') }}
                 style={{
@@ -291,8 +291,8 @@ export default function Settings() {
               border: selectedVoice === 'borisslav' ? '2.5px solid #F97316' : '2px solid #FED7AA',
               background: selectedVoice === 'borisslav' ? '#FFF7ED' : 'rgba(255,255,255,0.5)',
               marginBottom: 10,
-              cursor: profile?.is_premium ? 'pointer' : 'default',
-              opacity: profile?.is_premium ? 1 : 0.6
+              cursor: (profile?.is_premium || isTrial) ? 'pointer' : 'default',
+              opacity: (profile?.is_premium || isTrial) ? 1 : 0.6
             }}
           >
             <div style={{ fontSize: '1.8rem' }}>🦉</div>
@@ -300,7 +300,7 @@ export default function Settings() {
               <div style={{ fontFamily: 'Nunito, sans-serif', fontWeight: 800, color: '#92400E', fontSize: '0.95rem' }}>Господин Бухал</div>
               <div style={{ fontFamily: 'Nunito, sans-serif', fontSize: '0.75rem', color: '#D97706' }}>Мъжки глас · мъдър и спокоен</div>
             </div>
-            {profile?.is_premium ? (
+            {(profile?.is_premium || isTrial) ? (
               <button
                 onClick={e => { e.stopPropagation(); playVoicePreview('borisslav') }}
                 style={{
