@@ -353,8 +353,8 @@ export default function Settings() {
                 {playingVoice === 'koala' ? '▶ ...' : '🎵 EN & DE'}
               </button>
             ) : (
-              <div style={{ fontSize: '0.75rem', color: '#7C3AED', fontFamily: 'Nunito, sans-serif', fontWeight: 800 }}>🔒 Max</div>
-            )}
+            ) : (
+              <div></div>
           </div>
 
           <div
@@ -392,8 +392,8 @@ export default function Settings() {
                 {playingVoice === 'koala' ? '▶ ...' : '🎵 EN & DE'}
               </button>
             ) : (
-              <div style={{ fontSize: '0.75rem', color: '#7C3AED', fontFamily: 'Nunito, sans-serif', fontWeight: 800 }}>🔒 Max</div>
-            )}
+            ) : (
+              <div></div>
           </div>
           {!profile?.is_premium && !isTrial && (
             <button onClick={handleUpgrade} style={{
