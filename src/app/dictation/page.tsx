@@ -14,7 +14,7 @@ type SentenceResult = { sentence: string; input: string; wordResults: WordResult
 
 const REPEAT_LIMITS: Record<number, number> = { 1: 5, 2: 4, 3: 3, 4: 2 }
 const CHARS_PER_SECOND: Record<number, number> = { 1: 0.4, 2: 0.6, 3: 0.85, 4: 1.2 }
-const FREE_WEEKLY_LIMIT = 2
+const FREE_TOTAL_LIMIT = 6
 
 async function loadForeignDictations(lang: 'en' | 'de', level: 'easy' | 'medium' | 'hard', setFd: (d: Dictation[]) => void) {
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
@@ -77,7 +77,8 @@ export default function DictationPage() {
   const [fullInput, setFullInput] = useState('')
   const [results, setResults] = useState<SentenceResult[]>([])
   const [speed, setSpeed] = useState(1.0)
-  const [weeklyCount, setWeeklyCount] = useState(0)
+  const [weeklyCount, setWeeklyCount] = useState(0) // legacy
+  const totalSessions = profile?.total_sessions || 0
   const [ocrLoading, setOcrLoading] = useState(false)
   const [explanations, setExplanations] = useState<Record<number, string>>({})
   const [loadingExplanations, setLoadingExplanations] = useState(false)
@@ -265,7 +266,7 @@ export default function DictationPage() {
 
   const startDictation = (d: Dictation) => {
     if (!profile) return
-    if (!profile.is_premium && weeklyCount >= FREE_WEEKLY_LIMIT) {
+    if (!profile.is_premium && totalSessions >= FREE_TOTAL_LIMIT) {
       setPhase('limit')
       return
     }
@@ -471,7 +472,7 @@ export default function DictationPage() {
       <div className="w-full max-w-md text-center">
         <Fox mood="sad" size={160} />
         <h2 className="text-2xl font-bold text-gray-700 mt-6 mb-2">Достигна седмичния лимит</h2>
-        <p className="text-gray-500 mb-2">Безплатният план включва {FREE_WEEKLY_LIMIT} диктовки седмично.</p>
+        <p className="text-gray-500 mb-2">Безплатният план включва {FREE_TOTAL_LIMIT} пробни диктовки.</p>
         <p className="text-gray-500 mb-8">Нова седмица — нови диктовки! 🗓️</p>
         <div className="bg-orange-100 rounded-2xl p-6 mb-6">
           <p className="text-orange-700 font-bold text-lg mb-2">⭐ Premium — 4.50€/месец</p>
@@ -507,7 +508,7 @@ export default function DictationPage() {
         {!profile?.is_premium && (
           <div className="bg-orange-100 rounded-2xl p-3 mb-4 flex items-center justify-between">
             <p className="text-orange-700 text-sm">Безплатни диктовки тази седмица:</p>
-            <p className="text-orange-700 font-bold">{weeklyCount}/{FREE_WEEKLY_LIMIT}</p>
+            <p className="text-orange-700 font-bold">{totalSessions}/{FREE_TOTAL_LIMIT}</p>
           </div>
         )}
         <div className="bg-white rounded-2xl p-4 shadow mb-6">

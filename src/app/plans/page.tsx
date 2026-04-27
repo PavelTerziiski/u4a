@@ -38,10 +38,10 @@ export default function PlansPage() {
     setLoading(null)
   }
 
-  const premiumMonthly = process.env.NEXT_PUBLIC_STRIPE_PREMIUM_MONTHLY!
-  const premiumYearly = process.env.NEXT_PUBLIC_STRIPE_PREMIUM_YEARLY!
-  const maxMonthly = process.env.NEXT_PUBLIC_STRIPE_MAX_MONTHLY!
-  const maxYearly = process.env.NEXT_PUBLIC_STRIPE_MAX_YEARLY!
+  const premiumMonthly = process.env.NEXT_PUBLIC_STRIPE_PREMIUM_MONTHLY_NT!
+  const premiumYearly = process.env.NEXT_PUBLIC_STRIPE_PREMIUM_YEARLY_NT!
+  const maxMonthly = process.env.NEXT_PUBLIC_STRIPE_MAX_MONTHLY_NT!
+  const maxYearly = process.env.NEXT_PUBLIC_STRIPE_MAX_YEARLY_NT!
 
   const currentPlan = profile?.plan_type || 'free'
   const hasBeenCustomer = !!profile?.stripe_customer_id
