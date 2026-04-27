@@ -120,7 +120,7 @@ export default function DictationPage() {
           .select('*', { count: 'exact', head: true })
           .eq('profile_id', data.id)
           .gte('created_at', weekStart.toISOString())
-          .then(({ count }) => setWeeklyCount(count ?? 0))
+          .then(() => {})
       })
   }, [])
 
