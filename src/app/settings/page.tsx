@@ -126,10 +126,10 @@ export default function Settings() {
       setProfile({ ...profile, fox_name: displayName, avatar_id: selectedAvatar, preferred_voice: selectedVoice })
     }
   }
-
   const currentPlan = profile?.plan_type || 'free'
+  const isTrial = !profile?.is_premium && (profile?.total_sessions || 0) < 6
   const planInfo = PLAN_LABELS[currentPlan] || PLAN_LABELS.free
-  const planInfo = PLAN_LABELS[currentPlan] || PLAN_LABELS.free
+
 
   if (loading) return (
     <main className="min-h-screen flex items-center justify-center" style={{ background: 'linear-gradient(135deg, #FFF8F0 0%, #FEF3E2 100%)' }}>
