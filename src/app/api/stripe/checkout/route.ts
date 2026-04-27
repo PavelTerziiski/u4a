@@ -23,7 +23,7 @@ export async function POST(req: NextRequest) {
       .eq('id', userId)
       .single()
 
-    const hasBeenCustomer = !!profile?.stripe_customer_id
+    // hasBeenCustomer removed
 
     // Ако има активен абонамент — upgrade без trial
     if (profile?.stripe_subscription_id) {
