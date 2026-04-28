@@ -18,7 +18,7 @@ const FOX_IMAGES: Record<FoxMood, string> = {
   wink: '/images/fox-wink.png',
   writing: '/images/fox-writing.png',
   thumbsup: '/images/fox-thumbsup.png',
-  pointing: '/images/fox-looking-at-results.png',
+  pointing: '/images/fox-pointing.png',
 }
 
 export default function Fox({ mood = 'happy', size = 160, name }: FoxProps) {

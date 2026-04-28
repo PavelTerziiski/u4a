@@ -778,7 +778,7 @@ export default function DictationPage() {
               is_started_only: false,
             })
             // weeklyCount removed
-            const newTotal2 = (profile?.total_sessions || 0) + 1; if (!profile?.is_premium && !profile?.survey_completed && (newTotal2 === 3 || newTotal2 === 4)) { setPhase("survey") } else { router.push("/dashboard") }
+            setResults([]); const newTotal2 = (profile?.total_sessions || 0) + 1; if (!profile?.is_premium && !profile?.survey_completed && (newTotal2 === 3 || newTotal2 === 4)) { setPhase("survey") } else { setPhase("done") }
           }}
             className="w-full bg-white text-orange-500 border-2 border-orange-300 font-bold py-4 rounded-2xl hover:bg-orange-50 transition-colors">
             ➡️ Продължи без оценяване
