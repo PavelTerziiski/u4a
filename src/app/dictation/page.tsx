@@ -1,5 +1,4 @@
 'use client'
-import ReactMarkdown from 'react-markdown'
 
 import { useEffect, useState, useRef } from 'react'
 import { useRouter } from 'next/navigation'
