@@ -21,7 +21,6 @@ export default function ReadingPage() {
   const [selected, setSelected] = useState<ReadingText | null>(null)
   const [phase, setPhase] = useState<'pick' | 'ready' | 'play' | 'done'>('pick')
   const [sentenceIndex, setSentenceIndex] = useState(0)
-  const [transcript, setTranscript] = useState('')
   const [recording, setRecording] = useState(false)
   const [feedback, setFeedback] = useState('')
   const [feedbackLoading, setFeedbackLoading] = useState(false)
@@ -64,7 +63,7 @@ export default function ReadingPage() {
     })
   }
   const startRecording = async () => {
-    setTranscript('')
+    // transcript not used
     setFeedback('')
     chunksRef.current = []
     const stream = await navigator.mediaDevices.getUserMedia({ audio: true })
@@ -140,7 +139,7 @@ export default function ReadingPage() {
       const elapsed = Date.now() - recordingStartRef.current
       if (elapsed < 1500) { setFeedbackLoading(false); return }
       const text = await stopRecordingAndTranscribe()
-      setTranscript(text)
+      // transcript not used
       const original = selected!.sentences[sentenceIndex].text
       const res = await fetch('/api/reading-feedback', {
         method: 'POST',
@@ -154,7 +153,7 @@ export default function ReadingPage() {
       if (data.correct) setScore(s => s + 1)
       await playAzureTTS(msg)
       setTimeout(() => {
-        setTranscript('')
+        // transcript not used
         setFeedback('')
         if (data.correct) {
           if (sentenceIndex + 1 >= selected!.sentences.length) {
@@ -174,7 +173,7 @@ export default function ReadingPage() {
 
   const nextSentence = () => {
     if (!selected) return
-    setTranscript('')
+    // transcript not used
     setFeedback('')
     if (sentenceIndex + 1 >= selected.sentences.length) {
       setPhase('done')
