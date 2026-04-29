@@ -62,8 +62,8 @@ export default function ReadingPage() {
       source.start(0)
     })
   }
-  const silenceTimerRef = (useRef as any)<NodeJS.Timeout | null>(null)
-  const analyserRef = (useRef as any)<AnalyserNode | null>(null)
+  const silenceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const analyserRef = useRef<AnalyserNode | null>(null)
   const startRecording = async () => {
     setTranscript('')
     setFeedback('')
@@ -74,7 +74,7 @@ export default function ReadingPage() {
     mr.ondataavailable = (e) => { if (e.data.size > 0) chunksRef.current.push(e.data) }
     mr.start()
     setRecording(true)
-    const ctx2 = new (window.AudioContext || (window as any).webkitAudioContext)()
+    const ctx2 = new (window.AudioContext || (window as unknown as {webkitAudioContext: typeof AudioContext}).webkitAudioContext)()
     const source2 = ctx2.createMediaStreamSource(stream)
     const analyser = ctx2.createAnalyser()
     analyser.fftSize = 512
