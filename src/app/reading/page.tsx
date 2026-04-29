@@ -74,28 +74,6 @@ export default function ReadingPage() {
     mr.ondataavailable = (e) => { if (e.data.size > 0) chunksRef.current.push(e.data) }
     mr.start()
     setRecording(true)
-    const ctx2 = new (window.AudioContext || (window as unknown as {webkitAudioContext: typeof AudioContext}).webkitAudioContext)()
-    const source2 = ctx2.createMediaStreamSource(stream)
-    const analyser = ctx2.createAnalyser()
-    analyser.fftSize = 512
-    source2.connect(analyser)
-    analyserRef.current = analyser
-    const data = new Uint8Array(analyser.frequencyBinCount)
-    let silenceStart = Date.now()
-    const checkSilence = () => {
-      if (!mediaRecorderRef.current || mediaRecorderRef.current.state === 'inactive') return
-      analyser.getByteFrequencyData(data)
-      const avg = data.reduce((a, b) => a + b, 0) / data.length
-      if (avg < 15) {
-        if (Date.now() - silenceStart > 2000) {
-          handleRecord()
-          return
-        }
-      } else {
-        silenceStart = Date.now()
-      }
-      silenceTimerRef.current = setTimeout(checkSilence, 200)
-    }
     // silence detection disabled
     setTimeout(() => { if (mediaRecorderRef.current&&mediaRecorderRef.current.state === 'recording') handleRecord() }, 10000)
   }
