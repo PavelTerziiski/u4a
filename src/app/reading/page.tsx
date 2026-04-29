@@ -63,7 +63,6 @@ export default function ReadingPage() {
     })
   }
   const startRecording = async () => {
-    // transcript not used
     setFeedback('')
     chunksRef.current = []
     const stream = await navigator.mediaDevices.getUserMedia({ audio: true })
@@ -73,30 +72,14 @@ export default function ReadingPage() {
     mr.start()
     recordingStartRef.current = Date.now()
     setRecording(true)
-    const AC = window.AudioContext || (window as unknown as {webkitAudioContext: typeof AudioContext}).webkitAudioContext
-    const ctx2 = new AC()
-    const source2 = ctx2.createMediaStreamSource(stream)
-    const analyser = ctx2.createAnalyser()
-    analyser.fftSize = 512
-    source2.connect(analyser)
-    const freqData = new Uint8Array(analyser.frequencyBinCount)
-    let silenceStart = 0
-    let hasSpeech = false
-    const checkSilence = () => {
-      if (!mediaRecorderRef.current || mediaRecorderRef.current.state === 'inactive') return
-      analyser.getByteFrequencyData(freqData)
-      const avg = freqData.reduce((a, b) => a + b, 0) / freqData.length
-      if (avg > 10) {
-        hasSpeech = true
-        silenceStart = Date.now()
-      } else if (hasSpeech && silenceStart > 0 && Date.now() - silenceStart > 2000) {
+    const sentence = selected?.sentences[sentenceIndex]?.text || ''
+    const wordCount = sentence.split(' ').length
+    const duration = Math.round((wordCount * 0.7 + 1.5) * 1000)
+    setTimeout(() => {
+      if (mediaRecorderRef.current && mediaRecorderRef.current.state === 'recording') {
         handleRecord()
-        return
       }
-      setTimeout(checkSilence, 150)
-    }
-    setTimeout(checkSilence, 800)
-    setTimeout(() => { if (mediaRecorderRef.current && mediaRecorderRef.current.state === 'recording') handleRecord() }, 15000)
+    }, duration)
   }
 
 
