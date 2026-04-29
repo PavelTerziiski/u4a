@@ -176,8 +176,8 @@ export default function DictationPage() {
       .then(blob => {
         if (blob.size > 0) {
           blob.arrayBuffer().then(arrayBuffer => {
-            const ctx = audioCtx.current || new (window.AudioContext || (window as unknown as {webkitAudioContext: typeof AudioContext}).webkitAudioContext)()
-            audioCtx.current = ctx
+            unlockAudio()
+            const ctx = audioCtx.current!
             ctx.decodeAudioData(arrayBuffer, (decoded) => {
               const source = ctx.createBufferSource()
               source.buffer = decoded
@@ -188,7 +188,10 @@ export default function DictationPage() {
                 if (onDone && !stoppedRef.current) onDone()
               }
               currentSource.current = source
-              if (!stoppedRef.current) { source.start(0) }
+              if (!stoppedRef.current) {
+                if (ctx.state === 'suspended') { ctx.resume().then(() => source.start(0)) }
+                else { source.start(0) }
+              }
             }, () => {
               setSpeaking(false)
               if (onDone && !stoppedRef.current) onDone()
