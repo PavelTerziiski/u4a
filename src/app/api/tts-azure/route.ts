@@ -22,7 +22,8 @@ async function getAccentFixes(): Promise<Record<string, string>> {
 
 export async function POST(req: NextRequest) {
   try {
-    const { text, voice = 'kalina', speed = 0.85, lang: dictLang } = await req.json()
+    const { text, voice = 'kalina', speed = 0.85, lang: dictLang, nocache } = await req.json()
+    if (nocache) cacheTime = 0
     const ratePercent = speed <= 0.75 ? '-18%' : '-8%'
     let voiceName: string
     let lang: string

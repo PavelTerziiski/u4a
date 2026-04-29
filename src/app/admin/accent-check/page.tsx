@@ -32,7 +32,7 @@ export default function AccentCheck() {
     const res = await fetch('/api/tts-azure', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ text, voice: 'kalina', speed: 0.85 })
+      body: JSON.stringify({ text, voice: 'kalina', speed: 0.85, nocache: true })
     })
     const blob = await res.blob()
     const url = URL.createObjectURL(blob)
