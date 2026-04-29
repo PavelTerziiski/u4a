@@ -126,10 +126,25 @@ export default function ReadingPage() {
         body: JSON.stringify({ original, transcript: text, grade: profile?.grade })
       })
       const data = await res.json()
-      setFeedback(data.feedback || '')
+      const msg = data.correct ? 'Браво!' : 'Опитай пак!'
+      setFeedback(msg)
       setFeedbackLoading(false)
       if (data.correct) setScore(s => s + 1)
-      await playAzureTTS(data.feedback || 'Добре!')
+      await playAzureTTS(msg)
+      setTimeout(() => {
+        setTranscript('')
+        setFeedback('')
+        if (data.correct) {
+          if (sentenceIndex + 1 >= selected!.sentences.length) {
+            setPhase('done')
+          } else {
+            setSentenceIndex(i => i + 1)
+            startRecording()
+          }
+        } else {
+          startRecording()
+        }
+      }, 1500)
     } else {
       await startRecording()
     }
