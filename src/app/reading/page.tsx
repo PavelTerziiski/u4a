@@ -154,9 +154,8 @@ export default function ReadingPage() {
       <div className="w-full max-w-md text-center">
         <Fox mood="happy" size={160} />
         <h2 className="text-2xl font-bold text-gray-700 mt-6 mb-2">{selected.title}</h2>
-        <p className="text-gray-500 mb-8">{selected.sentences.length} изречения · Чети на глас, лисицата слуша!
-        </p>
-        <p style={{ fontFamily: 'Nunito, sans-serif', fontWeight: 800, color: '#F97316', fontSize: '0.9rem', marginTop: 8 }}>🎤 Говори близо до устройството за по-добро разпознаване/p>
+        <p className="text-gray-500 mb-2">{selected.sentences.length} изречения · Чети на глас, лисицата слуша!</p>
+        <p style={{ fontFamily: 'Nunito, sans-serif', fontWeight: 800, color: '#F97316', fontSize: '0.9rem', marginBottom: 24 }}>🎤 Говори близо до устройството за по-добро разпознаване</p>
         <button onClick={() => {
           if (!audioCtx.current) {
             const AC = window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext
