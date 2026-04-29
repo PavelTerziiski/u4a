@@ -86,10 +86,10 @@ export default function ReadingPage() {
       if (!mediaRecorderRef.current || mediaRecorderRef.current.state === 'inactive') return
       analyser.getByteFrequencyData(freqData)
       const avg = freqData.reduce((a, b) => a + b, 0) / freqData.length
-      if (avg > 20) {
+      if (avg > 10) {
         hasSpeech = true
         silenceStart = Date.now()
-      } else if (hasSpeech && silenceStart > 0 && Date.now() - silenceStart > 2500) {
+      } else if (hasSpeech && silenceStart > 0 && Date.now() - silenceStart > 2000) {
         handleRecord()
         return
       }

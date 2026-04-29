@@ -1,36 +1,29 @@
 import { NextRequest, NextResponse } from 'next/server'
-import Anthropic from '@anthropic-ai/sdk'
 
-const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY })
+function normalize(text) {
+  return text.toLowerCase()
+    .replace(/[.,!?;:»«–"']/g, '')
+    .replace(/s+/g, ' ')
+    .trim()
+}
+
+function similarity(a, b) {
+  const wordsA = normalize(a).split(' ')
+  const wordsB = normalize(b).split(' ')
+  const matches = wordsA.filter(w => wordsB.includes(w)).length
+  return matches / Math.max(wordsA.length, wordsB.length)
+}
 
 export async function POST(req: NextRequest) {
   try {
-    const { original, transcript, grade } = await req.json()
-
-    const message = await anthropic.messages.create({
-      model: 'claude-haiku-4-5',
-      max_tokens: 200,
-      messages: [{
-        role: 'user',
-        content: `Ти си Г-жа Лисица — приятелски асистент който помага на деца ${grade} клас да четат на български.
-Оригиналното изречение е: "${original}"
-Детето прочете: "${transcript}"
-
-Сравни двете по СМИСЪЛ — игнорирай запетаи, точки и пунктуация. Детето чете на глас, не пише. Отговори САМО с JSON обект:
-{"correct": true/false, "feedback": "кратка реакция до 2 изречения на детски език"}
-
-Ако детето е прочело думите правилно (дори без запетаи) — похвали. Бъди щедър — 80% от думите правилно е достатъчно за похвала.
-Ако има грешка — кажи само коя дума е сгрешена. НЕ показвай оригиналното изречение в отговора!
-ВАЖНО: feedback е САМО една от тези думи: "Браво!" ИЛИ "Супер!" ИЛИ "Опитай пак!" ИЛИ "Почти!" — НИЩО ДРУГО!`
-      }]
-    })
-
-    const text = message.content[0].type === 'text' ? message.content[0].text : ''
-    const clean = text.replace(/```json|```/g, '').trim()
-    const parsed = JSON.parse(clean)
-    return NextResponse.json(parsed)
-  } catch (error) {
-    console.error('Reading feedback error:', error)
+    const { original, transcript } = await req.json()
+    if (!transcript || transcript.trim().length < 3) {
+      return NextResponse.json({ correct: false, feedback: 'Опитай пак!' })
+    }
+    const score = similarity(original, transcript)
+    const correct = score >= 0.6
+    return NextResponse.json({ correct, feedback: correct ? 'Браво!' : 'Опитай пак!' })
+  } catch {
     return NextResponse.json({ correct: false, feedback: 'Опитай пак!' })
   }
 }
