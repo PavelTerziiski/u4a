@@ -62,8 +62,6 @@ export default function ReadingPage() {
       source.start(0)
     })
   }
-  const silenceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
-  const analyserRef = useRef<AnalyserNode | null>(null)
   const startRecording = async () => {
     setTranscript('')
     setFeedback('')
