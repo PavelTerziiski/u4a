@@ -74,8 +74,30 @@ export default function ReadingPage() {
     mr.start()
     recordingStartRef.current = Date.now()
     setRecording(true)
-    // silence detection disabled
-    setTimeout(() => { if (mediaRecorderRef.current&&mediaRecorderRef.current.state === 'recording') handleRecord() }, 10000)
+    const AC = window.AudioContext || (window as unknown as {webkitAudioContext: typeof AudioContext}).webkitAudioContext
+    const ctx2 = new AC()
+    const source2 = ctx2.createMediaStreamSource(stream)
+    const analyser = ctx2.createAnalyser()
+    analyser.fftSize = 512
+    source2.connect(analyser)
+    const freqData = new Uint8Array(analyser.frequencyBinCount)
+    let silenceStart = 0
+    let hasSpeech = false
+    const checkSilence = () => {
+      if (!mediaRecorderRef.current || mediaRecorderRef.current.state === 'inactive') return
+      analyser.getByteFrequencyData(freqData)
+      const avg = freqData.reduce((a, b) => a + b, 0) / freqData.length
+      if (avg > 20) {
+        hasSpeech = true
+        silenceStart = Date.now()
+      } else if (hasSpeech && silenceStart > 0 && Date.now() - silenceStart > 2500) {
+        handleRecord()
+        return
+      }
+      setTimeout(checkSilence, 150)
+    }
+    setTimeout(checkSilence, 800)
+    setTimeout(() => { if (mediaRecorderRef.current && mediaRecorderRef.current.state === 'recording') handleRecord() }, 15000)
   }
 
 
