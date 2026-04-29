@@ -27,6 +27,7 @@ export default function ReadingPage() {
   const [feedbackLoading, setFeedbackLoading] = useState(false)
   const [score, setScore] = useState(0)
   const mediaRecorderRef = useRef<MediaRecorder | null>(null)
+  const recordingStartRef = useRef<number>(0)
   const chunksRef = useRef<Blob[]>([])
   const audioCtx = useRef<AudioContext | null>(null)
 
@@ -71,6 +72,7 @@ export default function ReadingPage() {
     mediaRecorderRef.current = mr
     mr.ondataavailable = (e) => { if (e.data.size > 0) chunksRef.current.push(e.data) }
     mr.start()
+    recordingStartRef.current = Date.now()
     setRecording(true)
     // silence detection disabled
     setTimeout(() => { if (mediaRecorderRef.current&&mediaRecorderRef.current.state === 'recording') handleRecord() }, 10000)
@@ -113,6 +115,8 @@ export default function ReadingPage() {
   const handleRecord = async () => {
     if (recording) {
       setFeedbackLoading(true)
+      const elapsed = Date.now() - recordingStartRef.current
+      if (elapsed < 1500) { setFeedbackLoading(false); return }
       const text = await stopRecordingAndTranscribe()
       setTranscript(text)
       const original = selected!.sentences[sentenceIndex].text
