@@ -42,70 +42,59 @@ export default function AccentCheck() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 p-6">
-      <h1 className="text-2xl font-bold mb-6">🎙️ Проверка на ударения</h1>
-
-      <div className="flex gap-6">
-        {/* Списък диктовки */}
-        <div className="w-64 bg-white rounded-xl shadow p-4 h-fit">
-          <h2 className="font-bold mb-3 text-gray-600">Диктовки</h2>
+    <div style={{minHeight:'100vh', background:'#fff', padding:'24px', fontFamily:'sans-serif'}}>
+      <h1 style={{fontSize:'24px', fontWeight:'bold', marginBottom:'24px', color:'#000'}}>Проверка на ударения</h1>
+      <div style={{display:'flex', gap:'24px'}}>
+        <div style={{width:'220px', background:'#f5f5f5', borderRadius:'12px', padding:'16px'}}>
+          <h2 style={{fontWeight:'bold', marginBottom:'12px', color:'#000'}}>Диктовки</h2>
           {dictations.map(d => (
-            <button key={d.id}
-              onClick={() => setSelected(d)}
-              className={`w-full text-left px-3 py-2 rounded-lg mb-1 text-sm ${selected?.id === d.id ? 'bg-orange-100 text-orange-700 font-bold' : 'hover:bg-gray-100'}`}>
+            <button key={d.id} onClick={() => setSelected(d)}
+              style={{width:'100%', textAlign:'left', padding:'8px 12px', borderRadius:'8px', marginBottom:'4px', border:'none', cursor:'pointer', background: selected?.id === d.id ? '#f97316' : 'transparent', color: selected?.id === d.id ? '#fff' : '#000', fontWeight: selected?.id === d.id ? 'bold' : 'normal', fontSize:'14px'}}>
               {d.grade}кл. {d.title}
             </button>
           ))}
         </div>
-
-        {/* Изречения */}
-        <div className="flex-1">
+        <div style={{flex:1}}>
           {selected ? (
-            <div className="bg-white rounded-xl shadow p-6">
-              <h2 className="font-bold text-lg mb-4">{selected.title}</h2>
+            <div style={{background:'#fff', border:'1px solid #ddd', borderRadius:'12px', padding:'24px', marginBottom:'16px'}}>
+              <h2 style={{fontWeight:'bold', fontSize:'18px', marginBottom:'16px', color:'#000'}}>{selected.title}</h2>
               {(selected.sentences as Sentence[]).map((s, i) => (
-                <div key={i} className="flex items-center gap-3 mb-3 p-3 bg-gray-50 rounded-lg">
-                  <span className="text-gray-400 text-sm w-5">{i+1}.</span>
-                  <span className="flex-1 text-gray-800">{s.text}</span>
-                  <button
-                    onClick={() => playText(s.text)}
-                    disabled={playing}
-                    className="bg-orange-500 text-white px-4 py-1 rounded-lg text-sm hover:bg-orange-600 disabled:opacity-50">
+                <div key={i} style={{display:'flex', alignItems:'center', gap:'12px', marginBottom:'12px', padding:'12px', border:'1px solid #eee', borderRadius:'8px'}}>
+                  <span style={{color:'#999', width:'20px'}}>{i+1}.</span>
+                  <span style={{flex:1, color:'#000', fontSize:'16px', fontWeight:'500'}}>{s.text}</span>
+                  <button onClick={() => playText(s.text)} disabled={playing}
+                    style={{background:'#f97316', color:'#fff', border:'none', borderRadius:'8px', padding:'6px 16px', cursor:'pointer', opacity: playing ? 0.5 : 1}}>
                     {playing ? '⏳' : '▶️ Чуй'}
                   </button>
                 </div>
               ))}
             </div>
           ) : (
-            <div className="bg-white rounded-xl shadow p-6 text-gray-400 text-center">
+            <div style={{background:'#fff', border:'1px solid #ddd', borderRadius:'12px', padding:'24px', color:'#999', textAlign:'center', marginBottom:'16px'}}>
               ← Избери диктовка
             </div>
           )}
-
-          {/* Добави корекция */}
-          <div className="bg-white rounded-xl shadow p-6 mt-4">
-            <h2 className="font-bold mb-4">➕ Добави корекция</h2>
-            <div className="flex gap-3 items-end">
+          <div style={{background:'#fff', border:'1px solid #ddd', borderRadius:'12px', padding:'24px'}}>
+            <h2 style={{fontWeight:'bold', marginBottom:'16px', color:'#000'}}>Добави корекция</h2>
+            <div style={{display:'flex', gap:'12px', alignItems:'flex-end'}}>
               <div>
-                <label className="text-sm text-gray-500 block mb-1">Грешна дума</label>
-                <input value={wrong} onChange={e => setWrong(e.target.value)}
-                  placeholder="паднали"
-                  className="border rounded-lg px-3 py-2 w-40" />
+                <div style={{fontSize:'13px', color:'#555', marginBottom:'4px'}}>Грешна дума</div>
+                <input value={wrong} onChange={e => setWrong(e.target.value)} placeholder="паднали"
+                  style={{border:'1px solid #ccc', borderRadius:'8px', padding:'8px 12px', width:'160px', color:'#000', fontSize:'15px'}} />
               </div>
               <div>
-                <label className="text-sm text-gray-500 block mb-1">Правилно (с ударение)</label>
-                <input value={correct} onChange={e => setCorrect(e.target.value)}
-                  placeholder="паднáли"
-                  className="border rounded-lg px-3 py-2 w-40" />
+                <div style={{fontSize:'13px', color:'#555', marginBottom:'4px'}}>Правилно (с ударение)</div>
+                <input value={correct} onChange={e => setCorrect(e.target.value)} placeholder="паднали"
+                  style={{border:'1px solid #ccc', borderRadius:'8px', padding:'8px 12px', width:'160px', color:'#000', fontSize:'15px'}} />
               </div>
               <button onClick={saveFix}
-                className="bg-green-500 text-white px-6 py-2 rounded-lg hover:bg-green-600">
+                style={{background:'#22c55e', color:'#fff', border:'none', borderRadius:'8px', padding:'10px 24px', cursor:'pointer', fontWeight:'bold', fontSize:'15px'}}>
                 Запази
               </button>
             </div>
             {saved.length > 0 && (
-              <div className="mt-3 text-sm text-green-600">
-                ✅ Запазени: {saved.join(', ')}
+              <div style={{marginTop:'12px', color:'#16a34a', fontSize:'14px'}}>
+                Запазени: {saved.join(', ')}
               </div>
             )}
           </div>
