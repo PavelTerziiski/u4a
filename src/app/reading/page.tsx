@@ -197,7 +197,7 @@ export default function ReadingPage() {
           {feedback && (
             <div className="bg-orange-50 rounded-2xl p-4 mb-4 border border-orange-200">
               <p className="text-orange-600 font-bold text-sm">🦊 {feedback}</p>
-              {transcript && <p className="text-gray-400 text-xs mt-1">Ти каза: "{transcript}"</p>}
+              {transcript && <p className="text-gray-400 text-xs mt-1">Ти каза: {transcript}</p>}
             </div>
           )}
           {feedbackLoading && (
