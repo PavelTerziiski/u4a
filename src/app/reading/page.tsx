@@ -231,7 +231,7 @@ export default function ReadingPage() {
       <main className="u4a-dash min-h-screen flex flex-col items-center justify-center p-6">
         <div className="u4a-dash-overlay"></div>
         <div className="w-full max-w-md">
-          <button onClick={() => setPhase('pick')} className="text-orange-400 mb-4">← Спри</button>
+          <button onClick={() => { if (mediaRecorderRef.current) { try { mediaRecorderRef.current.stop() } catch {} mediaRecorderRef.current = null } setRecording(false); setPhase('pick') }} className="text-orange-400 mb-4">← Спри</button>
           <div className="text-center mb-4">
             <p className="text-gray-400 text-sm">{selected.title}</p>
             <p className="text-orange-500 font-bold">Изречение {sentenceIndex + 1} от {selected.sentences.length}</p>
@@ -250,7 +250,6 @@ export default function ReadingPage() {
           {feedback && (
             <div className="bg-orange-50 rounded-2xl p-4 mb-4 border border-orange-200">
               <p className="text-orange-600 font-bold text-sm">🦊 {feedback}</p>
-              {transcript && <p className="text-gray-400 text-xs mt-1">Ти каза: {transcript}</p>}
             </div>
           )}
           {feedbackLoading && (
