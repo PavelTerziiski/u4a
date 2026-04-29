@@ -1,25 +1,40 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { createClient } from '@supabase/supabase-js'
+
+const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.SUPABASE_SERVICE_ROLE_KEY!
+)
+
+// Кеш за accent fixes - зарежда се веднъж на 5 минути
+let accentCache: Record<string, string> = {}
+let cacheTime = 0
+
+async function getAccentFixes(): Promise<Record<string, string>> {
+  if (Date.now() - cacheTime < 5 * 60 * 1000) return accentCache
+  const { data } = await supabase.from('accent_fixes').select('wrong, correct')
+  if (data) {
+    accentCache = Object.fromEntries(data.map((r: {wrong: string, correct: string}) => [r.wrong, r.correct]))
+    cacheTime = Date.now()
+  }
+  return accentCache
+}
 
 export async function POST(req: NextRequest) {
   try {
     const { text, voice = 'kalina', speed = 0.85, lang: dictLang } = await req.json()
     const ratePercent = speed <= 0.75 ? '-18%' : '-8%'
-
     let voiceName: string
     let lang: string
-
     if (dictLang === 'de') {
-      // Немски диктовки
       const isFemale = voice === 'koala' || voice === 'kalina'
       voiceName = isFemale ? 'de-DE-KatjaNeural' : 'de-DE-ConradNeural'
       lang = 'de-DE'
     } else if (dictLang === 'en') {
-      // Английски диктовки
       const isFemale = voice === 'koala' || voice === 'kalina'
       voiceName = isFemale ? 'en-GB-SoniaNeural' : 'en-GB-RyanNeural'
       lang = 'en-GB'
     } else {
-      // Български диктовки
       switch (voice) {
         case 'borisslav':
           voiceName = 'bg-BG-BorislavNeural'
@@ -32,24 +47,13 @@ export async function POST(req: NextRequest) {
           break
       }
     }
-
-    const accentFixes: Record<string, string> = {
-      'ранен': 'ранéн', 'Ранен': 'Ранéн',
-      'ранена': 'ранéна', 'Ранена': 'Ранéна',
-      'ранени': 'ранéни', 'паднали': 'паднáли',
-      'загинали': 'загинáли', 'живели': 'живéли',
-      'работели': 'работéли', 'говорели': 'говорéли',
-      'вървели': 'ървéли', 'носели': 'носéли',
-      'пишели': 'пишéли',
-    }
-
     let fixedText = text
     if (lang === 'bg-BG') {
-      Object.entries(accentFixes).forEach(([wrong, correct]) => {
+      const fixes = await getAccentFixes()
+      Object.entries(fixes).forEach(([wrong, correct]) => {
         fixedText = fixedText.replaceAll(wrong, correct)
       })
     }
-
     const ssml = `
       <speak version="1.0" xmlns="http://www.w3.org/2001/10/synthesis" xml:lang="${lang}">
         <voice name="${voiceName}">
@@ -59,7 +63,6 @@ export async function POST(req: NextRequest) {
         </voice>
       </speak>
     `
-
     const response = await fetch(
       `https://${process.env.AZURE_SPEECH_REGION}.tts.speech.microsoft.com/cognitiveservices/v1`,
       {
@@ -72,13 +75,11 @@ export async function POST(req: NextRequest) {
         body: ssml,
       }
     )
-
     if (!response.ok) {
       const error = await response.text()
       console.error('Azure TTS error:', error)
       return NextResponse.json({ error: 'Azure TTS failed' }, { status: 500 })
     }
-
     const audioBuffer = await response.arrayBuffer()
     return new NextResponse(audioBuffer, {
       headers: {
