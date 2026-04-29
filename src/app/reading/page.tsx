@@ -62,7 +62,8 @@ export default function ReadingPage() {
       source.start(0)
     })
   }
-
+  const silenceTimerRef = (useRef as any)<NodeJS.Timeout | null>(null)
+  const analyserRef = (useRef as any)<AnalyserNode | null>(null)
   const startRecording = async () => {
     setTranscript('')
     setFeedback('')
@@ -73,7 +74,41 @@ export default function ReadingPage() {
     mr.ondataavailable = (e) => { if (e.data.size > 0) chunksRef.current.push(e.data) }
     mr.start()
     setRecording(true)
+    const ctx2 = new (window.AudioContext || (window as any).webkitAudioContext)()
+    const source2 = ctx2.createMediaStreamSource(stream)
+    const analyser = ctx2.createAnalyser()
+    analyser.fftSize = 512
+    source2.connect(analyser)
+    analyserRef.current = analyser
+    const data = new Uint8Array(analyser.frequencyBinCount)
+    let silenceStart = Date.now()
+    const checkSilence = () => {
+      if (!mediaRecorderRef.current || mediaRecorderRef.current.state === 'inactive') return
+      analyser.getByteFrequencyData(data)
+      const avg = data.reduce((a, b) => a + b, 0) / data.length
+      if (avg < 5) {
+        if (Date.now() - silenceStart > 2000) {
+          handleRecord()
+          return
+        }
+      } else {
+        silenceStart = Date.now()
+      }
+      silenceTimerRef.current = setTimeout(checkSilence, 200)
+    }
+    setTimeout(checkSilence, 1000)
   }
+
+
+
+
+
+
+
+
+
+
+
 
   const stopRecordingAndTranscribe = async () => {
     return new Promise<string>((resolve) => {
