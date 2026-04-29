@@ -75,9 +75,32 @@ export default function ReadingPage() {
     const sentence = selected?.sentences[sentenceIndex]?.text || ''
     const wordCount = sentence.split(' ').length
     const duration = Math.round((wordCount * 0.7 + 1.5) * 1000)
-    setTimeout(() => {
+    setTimeout(async () => {
       if (mediaRecorderRef.current && mediaRecorderRef.current.state === 'recording') {
-        handleRecord()
+        setFeedbackLoading(true)
+        const text = await stopRecordingAndTranscribe()
+        if (!selected) return
+        const original = selected.sentences[sentenceIndex].text
+        const res = await fetch('/api/reading-feedback', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ original, transcript: text, grade: profile?.grade })
+        })
+        const data = await res.json()
+        const msg = data.correct ? 'Браво!' : 'Опитай пак!'
+        setFeedback(msg)
+        setFeedbackLoading(false)
+        if (data.correct) setScore(s => s + 1)
+        await playAzureTTS(msg)
+        setTimeout(() => {
+          setFeedback('')
+          if (sentenceIndex + 1 >= selected.sentences.length) {
+            setPhase('done')
+          } else {
+            setSentenceIndex(i => i + 1)
+            startRecording()
+          }
+        }, 1500)
       }
     }, duration)
   }
