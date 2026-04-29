@@ -21,7 +21,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ correct: false, feedback: 'Опитай пак!' })
     }
     const score = similarity(original, transcript)
-    const correct = score >= 0.6
+    const correct = score >= 0.65
     return NextResponse.json({ correct, feedback: correct ? 'Браво!' : 'Опитай пак!' })
   } catch {
     return NextResponse.json({ correct: false, feedback: 'Опитай пак!' })

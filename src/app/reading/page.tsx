@@ -245,7 +245,7 @@ export default function ReadingPage() {
             <div className="bg-orange-500 h-3 rounded-full transition-all" style={{ width: `${((sentenceIndex) / selected.sentences.length) * 100}%` }} />
           </div>
           <div className="flex justify-center mb-6">
-            <Fox mood={recording ? 'wink' : feedback ? (score > sentenceIndex ? 'excited' : 'sad') : 'happy'} size={140} />
+            <Fox mood={recording ? 'wink' : feedback === 'Браво!' ? 'excited' : feedback === 'Опитай пак!' ? 'sad' : recording ? 'wink' : 'happy'} size={140} />
           </div>
           <div className="bg-white rounded-3xl p-6 shadow-lg mb-4 text-center">
             <p style={{ fontSize: '1.6rem', fontWeight: 800, color: '#92400E', lineHeight: 1.4, fontFamily: 'Nunito, sans-serif' }}>
