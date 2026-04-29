@@ -97,6 +97,7 @@ export default function ReadingPage() {
       silenceTimerRef.current = setTimeout(checkSilence, 200)
     }
     setTimeout(checkSilence, 1000)
+    setTimeout(() => { if (mediaRecorderRef.current&&mediaRecorderRef.current.state === 'recording') handleRecord() }, 10000)
   }
 
 
