@@ -1,13 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server'
 
-function normalize(text) {
+function normalize(text: string) {
   return text.toLowerCase()
     .replace(/[.,!?;:»«–"']/g, '')
     .replace(/s+/g, ' ')
     .trim()
 }
 
-function similarity(a, b) {
+function similarity(a: string, b: string) {
   const wordsA = normalize(a).split(' ')
   const wordsB = normalize(b).split(' ')
   const matches = wordsA.filter(w => wordsB.includes(w)).length
