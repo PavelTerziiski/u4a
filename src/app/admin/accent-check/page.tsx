@@ -92,7 +92,6 @@ export default function AccentCheck() {
                 <div style={{flex:1}}>
                   <div style={{fontSize:'16px', lineHeight:'1.8', color:'#000'}}>
                     {s.text.split(' ').map((word, wi) => {
-                      const clean = word.replace(/[.,!?;:„"]/g, '')
                       const isSelected = selectedWord?.sentIdx === i && selectedWord?.wordIdx === wi
                       return (
                         <span key={wi}>
@@ -117,7 +116,7 @@ export default function AccentCheck() {
             {selectedWord && (
               <div style={{position:'sticky', bottom:'16px', background:'#fff', border:'2px solid #f97316', borderRadius:'12px', padding:'16px', marginTop:'16px', display:'flex', gap:'12px', alignItems:'center'}}>
                 <div style={{color:'#000', fontSize:'15px'}}>
-                  Замени <strong style={{color:'#ef4444'}}>„{selectedWord.word}"</strong> с:
+                  Замени <strong style={{color:'#ef4444'}}>&#8222;{selectedWord.word}&#8220;</strong> с:
                 </div>
                 <input value={replacement} onChange={e => setReplacement(e.target.value)}
                   autoFocus
