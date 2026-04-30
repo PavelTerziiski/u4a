@@ -167,7 +167,7 @@ export default function DictationPage() {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(
-        { text, lang: selected?.language, voice: (selected?.language === 'en' || selected?.language === 'de') ? (profile?.preferred_voice === 'straus' ? 'straus' : 'koala') : (profile?.preferred_voice || 'kalina'), speed }
+        { text, lang: selected?.language, voice: (selected?.language === 'en' || selected?.language === 'de') ? (profile?.preferred_voice === 'straus' ? 'straus' : 'koala') : (profile?.preferred_voice || 'kalina'), speed, dictation_id: selected?.id }
 
 
       )

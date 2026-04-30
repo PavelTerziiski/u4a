@@ -29,7 +29,7 @@ export default function AccentCheck() {
     const res = await fetch('/api/tts-azure', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ text, voice: 'kalina', speed: 0.85, nocache: true })
+      body: JSON.stringify({ text, voice: 'kalina', speed: 0.85, nocache: true, dictation_id: selected?.id })
     })
     const blob = await res.blob()
     const url = URL.createObjectURL(blob)
@@ -40,7 +40,7 @@ export default function AccentCheck() {
 
   const savePhonetic = async () => {
     if (!activeWord || !phonetic) return
-    await supabase.from('accent_fixes').upsert({ wrong: activeWord.word, correct: phonetic })
+    await supabase.from('accent_fixes').upsert({ wrong: activeWord.word, correct: phonetic, dictation_id: selected?.id }, { onConflict: 'wrong,dictation_id' })
     setMsg(`✅ Фонетика: „${activeWord.word}" → „${phonetic}"`)
     setActiveWord(null)
     setPhonetic('')

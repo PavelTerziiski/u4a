@@ -7,23 +7,21 @@ const supabase = createClient(
 )
 
 // Кеш за accent fixes - зарежда се веднъж на 5 минути
-let accentCache: Record<string, string> = {}
-let cacheTime = 0
-
-async function getAccentFixes(): Promise<Record<string, string>> {
-  if (Date.now() - cacheTime < 5 * 60 * 1000) return accentCache
-  const { data } = await supabase.from('accent_fixes').select('wrong, correct')
-  if (data) {
-    accentCache = Object.fromEntries(data.map((r: {wrong: string, correct: string}) => [r.wrong, r.correct]))
-    cacheTime = Date.now()
-  }
-  return accentCache
+let accentCache: Record<string, Record<string, string>> = {}
+let cacheTimes: Record<string, number> = {}
+async function getAccentFixes(dictationId: string): Promise<Record<string, string>> {
+  const now = Date.now()
+  if (accentCache[dictationId] && now - (cacheTimes[dictationId] || 0) < 5 * 60 * 1000) return accentCache[dictationId]
+  const { data } = await supabase.from('accent_fixes').select('wrong, correct').eq('dictation_id', dictationId)
+  accentCache[dictationId] = data ? Object.fromEntries(data.map((r: {wrong: string, correct: string}) => [r.wrong, r.correct])) : {}
+  cacheTimes[dictationId] = now
+  return accentCache[dictationId]
 }
 
 export async function POST(req: NextRequest) {
   try {
-    const { text, voice = 'kalina', speed = 0.85, lang: dictLang, nocache } = await req.json()
-    if (nocache) cacheTime = 0
+    const { text, voice = 'kalina', speed = 0.85, lang: dictLang, nocache, dictation_id } = await req.json()
+    if (nocache && dictation_id) delete accentCache[dictation_id]
     const ratePercent = speed <= 0.75 ? '-18%' : '-8%'
     let voiceName: string
     let lang: string
@@ -50,7 +48,7 @@ export async function POST(req: NextRequest) {
     }
     let fixedText = text
     if (lang === 'bg-BG') {
-      const fixes = await getAccentFixes()
+      const fixes = dictation_id ? await getAccentFixes(dictation_id) : {}
       Object.entries(fixes).forEach(([wrong, correct]) => {
         fixedText = fixedText.split(' ').map((w: string) => { const clean = w.replace(/[.,!?;:]/g, ''); return clean === wrong ? w.replace(clean, correct) : w }).join(' ')
       })
