@@ -15,6 +15,9 @@ export default function AccentCheck() {
   const [activeSent, setActiveSent] = useState<{sentIdx: number, text: string} | null>(null)
   const [editText, setEditText] = useState('')
   const [msg, setMsg] = useState('')
+  const [editingTitle, setEditingTitle] = useState(false)
+  const [titleText, setTitleText] = useState('')
+  const [showDelete, setShowDelete] = useState(false)
 
   useEffect(() => {
     supabase.from('dictations').select('id,title,grade,sentences').eq('language', 'bg').eq('category', 'original').in('grade', [1,2,3,4]).order('grade').order('title')
@@ -84,7 +87,35 @@ export default function AccentCheck() {
           <div style={{color:'#9ca3af', textAlign:'center', marginTop:'80px', fontSize:'18px'}}>← Избери диктовка</div>
         ) : (
           <>
-            <h2 style={{fontSize:'20px', fontWeight:'bold', color:'#000', marginBottom:'4px'}}>{selected.title}</h2>
+            <div style={{display:'flex', alignItems:'center', gap:'10px', marginBottom:'4px'}}>
+              {editingTitle ? (
+                <>
+                  <input value={titleText} onChange={e => setTitleText(e.target.value)} autoFocus
+                    style={{border:'1px solid #d1d5db', borderRadius:'8px', padding:'6px 12px', fontSize:'18px', fontWeight:'bold', color:'#000', flex:1}} />
+                  <button onClick={async () => { await supabase.from('dictations').update({title: titleText}).eq('id', selected.id); const u = {...selected, title: titleText}; setSelected(u); setDictations(prev => prev.map(d => d.id === selected.id ? u : d)); setEditingTitle(false); setMsg('✅ Заглавието е обновено') }}
+                    style={{background:'#3b82f6', color:'#fff', border:'none', borderRadius:'8px', padding:'6px 14px', cursor:'pointer', fontWeight:'bold'}}>Запази</button>
+                  <button onClick={() => setEditingTitle(false)}
+                    style={{background:'#f3f4f6', color:'#374151', border:'none', borderRadius:'8px', padding:'6px 12px', cursor:'pointer'}}>Отказ</button>
+                </>
+              ) : (
+                <>
+                  <h2 style={{fontSize:'20px', fontWeight:'bold', color:'#000', margin:0}}>{selected.title}</h2>
+                  <button onClick={() => { setTitleText(selected.title); setEditingTitle(true) }}
+                    style={{background:'none', border:'1px solid #d1d5db', borderRadius:'6px', padding:'3px 10px', cursor:'pointer', color:'#6b7280', fontSize:'12px'}}>✏️ Редактирай</button>
+                  <button onClick={() => setShowDelete(true)}
+                    style={{background:'none', border:'1px solid #fca5a5', borderRadius:'6px', padding:'3px 10px', cursor:'pointer', color:'#ef4444', fontSize:'12px', marginLeft:'auto'}}>🗑️ Изтрий</button>
+                </>
+              )}
+            </div>
+            {showDelete && (
+              <div style={{background:'#fef2f2', border:'1px solid #fca5a5', borderRadius:'8px', padding:'12px 16px', marginBottom:'12px', display:'flex', alignItems:'center', gap:'10px'}}>
+                <span style={{color:'#991b1b', fontSize:'14px'}}>Сигурен ли си че искаш да изтриеш <strong>{selected.title}</strong>?</span>
+                <button onClick={async () => { await supabase.from('dictations').delete().eq('id', selected.id); setDictations(prev => prev.filter(d => d.id !== selected.id)); setSelected(null); setShowDelete(false); setMsg('') }}
+                  style={{background:'#ef4444', color:'#fff', border:'none', borderRadius:'8px', padding:'6px 16px', cursor:'pointer', fontWeight:'bold'}}>Да, изтрий</button>
+                <button onClick={() => setShowDelete(false)}
+                  style={{background:'#f3f4f6', color:'#374151', border:'none', borderRadius:'8px', padding:'6px 12px', cursor:'pointer'}}>Отказ</button>
+              </div>
+            )}
             <p style={{color:'#6b7280', fontSize:'12px', marginBottom:'20px'}}>Клик върху дума = фонетика &nbsp;|&nbsp; Клик върху номер = редактирай изречение</p>
 
             {msg && <div style={{background:'#f0fdf4', border:'1px solid #86efac', borderRadius:'8px', padding:'10px 16px', marginBottom:'16px', color:'#16a34a', fontSize:'14px'}}>{msg}</div>}
