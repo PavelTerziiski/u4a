@@ -52,7 +52,7 @@ export async function POST(req: NextRequest) {
     if (lang === 'bg-BG') {
       const fixes = await getAccentFixes()
       Object.entries(fixes).forEach(([wrong, correct]) => {
-        fixedText = fixedText.replaceAll(wrong, correct)
+        fixedText = fixedText.split(' ').map(w => { const clean = w.replace(/[.,!?;:]/g, ''); return clean === wrong ? w.replace(clean, correct) : w }).join(' ')
       })
     }
     const ssml = `
