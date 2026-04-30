@@ -126,7 +126,7 @@ export default function AccentCheck() {
               <div style={{position:'sticky', bottom:'16px', background:'#fffbeb', border:'2px solid #f59e0b', borderRadius:'12px', padding:'14px 16px', marginTop:'12px'}}>
                 <div style={{fontWeight:'bold', color:'#92400e', fontSize:'13px', marginBottom:'8px'}}>🔊 ФОНЕТИКА — не се вижда от потребителя</div>
                 <div style={{display:'flex', gap:'10px', alignItems:'center'}}>
-                  <span style={{color:'#000', fontSize:'14px'}}>„<strong style={{color:'#ef4444'}}>{activeWord.word}</strong>" чете се като:</span>
+                  <span style={{color:'#000', fontSize:'14px'}}>&#8222;<strong style={{color:'#ef4444'}}>{activeWord.word}</strong>&#8220; чете се като:</span>
                   <input value={phonetic} onChange={e => setPhonetic(e.target.value)} autoFocus
                     style={{border:'1px solid #d1d5db', borderRadius:'8px', padding:'6px 10px', fontSize:'14px', color:'#000', width:'150px'}} />
                   <button onClick={savePhonetic}
