@@ -7,8 +7,8 @@ const supabase = createClient(
 )
 
 // Кеш за accent fixes - зарежда се веднъж на 5 минути
-let accentCache: Record<string, Record<string, string>> = {}
-let cacheTimes: Record<string, number> = {}
+const accentCache: Record<string, Record<string, string>> = {}
+const cacheTimes: Record<string, number> = {}
 async function getAccentFixes(dictationId: string): Promise<Record<string, string>> {
   const now = Date.now()
   if (accentCache[dictationId] && now - (cacheTimes[dictationId] || 0) < 5 * 60 * 1000) return accentCache[dictationId]
