@@ -149,6 +149,18 @@ export default function AccentCheck() {
                   style={{background:'#f97316', color:'#fff', border:'none', borderRadius:'8px', padding:'5px 12px', cursor:'pointer', fontSize:'12px', opacity: playing ? 0.5 : 1, whiteSpace:'nowrap'}}>
                   {playing ? '⏳' : '▶ Чуй'}
                 </button>
+                <button onClick={async () => {
+                  if (!confirm('Изтрий изречението?')) return
+                  const newSentences = (selected.sentences as Sentence[]).filter((_, idx) => idx !== i)
+                  await supabase.from('dictations').update({ sentences: newSentences }).eq('id', selected.id)
+                  const u = { ...selected, sentences: newSentences }
+                  setSelected(u)
+                  setDictations(prev => prev.map(d => d.id === selected.id ? u : d))
+                  setMsg('✅ Изречението е изтрито')
+                }}
+                  style={{background:'#fee2e2', color:'#ef4444', border:'none', borderRadius:'8px', padding:'5px 10px', cursor:'pointer', fontSize:'12px', whiteSpace:'nowrap'}}>
+                  🗑
+                </button>
               </div>
             ))}
 
