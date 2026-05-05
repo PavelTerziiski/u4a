@@ -57,6 +57,8 @@ export default function PronunciationPage() {
   const mediaRecorderRef = useRef<MediaRecorder | null>(null)
   const chunksRef = useRef<Blob[]>([])
   const audioCtxRef = useRef<AudioContext | null>(null)
+  const currentSourceRef = useRef<AudioBufferSourceNode | null>(null)
+  const currentStreamRef = useRef<MediaStream | null>(null)
 
   useEffect(() => {
     const username = localStorage.getItem('u4a_username')
@@ -89,9 +91,10 @@ export default function PronunciationPage() {
     return new Promise<void>((resolve) => {
       ctx.decodeAudioData(arrayBuffer, (decoded) => {
         const source = ctx.createBufferSource()
+        currentSourceRef.current = source
         source.buffer = decoded
         source.connect(ctx.destination)
-        source.onended = () => resolve()
+        source.onended = () => { currentSourceRef.current = null; resolve() }
         source.start(0)
       })
     })
@@ -117,8 +120,11 @@ export default function PronunciationPage() {
     setFeedbackType('')
     setOwlSays('')
     chunksRef.current = []
+    if (currentStreamRef.current) { currentStreamRef.current.getTracks().forEach(t => t.stop()) }
     const stream = await navigator.mediaDevices.getUserMedia({ audio: true })
-    const mr = new MediaRecorder(stream, { mimeType: 'audio/webm' })
+    currentStreamRef.current = stream
+    const mimeType = MediaRecorder.isTypeSupported('audio/webm') ? 'audio/webm' : 'audio/mp4'
+    const mr = new MediaRecorder(stream, { mimeType })
     mediaRecorderRef.current = mr
     mr.ondataavailable = (e) => { if (e.data.size > 0) chunksRef.current.push(e.data) }
     mr.start()
@@ -136,7 +142,8 @@ export default function PronunciationPage() {
     await new Promise(r => setTimeout(r, 300))
     const blob = new Blob(chunksRef.current, { type: 'audio/webm' })
     const fd = new FormData()
-    fd.append('file', blob, 'audio.webm')
+    const ext = blob.type.includes('mp4') ? 'mp4' : 'webm'
+    fd.append('file', blob, `audio.${ext}`)
     fd.append('language', 'bg')
     const res = await fetch('/api/whisper', { method: 'POST', body: fd })
     const data = await res.json()
@@ -203,7 +210,13 @@ export default function PronunciationPage() {
       <div className="u4a-dash-overlay"></div>
       <div className="w-full max-w-md">
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
-          <button onClick={() => setPhase('menu')} style={{ background: 'none', border: 'none', fontSize: '1.5rem', cursor: 'pointer' }}>←</button>
+          <button onClick={() => {
+          if (currentSourceRef.current) { try { currentSourceRef.current.stop() } catch {} currentSourceRef.current = null }
+          if (currentStreamRef.current) { currentStreamRef.current.getTracks().forEach(t => t.stop()); currentStreamRef.current = null }
+          if (mediaRecorderRef.current) { try { mediaRecorderRef.current.stop() } catch {} mediaRecorderRef.current = null }
+          setRecording(false)
+          setPhase('menu')
+        }} style={{ background: 'none', border: 'none', fontSize: '1.5rem', cursor: 'pointer' }}>←</button>
           <span style={{ fontFamily: 'Nunito, sans-serif', fontWeight: 800, color: '#7C3AED' }}>{index + 1} / {ALPHABET.length}</span>
           <span style={{ fontFamily: 'Nunito, sans-serif', fontWeight: 800, color: '#F97316' }}>⭐ {score}</span>
         </div>
