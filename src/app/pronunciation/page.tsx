@@ -70,14 +70,12 @@ export default function PronunciationPage() {
       })
   }, [])
 
-  const unlockAudio = () => {
+  const getAudioCtx = () => {
     if (!audioCtxRef.current) {
       const AC = window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext
       audioCtxRef.current = new AC()
     }
-    if (audioCtxRef.current.state === 'suspended') {
-      audioCtxRef.current.resume()
-    }
+    return audioCtxRef.current
   }
 
   const playTTS = async (text: string, voice = 'kalina') => {
@@ -88,7 +86,7 @@ export default function PronunciationPage() {
     })
     const blob = await res.blob()
     const arrayBuffer = await blob.arrayBuffer()
-    const ctx = audioCtxRef.current!
+    const ctx = getAudioCtx()
     await ctx.resume()
     return new Promise<void>((resolve) => {
       ctx.decodeAudioData(arrayBuffer, (decoded) => {
@@ -103,7 +101,7 @@ export default function PronunciationPage() {
   }
 
   const startPlay = async () => {
-    unlockAudio()
+    getAudioCtx()
     setPhase('play')
     setIndex(0)
     setScore(0)
@@ -201,7 +199,7 @@ export default function PronunciationPage() {
         <Fox mood="happy" size={160} />
         <h1 style={{ fontFamily: 'Nunito, sans-serif', fontWeight: 900, fontSize: '2.2rem', color: '#7C3AED', marginTop: 16, marginBottom: 8 }}>🗣️ Правоговор</h1>
         <p style={{ fontFamily: 'Nunito, sans-serif', color: '#92400E', marginBottom: 32, fontSize: '1.1rem' }}>Роки казва думата — ти повтаряш!</p>
-        <button onClick={() => { unlockAudio(); startPlay() }} style={{
+        <button onClick={startPlay} style={{
           width: '100%', background: 'linear-gradient(135deg, #7C3AED, #6D28D9)',
           color: 'white', border: 'none', borderRadius: 20, padding: '1.4rem',
           fontFamily: 'Nunito, sans-serif', fontWeight: 900, fontSize: '1.4rem',
