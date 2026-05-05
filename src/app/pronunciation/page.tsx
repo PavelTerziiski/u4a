@@ -48,7 +48,7 @@ export default function PronunciationPage() {
   const [phase, setPhase] = useState<'menu' | 'play' | 'done'>('menu')
   const [index, setIndex] = useState(0)
   const [recording, setRecording] = useState(false)
-  const [feedback, setFeedback] = useState('')
+  const [, setFeedback] = useState('')
   const [feedbackType, setFeedbackType] = useState<'correct' | 'wrong' | ''>('')
   const [loading, setLoading] = useState(false)
   const [score, setScore] = useState(0)
