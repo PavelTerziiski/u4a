@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react'
 import { supabase } from '@/lib/supabase'
 
 type Sentence = { text: string }
+type PronWord = { id: string; letter: string; word: string; emoji: string; tts_text: string; sort_order: number }
 type Dictation = { id: string; title: string; grade: number; sentences: Sentence[] }
 
 export default function AccentCheck() {
@@ -18,10 +19,16 @@ export default function AccentCheck() {
   const [editingTitle, setEditingTitle] = useState(false)
   const [titleText, setTitleText] = useState('')
   const [showDelete, setShowDelete] = useState(false)
+  const [pronWords, setPronWords] = useState<PronWord[]>([])
+  const [activeSection, setActiveSection] = useState<'dictations' | 'pronunciation'>('dictations')
+  const [editingPron, setEditingPron] = useState<PronWord | null>(null)
+  const [pronForm, setPronForm] = useState({ word: '', emoji: '', tts_text: '' })
 
   useEffect(() => {
     supabase.from('dictations').select('id,title,grade,sentences').eq('language', 'bg').eq('category', 'original').in('grade', [1,2,3,4]).order('grade').order('title')
       .then(({ data }) => { if (data) setDictations(data) })
+    supabase.from('pronunciation_words').select('*').order('sort_order')
+      .then(({ data }) => { if (data) setPronWords(data) })
   }, [])
 
   const playText = async (text: string) => {
@@ -65,7 +72,11 @@ export default function AccentCheck() {
       {/* SIDEBAR */}
       <div style={{width:'220px', borderRight:'1px solid #e5e7eb', overflowY:'auto', padding:'16px'}}>
         <div style={{fontWeight:'bold', fontSize:'16px', marginBottom:'16px', color:'#000'}}>🎙️ Ударения</div>
-        {[1,2,3,4].map(g => (
+        <div style={{display:'flex', gap:'6px', marginBottom:'12px'}}>
+          <button onClick={() => setActiveSection('dictations')} style={{flex:1, padding:'6px', background: activeSection==='dictations' ? '#f97316' : '#f3f4f6', color: activeSection==='dictations' ? '#fff' : '#000', border:'none', borderRadius:'6px', cursor:'pointer', fontSize:'11px', fontWeight:'bold'}}>📝 Диктовки</button>
+          <button onClick={() => setActiveSection('pronunciation')} style={{flex:1, padding:'6px', background: activeSection==='pronunciation' ? '#7c3aed' : '#f3f4f6', color: activeSection==='pronunciation' ? '#fff' : '#000', border:'none', borderRadius:'6px', cursor:'pointer', fontSize:'11px', fontWeight:'bold'}}>🗣️ Правоговор</button>
+        </div>
+        {activeSection === 'dictations' && [1,2,3,4].map(g => (
           <div key={g}>
             <button onClick={() => setOpenGrade(openGrade === g ? null : g)}
               style={{width:'100%', textAlign:'left', padding:'7px 10px', background: openGrade === g ? '#f97316' : '#f3f4f6', color: openGrade === g ? '#fff' : '#000', border:'none', borderRadius:'8px', marginBottom:'4px', cursor:'pointer', fontWeight:'bold', fontSize:'13px'}}>
@@ -79,11 +90,63 @@ export default function AccentCheck() {
             ))}
           </div>
         ))}
+        {activeSection === 'pronunciation' && pronWords.map(w => (
+          <button key={w.id} onClick={() => { setEditingPron(w); setPronForm({ word: w.word, emoji: w.emoji, tts_text: w.tts_text }) }}
+            style={{width:'100%', textAlign:'left', padding:'5px 10px', background: editingPron?.id === w.id ? '#ede9fe' : 'transparent', color: editingPron?.id === w.id ? '#7c3aed' : '#374151', border:'none', borderRadius:'6px', marginBottom:'2px', cursor:'pointer', fontSize:'12px', fontWeight: editingPron?.id === w.id ? 'bold' : 'normal'}}>
+            {w.emoji} {w.letter} — {w.word}
+          </button>
+        ))}
       </div>
 
       {/* MAIN */}
       <div style={{flex:1, overflowY:'auto', padding:'24px', maxWidth:'900px'}}>
-        {!selected ? (
+        {activeSection === 'pronunciation' ? (
+          <div>
+            {!editingPron ? (
+              <div style={{color:'#9ca3af', textAlign:'center', marginTop:'80px', fontSize:'18px'}}>← Избери буква</div>
+            ) : (
+              <div style={{maxWidth:'500px'}}>
+                <h2 style={{fontSize:'24px', fontWeight:'bold', color:'#7c3aed', marginBottom:'24px'}}>{editingPron.emoji} Буква {editingPron.letter}</h2>
+                <div style={{display:'flex', flexDirection:'column', gap:'16px'}}>
+                  <div>
+                    <label style={{fontSize:'13px', color:'#6b7280', fontWeight:'bold'}}>Дума</label>
+                    <input value={pronForm.word} onChange={e => setPronForm(f => ({...f, word: e.target.value}))}
+                      style={{width:'100%', border:'1px solid #d1d5db', borderRadius:'8px', padding:'8px 12px', fontSize:'16px', color:'#000', marginTop:'4px'}} />
+                  </div>
+                  <div>
+                    <label style={{fontSize:'13px', color:'#6b7280', fontWeight:'bold'}}>Емоджи</label>
+                    <input value={pronForm.emoji} onChange={e => setPronForm(f => ({...f, emoji: e.target.value}))}
+                      style={{width:'100%', border:'1px solid #d1d5db', borderRadius:'8px', padding:'8px 12px', fontSize:'24px', color:'#000', marginTop:'4px'}} />
+                  </div>
+                  <div>
+                    <label style={{fontSize:'13px', color:'#6b7280', fontWeight:'bold'}}>TTS текст (точно това казва лисицата)</label>
+                    <input value={pronForm.tts_text} onChange={e => setPronForm(f => ({...f, tts_text: e.target.value}))}
+                      style={{width:'100%', border:'1px solid #d1d5db', borderRadius:'8px', padding:'8px 12px', fontSize:'16px', color:'#000', marginTop:'4px'}} />
+                  </div>
+                  <div style={{display:'flex', gap:'10px'}}>
+                    <button onClick={async () => {
+                      await supabase.from('pronunciation_words').update({ word: pronForm.word, emoji: pronForm.emoji, tts_text: pronForm.tts_text }).eq('id', editingPron.id)
+                      setPronWords(prev => prev.map(w => w.id === editingPron.id ? {...w, ...pronForm} : w))
+                      setEditingPron({...editingPron, ...pronForm})
+                      setMsg('✅ Запазено')
+                    }} style={{background:'#7c3aed', color:'#fff', border:'none', borderRadius:'8px', padding:'10px 24px', cursor:'pointer', fontWeight:'bold', fontSize:'15px'}}>
+                      Запази
+                    </button>
+                    <button onClick={async () => {
+                      const res = await fetch('/api/tts-azure', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ text: pronForm.tts_text, voice:'kalina', speed:0.85, dictation_id:'pronunciation' }) })
+                      const blob = await res.blob()
+                      const url = URL.createObjectURL(blob)
+                      new Audio(url).play()
+                    }} style={{background:'#f97316', color:'#fff', border:'none', borderRadius:'8px', padding:'10px 20px', cursor:'pointer', fontWeight:'bold', fontSize:'15px'}}>
+                      ▶ Чуй
+                    </button>
+                  </div>
+                  {msg && <div style={{background:'#f0fdf4', border:'1px solid #86efac', borderRadius:'8px', padding:'10px', color:'#16a34a'}}>{msg}</div>}
+                </div>
+              </div>
+            )}
+          </div>
+        ) : !selected ? (
           <div style={{color:'#9ca3af', textAlign:'center', marginTop:'80px', fontSize:'18px'}}>← Избери диктовка</div>
         ) : (
           <>
