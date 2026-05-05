@@ -146,19 +146,7 @@ export default function Dashboard() {
           </button>
         )}
 
-        {profile?.username === 'Pavel' && (
-        <div className="fade-up fade-up-4">
-          <button className="secondary-btn" onClick={() => router.push('/reading')} style={{ background: 'linear-gradient(135deg, #EDE9FE, #F5F3FF)', color: '#5B21B6', border: '2px solid #A78BFA' }}>
-            📖 Четене на глас (beta)
-          </button>
-        </div>
-        )}        {profile?.is_premium && (
-        <div className="fade-up fade-up-4">
-          <button className="secondary-btn" onClick={() => router.push('/scan-dictation')}>
-            📷 Снимай текст и лисицата го чете
-          </button>
-        </div>
-        )}
+
       </div>
 
       <div className="bottom-nav">
