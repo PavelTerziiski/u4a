@@ -5,7 +5,16 @@ import { supabase } from '@/lib/supabase'
 import Fox from '@/components/fox/Fox'
 import '../dashboard/dashboard.css'
 
-const ALPHABET = [
+type PronunciationWord = {
+  id: string
+  letter: string
+  word: string
+  emoji: string
+  tts_text: string
+  sort_order: number
+}
+
+const ALPHABET_FALLBACK = [
   { letter: 'А', word: 'Автобус', emoji: '🚌' },
   { letter: 'Б', word: 'Банан', emoji: '🍌' },
   { letter: 'В', word: 'Вълк', emoji: '🐺' },
@@ -34,7 +43,7 @@ const ALPHABET = [
   { letter: 'Щ', word: 'Щъркел', emoji: '🦢' },
   { letter: 'Ъ', word: 'Ъгъл', emoji: '📐' },
   { letter: 'Ю', word: 'Юла', emoji: '🌀' },
-  { letter: 'Я', word: 'Ябълка', emoji: '🍎' },
+  { letter: 'Я', word: 'Ябълка', emoji: '🍎', tts_text: 'Я, Ябълка', sort_order: 29, id: '29' },
 ]
 
 const OWL_REACTIONS = {
@@ -45,6 +54,7 @@ const OWL_REACTIONS = {
 export default function PronunciationPage() {
   const router = useRouter()
   const [profile, setProfile] = useState<Record<string, unknown> | null>(null)
+  const [words, setWords] = useState<PronunciationWord[]>([])
   const [phase, setPhase] = useState<'menu' | 'play' | 'done'>('menu')
   const [index, setIndex] = useState(0)
   const [recording, setRecording] = useState(false)
@@ -67,6 +77,10 @@ export default function PronunciationPage() {
       .then(({ data }) => {
         if (!data) { router.push('/login'); return }
         setProfile(data)
+      })
+    supabase.from('pronunciation_words').select('*').order('sort_order')
+      .then(({ data }) => {
+        if (data && data.length > 0) setWords(data)
       })
   }, [])
 
@@ -130,7 +144,7 @@ export default function PronunciationPage() {
     mr.ondataavailable = (e) => { if (e.data.size > 0) chunksRef.current.push(e.data) }
     mr.start()
     setRecording(true)
-    const word = ALPHABET[index].word
+    const word = alphabet[index].word
     const duration = Math.round((word.length * 0.15 + 1.5) * 1000)
     setTimeout(() => stopAndEvaluate(), duration)
   }
@@ -149,8 +163,8 @@ export default function PronunciationPage() {
     const res = await fetch('/api/whisper', { method: 'POST', body: fd })
     const data = await res.json()
     const transcript = (data.text || '').toLowerCase().trim()
-    console.log('Whisper transcript:', data.text, '| target:', ALPHABET[index].word)
-    const target = ALPHABET[index].word.toLowerCase()
+    console.log('Whisper transcript:', data.text, '| target:', alphabet[index].word)
+    const target = alphabet[index].word.toLowerCase()
     const targetRoot = target.substring(0, Math.max(3, Math.floor(target.length * 0.6)))
     const isCorrect = transcript.length > 1 && (
       transcript.includes(target) ||
@@ -175,14 +189,14 @@ export default function PronunciationPage() {
       setFeedback('wrong')
       setFeedbackType('wrong')
       await playTTS(reaction, 'borislav')
-      await playTTS(`${ALPHABET[index].letter}. ${ALPHABET[index].word}`)
+      await playTTS(`${alphabet[index].letter}. ${alphabet[index].word}`)
     }
   }
 
   const nextWord = async (fromIndex?: number) => {
     setFeedback('')
     setOwlSays('')
-    if (index + 1 >= ALPHABET.length) {
+    if (index + 1 >= alphabet.length) {
       setPhase('done')
       return
     }
@@ -191,7 +205,8 @@ export default function PronunciationPage() {
     await playCurrentWord(next)
   }
 
-  const current = ALPHABET[index]
+  const alphabet = words.length > 0 ? words : ALPHABET_FALLBACK
+  const current = alphabet[index]
 
   if (phase === 'menu') return (
     <main className="u4a-dash min-h-screen flex flex-col items-center justify-center p-6">
@@ -225,12 +240,12 @@ export default function PronunciationPage() {
           setRecording(false)
           setPhase('menu')
         }} style={{ background: 'none', border: 'none', fontSize: '1.5rem', cursor: 'pointer' }}>←</button>
-          <span style={{ fontFamily: 'Nunito, sans-serif', fontWeight: 800, color: '#7C3AED' }}>{index + 1} / {ALPHABET.length}</span>
+          <span style={{ fontFamily: 'Nunito, sans-serif', fontWeight: 800, color: '#7C3AED' }}>{index + 1} / {alphabet.length}</span>
           <span style={{ fontFamily: 'Nunito, sans-serif', fontWeight: 800, color: '#F97316' }}>⭐ {score}</span>
         </div>
 
         <div style={{ width: '100%', background: '#EDE9FE', borderRadius: 99, height: 10, marginBottom: 24 }}>
-          <div style={{ width: `${((index) / ALPHABET.length) * 100}%`, background: 'linear-gradient(90deg, #7C3AED, #A78BFA)', height: 10, borderRadius: 99, transition: 'width 0.5s' }} />
+          <div style={{ width: `${((index) / alphabet.length) * 100}%`, background: 'linear-gradient(90deg, #7C3AED, #A78BFA)', height: 10, borderRadius: 99, transition: 'width 0.5s' }} />
         </div>
 
         <div style={{ textAlign: 'center', marginBottom: 16, position: 'relative' }}>
@@ -299,7 +314,7 @@ export default function PronunciationPage() {
       <div className="w-full max-w-md text-center">
         <Fox mood="excited" size={180} />
         <h1 style={{ fontFamily: 'Nunito, sans-serif', fontWeight: 900, fontSize: '2.5rem', color: '#7C3AED', marginTop: 16 }}>🎉 Браво!</h1>
-        <p style={{ fontFamily: 'Nunito, sans-serif', fontSize: '4rem', fontWeight: 900, color: '#F97316' }}>{score}/{ALPHABET.length}</p>
+        <p style={{ fontFamily: 'Nunito, sans-serif', fontSize: '4rem', fontWeight: 900, color: '#F97316' }}>{score}/{alphabet.length}</p>
         <p style={{ color: '#92400E', fontFamily: 'Nunito, sans-serif', marginBottom: 32 }}>верни думи</p>
         <button onClick={() => router.push('/dashboard')} style={{
           width: '100%', background: 'linear-gradient(135deg, #F97316, #EA580C)',
