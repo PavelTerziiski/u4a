@@ -125,7 +125,8 @@ export default function PronunciationPage() {
   }
 
   const playCurrentWord = async (i: number) => {
-    const item = ALPHABET[i]
+    const alphabet = words.length > 0 ? words : ALPHABET_FALLBACK
+    const item = alphabet[i]
     await playTTS(`Буква ${item.letter}. ${item.word}`)
   }
 
