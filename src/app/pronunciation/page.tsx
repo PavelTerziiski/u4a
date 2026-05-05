@@ -5,7 +5,7 @@ import { supabase } from '@/lib/supabase'
 
 export default function Pronunciation() {
   const router = useRouter()
-  const [profile, setProfile] = useState<any>(null)
+  const [, setProfile] = useState<Record<string, unknown> | null>(null)
 
   useEffect(() => {
     const username = localStorage.getItem('u4a_username')
