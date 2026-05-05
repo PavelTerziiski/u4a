@@ -149,6 +149,7 @@ export default function PronunciationPage() {
     const res = await fetch('/api/whisper', { method: 'POST', body: fd })
     const data = await res.json()
     const transcript = (data.text || '').toLowerCase().trim()
+    console.log('Whisper transcript:', data.text, '| target:', ALPHABET[index].word)
     const target = ALPHABET[index].word.toLowerCase()
     const targetRoot = target.substring(0, Math.max(3, Math.floor(target.length * 0.6)))
     const isCorrect = transcript.length > 1 && (
