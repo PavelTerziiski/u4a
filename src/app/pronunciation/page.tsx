@@ -44,7 +44,7 @@ const OWL_REACTIONS = {
 
 export default function PronunciationPage() {
   const router = useRouter()
-  const [, setProfile] = useState<Record<string, unknown> | null>(null)
+  const [profile, setProfile] = useState<Record<string, unknown> | null>(null)
   const [phase, setPhase] = useState<'menu' | 'play' | 'done'>('menu')
   const [index, setIndex] = useState(0)
   const [recording, setRecording] = useState(false)
@@ -105,7 +105,8 @@ export default function PronunciationPage() {
     setPhase('play')
     setIndex(0)
     setScore(0)
-    await playTTS('Хайде да учим буквите! Слушай и повтаряй!')
+    const foxName = (profile?.fox_name as string) || 'Роки'
+    await playTTS(`Хайде да учим буквите! Аз съм ${foxName}. Слушай и повтаряй!`)
     await playCurrentWord(0)
   }
 
