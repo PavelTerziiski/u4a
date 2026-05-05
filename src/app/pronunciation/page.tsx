@@ -167,7 +167,8 @@ export default function PronunciationPage() {
       setShowEmoji(true)
       setTimeout(() => setShowEmoji(false), 1500)
       await playTTS(reaction, 'borislav')
-      setTimeout(() => nextWord(), 1500)
+      const currentIndex = index
+      setTimeout(() => nextWord(currentIndex), 1500)
     } else {
       const reaction = OWL_REACTIONS.wrong[Math.floor(Math.random() * OWL_REACTIONS.wrong.length)]
       setOwlSays(reaction)
@@ -178,14 +179,14 @@ export default function PronunciationPage() {
     }
   }
 
-  const nextWord = async () => {
+  const nextWord = async (fromIndex?: number) => {
     setFeedback('')
     setOwlSays('')
     if (index + 1 >= ALPHABET.length) {
       setPhase('done')
       return
     }
-    const next = index + 1
+    const next = (fromIndex !== undefined ? fromIndex : index) + 1
     setIndex(next)
     await playCurrentWord(next)
   }
