@@ -281,7 +281,7 @@ export default function PronunciationPage() {
         </button>
 
         {feedbackType === 'wrong' && !recording && !loading && (
-          <button onClick={nextWord} style={{
+          <button onClick={() => nextWord()} style={{
             width: '100%', background: 'none', border: '2px solid #DDD6FE',
             color: '#7C3AED', borderRadius: 16, padding: '0.9rem', marginTop: 12,
             fontFamily: 'Nunito, sans-serif', fontWeight: 800, fontSize: '1rem', cursor: 'pointer'
