@@ -68,6 +68,7 @@ export default function PronunciationPage() {
   const chunksRef = useRef<Blob[]>([])
   const audioCtxRef = useRef<AudioContext | null>(null)
   const currentSourceRef = useRef<AudioBufferSourceNode | null>(null)
+  const isActiveRef = useRef<boolean>(true)
   const currentStreamRef = useRef<MediaStream | null>(null)
 
   useEffect(() => {
@@ -103,7 +104,9 @@ export default function PronunciationPage() {
     const ctx = getAudioCtx()
     await ctx.resume()
     return new Promise<void>((resolve) => {
+      if (!isActiveRef.current) { resolve(); return }
       ctx.decodeAudioData(arrayBuffer, (decoded) => {
+        if (!isActiveRef.current) { resolve(); return }
         const source = ctx.createBufferSource()
         currentSourceRef.current = source
         source.buffer = decoded
@@ -116,6 +119,7 @@ export default function PronunciationPage() {
 
   const startPlay = async () => {
     getAudioCtx()
+    isActiveRef.current = true
     setPhase('play')
     setIndex(0)
     setScore(0)
@@ -235,6 +239,7 @@ export default function PronunciationPage() {
       <div className="w-full max-w-md">
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
           <button onClick={() => {
+          isActiveRef.current = false
           if (currentSourceRef.current) { try { currentSourceRef.current.stop() } catch {} currentSourceRef.current = null }
           if (currentStreamRef.current) { currentStreamRef.current.getTracks().forEach(t => t.stop()); currentStreamRef.current = null }
           if (mediaRecorderRef.current) { try { mediaRecorderRef.current.stop() } catch {} mediaRecorderRef.current = null }
