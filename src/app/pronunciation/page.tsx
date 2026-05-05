@@ -111,7 +111,7 @@ export default function PronunciationPage() {
 
   const playCurrentWord = async (i: number) => {
     const item = ALPHABET[i]
-    await playTTS(`${item.letter}. ${item.word}`)
+    await playTTS(`Буква ${item.letter}. ${item.word}`)
   }
 
   const handleRecord = async () => {
@@ -149,7 +149,12 @@ export default function PronunciationPage() {
     const data = await res.json()
     const transcript = (data.text || '').toLowerCase().trim()
     const target = ALPHABET[index].word.toLowerCase()
-    const isCorrect = transcript.includes(target.substring(0, 3))
+    const targetRoot = target.substring(0, Math.max(3, Math.floor(target.length * 0.6)))
+    const isCorrect = transcript.length > 1 && (
+      transcript.includes(target) ||
+      transcript.includes(targetRoot) ||
+      target.includes(transcript.replace(/[^а-яё]/gi, '').substring(0, 3))
+    )
     setLoading(false)
     if (isCorrect) {
       const reaction = OWL_REACTIONS.correct[Math.floor(Math.random() * OWL_REACTIONS.correct.length)]
