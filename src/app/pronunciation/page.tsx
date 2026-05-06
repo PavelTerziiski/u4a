@@ -47,14 +47,15 @@ const ALPHABET_FALLBACK = [
 ]
 
 const OWL_REACTIONS = {
-  correct: ['Браво!', 'Чудесно!', 'Страхотно!', 'Перфектно!', 'Супер!'],
-  wrong: ['Опитай пак!', 'Почти!', 'Хайде още веднъж!'],
+  correct: ['correct_1', 'correct_2', 'correct_3', 'correct_4', 'correct_5'],
+  wrong: ['wrong_1', 'wrong_2', 'wrong_3'],
 }
 
 export default function PronunciationPage() {
   const router = useRouter()
   const [profile, setProfile] = useState<Record<string, unknown> | null>(null)
   const [words, setWords] = useState<PronunciationWord[]>([])
+  const [strings, setStrings] = useState<Record<string, string>>({})
   const [phase, setPhase] = useState<'menu' | 'play' | 'done'>('menu')
   const [index, setIndex] = useState(0)
   const [recording, setRecording] = useState(false)
@@ -82,6 +83,14 @@ export default function PronunciationPage() {
     supabase.from('pronunciation_words').select('*').order('sort_order')
       .then(({ data }) => {
         if (data && data.length > 0) setWords(data)
+      })
+    supabase.from('pronunciation_strings').select('*')
+      .then(({ data }) => {
+        if (data) {
+          const map: Record<string, string> = {}
+          data.forEach((r: {key: string, text: string}) => { map[r.key] = r.text })
+          setStrings(map)
+        }
       })
   }, [])
 
