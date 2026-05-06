@@ -46,10 +46,7 @@ const ALPHABET_FALLBACK = [
   { letter: 'Я', word: 'Ябълка', emoji: '🍎', tts_text: 'Я, Ябълка', sort_order: 29, id: '29' },
 ]
 
-const OWL_REACTIONS = {
-  correct: ['correct_1', 'correct_2', 'correct_3', 'correct_4', 'correct_5'],
-  wrong: ['wrong_1', 'wrong_2', 'wrong_3'],
-}
+
 
 export default function PronunciationPage() {
   const router = useRouter()
