@@ -1,6 +1,6 @@
 'use client'
 import { useEffect, useState } from 'react'
-import { supabase } from '@/lib/supabase'
+import { supabaseAdmin as supabase } from '@/lib/supabase-admin'
 
 type Sentence = { text: string }
 type PronWord = { id: string; letter: string; word: string; emoji: string; tts_text: string; sort_order: number }
