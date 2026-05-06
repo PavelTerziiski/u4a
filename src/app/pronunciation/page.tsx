@@ -56,7 +56,6 @@ export default function PronunciationPage() {
   const [profile, setProfile] = useState<Record<string, unknown> | null>(null)
   const [words, setWords] = useState<PronunciationWord[]>([])
   const [strings, setStrings] = useState<Record<string, string>>({})
-  void strings
   const [phase, setPhase] = useState<'menu' | 'play' | 'done'>('menu')
   const [index, setIndex] = useState(0)
   const [recording, setRecording] = useState(false)
@@ -188,7 +187,9 @@ export default function PronunciationPage() {
     )
     setLoading(false)
     if (isCorrect) {
-      const reaction = OWL_REACTIONS.correct[Math.floor(Math.random() * OWL_REACTIONS.correct.length)]
+      const correctKeys = ['correct_1','correct_2','correct_3','correct_4','correct_5']
+      const correctKey = correctKeys[Math.floor(Math.random() * correctKeys.length)]
+      const reaction = strings[correctKey] || 'Браво!'
       setOwlSays(reaction)
       setFeedback('correct')
       setFeedbackType('correct')
@@ -199,7 +200,9 @@ export default function PronunciationPage() {
       const currentIndex = index
       setTimeout(() => nextWord(currentIndex), 1500)
     } else {
-      const reaction = OWL_REACTIONS.wrong[Math.floor(Math.random() * OWL_REACTIONS.wrong.length)]
+      const wrongKeys = ['wrong_1','wrong_2','wrong_3']
+      const wrongKey = wrongKeys[Math.floor(Math.random() * wrongKeys.length)]
+      const reaction = strings[wrongKey] || 'Опитай пак!'
       setOwlSays(reaction)
       setFeedback('wrong')
       setFeedbackType('wrong')
