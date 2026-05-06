@@ -53,6 +53,7 @@ export default function PronunciationPage() {
   const [profile, setProfile] = useState<Record<string, unknown> | null>(null)
   const [words, setWords] = useState<PronunciationWord[]>([])
   const [strings, setStrings] = useState<Record<string, string>>({})
+  const [stringsLoaded, setStringsLoaded] = useState(false)
   const [phase, setPhase] = useState<'menu' | 'play' | 'done'>('menu')
   const [index, setIndex] = useState(0)
   const [recording, setRecording] = useState(false)
@@ -81,7 +82,7 @@ export default function PronunciationPage() {
       .then(({ data }) => {
         if (data && data.length > 0) setWords(data)
       })
-    fetch('/api/pronunciation-strings').then(r => r.json()).then(data => setStrings(data))
+    fetch('/api/pronunciation-strings').then(r => r.json()).then(data => { setStrings(data); setStringsLoaded(true) })
   }, [])
 
   const getAudioCtx = () => {

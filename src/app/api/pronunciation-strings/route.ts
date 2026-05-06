@@ -10,5 +10,5 @@ export async function GET() {
   const { data } = await supabase.from('pronunciation_strings').select('key, text')
   const map: Record<string, string> = {}
   if (data) data.forEach((r: {key: string, text: string}) => { map[r.key] = r.text })
-  return NextResponse.json(map)
+  return NextResponse.json(map, { headers: { 'Content-Type': 'application/json; charset=utf-8' } })
 }
