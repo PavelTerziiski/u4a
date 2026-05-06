@@ -123,7 +123,7 @@ export default function AccentCheck() {
                     <input value={stringText} onChange={e => setStringText(e.target.value)} autoFocus
                       style={{flex:1, border:'1px solid #d1d5db', borderRadius:'8px', padding:'6px 10px', fontSize:'14px', color:'#000'}} />
                     <button onClick={async () => {
-                      await supabase.from('pronunciation_strings').update({ text: stringText }).eq('id', s.id)
+                      await fetch('/api/admin-update', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ table: 'pronunciation_strings', id: s.id, updates: { text: stringText } }) })
                       setStrings(prev => prev.map(x => x.id === s.id ? {...x, text: stringText} : x))
                       setEditingString(null)
                       setMsg('✅ Запазено')
@@ -167,7 +167,7 @@ export default function AccentCheck() {
                   </div>
                   <div style={{display:'flex', gap:'10px'}}>
                     <button onClick={async () => {
-                      await supabase.from('pronunciation_words').update({ word: pronForm.word, emoji: pronForm.emoji, tts_text: pronForm.tts_text }).eq('id', editingPron.id)
+                      await fetch('/api/admin-update', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ table: 'pronunciation_words', id: editingPron.id, updates: { word: pronForm.word, emoji: pronForm.emoji, tts_text: pronForm.tts_text } }) })
                       setPronWords(prev => prev.map(w => w.id === editingPron.id ? {...w, ...pronForm} : w))
                       setEditingPron({...editingPron, ...pronForm})
                       setMsg('✅ Запазено')
