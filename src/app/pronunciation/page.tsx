@@ -107,7 +107,7 @@ export default function PronunciationPage() {
     const res = await fetch('/api/tts-azure', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ text, voice, speed: 0.85, dictation_id: 'pronunciation' })
+      body: JSON.stringify({ text, voice, speed: 0.85 })
     })
     const blob = await res.blob()
     const arrayBuffer = await blob.arrayBuffer()
