@@ -123,7 +123,6 @@ export default function PronunciationPage() {
     setPhase('play')
     setIndex(0)
     setScore(0)
-    const foxName = (profile?.fox_name as string) || 'Роки'
     const foxName2 = (profile?.fox_name as string) || 'Роки'
     await playTTS(strings['intro'] ? strings['intro'].replace('{fox}', foxName2) : `Хайде да учим буквите! Аз съм ${foxName2}. Слушай и повтаряй!`)
     await playCurrentWord(0)
