@@ -81,14 +81,7 @@ export default function PronunciationPage() {
       .then(({ data }) => {
         if (data && data.length > 0) setWords(data)
       })
-    supabase.from('pronunciation_strings').select('*')
-      .then(({ data }) => {
-        if (data) {
-          const map: Record<string, string> = {}
-          data.forEach((r: {key: string, text: string}) => { map[r.key] = r.text })
-          setStrings(map)
-        }
-      })
+    fetch('/api/pronunciation-strings').then(r => r.json()).then(data => setStrings(data))
   }, [])
 
   const getAudioCtx = () => {
