@@ -218,25 +218,44 @@ export default function PronunciationPage() {
   const current = alphabet[index]
 
   if (phase === 'menu') return (
-    <main className="u4a-dash min-h-screen flex flex-col items-center justify-center p-6">
-      <div className="u4a-dash-overlay"></div>
-      <div className="w-full max-w-md text-center">
-        <button onClick={() => router.push('/dashboard')} style={{ background: 'none', border: 'none', fontSize: '1.5rem', cursor: 'pointer', position: 'absolute', top: 20, left: 20 }}>←</button>
-        <Fox mood="happy" size={160} />
-        <h1 style={{ fontFamily: 'Nunito, sans-serif', fontWeight: 900, fontSize: '2.2rem', color: '#7C3AED', marginTop: 16, marginBottom: 8 }}>🗣️ Правоговор</h1>
-        <p style={{ fontFamily: 'Nunito, sans-serif', color: '#92400E', marginBottom: 32, fontSize: '1.1rem' }}>Роки казва думата — ти повтаряш!</p>
-        <button onClick={startPlay} style={{
-          width: '100%', background: 'linear-gradient(135deg, #7C3AED, #6D28D9)',
-          color: 'white', border: 'none', borderRadius: 20, padding: '1.4rem',
-          fontFamily: 'Nunito, sans-serif', fontWeight: 900, fontSize: '1.4rem',
-          cursor: 'pointer', boxShadow: '0 8px 24px rgba(124,58,237,0.4)'
-        }}>
-          🔤 Азбука и звуци
-        </button>
-      </div>
-    </main>
-  )
-
+  <main className="u4a-dash min-h-screen flex flex-col items-center justify-center p-6">
+    <div className="u4a-dash-overlay"></div>
+    <div className="w-full max-w-md text-center" style={{ position: 'relative', zIndex: 1 }}>
+      <button onClick={() => router.push('/dashboard')} style={{
+        background: 'none', border: 'none', fontSize: '1.1rem', cursor: 'pointer',
+        position: 'absolute', top: -40, left: 0, color: '#F97316',
+        fontFamily: 'Nunito, sans-serif', fontWeight: 800
+      }}>← Назад</button>
+      <Fox mood="happy" size={150} />
+      <h1 style={{ fontFamily: 'Nunito, sans-serif', fontWeight: 900, fontSize: '2.2rem', color: '#7C3AED', marginTop: 16, marginBottom: 8 }}>🗣️ Правоговор</h1>
+      <p style={{ fontFamily: 'Nunito, sans-serif', color: '#92400E', marginBottom: 32, fontSize: '1.05rem' }}>Роки казва думата — ти повтаряш!</p>
+      <button onClick={startPlay} style={{
+        width: '100%', background: 'white',
+        color: '#7C3AED', border: '2px solid #DDD6FE', borderRadius: 20, padding: '1.3rem',
+        fontFamily: 'Nunito, sans-serif', fontWeight: 900, fontSize: '1.3rem',
+        cursor: 'pointer', boxShadow: '0 4px 12px rgba(124,58,237,0.15)', marginBottom: 14
+      }}>🔤 Азбука и звуци</button>
+      <button onClick={() => router.push('/reading?level=easy')} style={{
+        width: '100%', background: 'linear-gradient(135deg, #3B82F6, #2563EB)',
+        color: 'white', border: 'none', borderRadius: 20, padding: '1.3rem',
+        fontFamily: 'Nunito, sans-serif', fontWeight: 900, fontSize: '1.3rem',
+        cursor: 'pointer', boxShadow: '0 8px 24px rgba(59,130,246,0.4)', marginBottom: 14
+      }}>📖 Лесно</button>
+      <button onClick={() => router.push('/reading?level=medium')} style={{
+        width: '100%', background: 'linear-gradient(135deg, #F97316, #EA580C)',
+        color: 'white', border: 'none', borderRadius: 20, padding: '1.3rem',
+        fontFamily: 'Nunito, sans-serif', fontWeight: 900, fontSize: '1.3rem',
+        cursor: 'pointer', boxShadow: '0 8px 24px rgba(249,115,22,0.4)', marginBottom: 14
+      }}>📖 Средно</button>
+      <button onClick={() => router.push('/reading?level=hard')} style={{
+        width: '100%', background: 'linear-gradient(135deg, #7C3AED, #6D28D9)',
+        color: 'white', border: 'none', borderRadius: 20, padding: '1.3rem',
+        fontFamily: 'Nunito, sans-serif', fontWeight: 900, fontSize: '1.3rem',
+        cursor: 'pointer', boxShadow: '0 8px 24px rgba(124,58,237,0.4)'
+      }}>📖 Трудно</button>
+    </div>
+  </main>
+)
   if (phase === 'play') return (
     <main className="u4a-dash min-h-screen flex flex-col items-center p-6 pt-10">
       <div className="u4a-dash-overlay"></div>
