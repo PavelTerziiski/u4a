@@ -117,6 +117,7 @@ export default function PronunciationPage() {
     })
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const startPlay = async () => {
     getAudioCtx()
     isActiveRef.current = true
