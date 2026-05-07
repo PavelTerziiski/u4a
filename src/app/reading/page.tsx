@@ -97,7 +97,15 @@ export default function ReadingPage() {
     setDictations((data || []).filter((d: Dictation) => d.language !== 'en' && d.language !== 'de'))
     setLevel(lvl)
   }
-
+const unlockAudio = async () => {
+  const ctx = getAudioCtx()
+  if (ctx.state === 'suspended') await ctx.resume()
+  const buf = ctx.createBuffer(1, 1, 22050)
+  const src = ctx.createBufferSource()
+  src.buffer = buf
+  src.connect(ctx.destination)
+  src.start(0)
+}
   const getAudioCtx = () => {
     if (!audioCtxRef.current) {
       const AC = window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext
@@ -302,8 +310,8 @@ export default function ReadingPage() {
               <p style={{ color: '#9CA3AF', textAlign: 'center', fontFamily: 'Nunito, sans-serif' }}>Зареждане...</p>
             )}
             {dictations.map(d => (
-              <button key={d.id} onClick={() => {
-                getAudioCtx()
+              <button key={d.id} onClick={async () => {
+                await unlockAudio()
                 isActiveRef.current = true
                 setSelected(d)
                 setSentenceIndex(0)
