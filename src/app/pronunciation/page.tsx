@@ -229,30 +229,18 @@ export default function PronunciationPage() {
       <Fox mood="happy" size={150} />
       <h1 style={{ fontFamily: 'Nunito, sans-serif', fontWeight: 900, fontSize: '2.2rem', color: '#7C3AED', marginTop: 16, marginBottom: 8 }}>🗣️ Правоговор</h1>
       <p style={{ fontFamily: 'Nunito, sans-serif', color: '#92400E', marginBottom: 32, fontSize: '1.05rem' }}>Роки казва думата — ти повтаряш!</p>
-      <button onClick={startPlay} style={{
-        width: '100%', background: 'white',
-        color: '#7C3AED', border: '2px solid #DDD6FE', borderRadius: 20, padding: '1.3rem',
-        fontFamily: 'Nunito, sans-serif', fontWeight: 900, fontSize: '1.3rem',
-        cursor: 'pointer', boxShadow: '0 4px 12px rgba(124,58,237,0.15)', marginBottom: 14
-      }}>🔤 Азбука и звуци</button>
-      <button onClick={() => router.push('/reading?level=easy')} style={{
-        width: '100%', background: 'linear-gradient(135deg, #3B82F6, #2563EB)',
-        color: 'white', border: 'none', borderRadius: 20, padding: '1.3rem',
-        fontFamily: 'Nunito, sans-serif', fontWeight: 900, fontSize: '1.3rem',
-        cursor: 'pointer', boxShadow: '0 8px 24px rgba(59,130,246,0.4)', marginBottom: 14
-      }}>📖 Лесно</button>
-      <button onClick={() => router.push('/reading?level=medium')} style={{
-        width: '100%', background: 'linear-gradient(135deg, #F97316, #EA580C)',
-        color: 'white', border: 'none', borderRadius: 20, padding: '1.3rem',
-        fontFamily: 'Nunito, sans-serif', fontWeight: 900, fontSize: '1.3rem',
-        cursor: 'pointer', boxShadow: '0 8px 24px rgba(249,115,22,0.4)', marginBottom: 14
-      }}>📖 Средно</button>
-      <button onClick={() => router.push('/reading?level=hard')} style={{
+      <button onClick={() => router.push('/listening')} style={{
         width: '100%', background: 'linear-gradient(135deg, #7C3AED, #6D28D9)',
         color: 'white', border: 'none', borderRadius: 20, padding: '1.3rem',
         fontFamily: 'Nunito, sans-serif', fontWeight: 900, fontSize: '1.3rem',
-        cursor: 'pointer', boxShadow: '0 8px 24px rgba(124,58,237,0.4)'
-      }}>📖 Трудно</button>
+        cursor: 'pointer', boxShadow: '0 8px 24px rgba(124,58,237,0.4)', marginBottom: 14
+      }}>🎧 Слушай и повтаряй</button>
+      <button onClick={() => router.push('/reading')} style={{
+        width: '100%', background: 'linear-gradient(135deg, #F97316, #EA580C)',
+        color: 'white', border: 'none', borderRadius: 20, padding: '1.3rem',
+        fontFamily: 'Nunito, sans-serif', fontWeight: 900, fontSize: '1.3rem',
+        cursor: 'pointer', boxShadow: '0 8px 24px rgba(249,115,22,0.4)'
+      }}>📖 Четене на глас</button>
     </div>
   </main>
 )
