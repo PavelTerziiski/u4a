@@ -229,7 +229,7 @@ export default function PronunciationPage() {
       }}>← Назад</button>
       <Fox mood="happy" size={150} />
       <h1 style={{ fontFamily: 'Nunito, sans-serif', fontWeight: 900, fontSize: '2.2rem', color: '#7C3AED', marginTop: 16, marginBottom: 8 }}>🗣️ Правоговор</h1>
-      <p style={{ fontFamily: 'Nunito, sans-serif', color: '#92400E', marginBottom: 32, fontSize: '1.05rem' }}>Роки казва думата — ти повтаряш!</p>
+
       <button onClick={() => router.push('/listening')} style={{
         width: '100%', background: 'linear-gradient(135deg, #7C3AED, #6D28D9)',
         color: 'white', border: 'none', borderRadius: 20, padding: '1.3rem',

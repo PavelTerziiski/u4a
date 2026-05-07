@@ -63,6 +63,7 @@ export default function ReadingPage() {
   const [owlSays, setOwlSays] = useState('')
   const [score, setScore] = useState(0)
   const [typedText, setTypedText] = useState('')
+  const [foxName, setFoxName] = useState('Роки')
 
   const mediaRecorderRef = useRef<MediaRecorder | null>(null)
   const chunksRef = useRef<Blob[]>([])
@@ -78,6 +79,7 @@ export default function ReadingPage() {
     supabase.from('profiles').select('*').eq('username', username).single()
       .then(({ data }) => {
         if (!data) { router.push('/login'); return }
+        if (data.fox_name) setFoxName(data.fox_name)
         const lvl = new URLSearchParams(window.location.search).get('level') as Level | null
         if (lvl && ['easy','medium','hard'].includes(lvl)) loadLevel(lvl)
       })
@@ -280,7 +282,7 @@ const unlockAudio = async () => {
                 📖 Четене на глас
               </h1>
               <p style={{ fontFamily: 'Nunito, sans-serif', color: '#92400E', fontSize: '1rem' }}>
-                Роки чете — ти повтаряш!
+                Ти четеш, {foxName} слуша!
               </p>
             </div>
             {(['easy', 'medium', 'hard'] as Level[]).map(lvl => {
