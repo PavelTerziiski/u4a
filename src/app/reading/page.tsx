@@ -169,8 +169,7 @@ const unlockAudio = async () => {
 
   const playSentence = async (dictation: Dictation, idx: number) => {
     const sentence = dictation.sentences[idx].text
-    await typeText(sentence)
-    await playTTS(sentence, 'kalina', dictation.id)
+    setTypedText(sentence)
     beginRecording(dictation, idx)
   }
 
@@ -218,7 +217,7 @@ const unlockAudio = async () => {
         setFeedbackType('correct')
         setOwlSays('Браво!')
         setScore(s => s + 1)
-        await playTTS('Браво!', 'borisslav')
+        // await playTTS('Браво!', 'borisslav')
         setTimeout(async () => {
           if (!isActiveRef.current) return
           const next = idx + 1
@@ -232,8 +231,7 @@ const unlockAudio = async () => {
       } else {
         setFeedbackType('wrong')
         setOwlSays('Опитай пак!')
-        await playTTS('Опитай пак!', 'borisslav')
-        await playTTS(dictation.sentences[idx].text, 'kalina', dictation.id)
+        // без TTS в Четене на глас
         setTimeout(() => {
           if (!isActiveRef.current) return
           beginRecording(dictation, idx)
@@ -419,7 +417,7 @@ const unlockAudio = async () => {
               color: '#DC2626', marginBottom: 12,
               boxShadow: '0 0 0 8px rgba(239,68,68,0.1)',
             }}>
-              🎤 Говори сега...
+              📖 Прочети на глас!
             </div>
           )}
 
