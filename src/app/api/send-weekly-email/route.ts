@@ -8,11 +8,23 @@ const supabase = createClient(
   process.env.SUPABASE_SERVICE_ROLE_KEY!
 )
 
+export async function GET(req: NextRequest) {
+  const authHeader = req.headers.get('authorization')
+  if (authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  }
+  return sendEmails()
+}
+
 export async function POST(req: NextRequest) {
   const { secret } = await req.json()
   if (secret !== process.env.CRON_SECRET) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
+  return sendEmails()
+}
+
+async function sendEmails() {
 
   const weekStart = new Date()
   weekStart.setDate(weekStart.getDate() - 7)
