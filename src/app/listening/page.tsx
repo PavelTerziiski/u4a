@@ -166,7 +166,7 @@ export default function ListeningPage() {
 
   const loadLevel = async (lvl: 'easy' | 'medium' | 'hard') => {
     const grades = LEVEL_CONFIG[lvl].grades
-    const { data } = await supabase.from('dictations').select('*').in('grade', grades).order('grade')
+    const { data } = await supabase.from('dictations').select('*').in('grade', grades).or('category.is.null,category.eq.original').order('grade')
     setDictations((data || []).filter((d: Dictation) => d.language !== 'en' && d.language !== 'de'))
     setMode(lvl)
     setPhase('pick')
