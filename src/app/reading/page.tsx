@@ -64,6 +64,7 @@ export default function ReadingPage() {
   const [score, setScore] = useState(0)
   const [typedText, setTypedText] = useState('')
   const [foxName, setFoxName] = useState('Роки')
+  const [attempts, setAttempts] = useState(0)
 
   const mediaRecorderRef = useRef<MediaRecorder | null>(null)
   const chunksRef = useRef<Blob[]>([])
@@ -193,7 +194,7 @@ const unlockAudio = async () => {
     setRecording(true)
     const sentence = dictation.sentences[idx].text
     const wordCount = sentence.split(' ').length
-    const duration = Math.round((wordCount * 0.65 + 1.8) * 1000)
+    const duration = Math.round((wordCount * 0.95 + 2.5) * 1000)
     setTimeout(() => evaluateRecording(dictation, idx), duration)
   }
 
@@ -212,10 +213,11 @@ const unlockAudio = async () => {
       const data = await res.json()
       const transcript = (data.text || '').toLowerCase().trim()
       const original = dictation.sentences[idx].text.toLowerCase()
-      const originalWords = original.replace(/[.,!?;:]/g, '').split(' ')
+      const stopWords = new Set(['и','на','в','от','се','да','не','с','за','по','до','при','но','а','като','че','е','са','го','я','им','ги','ни','ви','му','й'])
+      const originalWords = original.replace(/[.,!?;:]/g, '').split(' ').filter((w: string) => !stopWords.has(w))
       const transcriptWords = transcript.replace(/[.,!?;:]/g, '').split(' ')
-      const matchCount = originalWords.filter((w: string) => transcriptWords.includes(w)).length
-      const isCorrect = transcript.length > 2 && matchCount >= Math.ceil(originalWords.length * 0.5)
+      const matchCount = originalWords.filter((w: string) => transcriptWords.some((t: string) => t.includes(w.slice(0,4)) || w.includes(t.slice(0,4)))).length
+      const isCorrect = transcript.length > 2 && matchCount >= Math.ceil(originalWords.length * 0.35)
       setLoading(false)
       if (isCorrect) {
         setFeedbackType('correct')
@@ -233,13 +235,27 @@ const unlockAudio = async () => {
           }
         }, 1200)
       } else {
-        setFeedbackType('wrong')
-        setOwlSays('Опитай пак!')
-        // без TTS в Четене на глас
-        setTimeout(() => {
-          if (!isActiveRef.current) return
-          beginRecording(dictation, idx)
-        }, 400)
+        const newAttempts = attempts + 1
+        setAttempts(newAttempts)
+        if (newAttempts >= 3) {
+          setFeedbackType('wrong')
+          setOwlSays('Да минем нататък!')
+          setTimeout(async () => {
+            if (!isActiveRef.current) return
+            setAttempts(0)
+            const next = idx + 1
+            if (next >= dictation.sentences.length) { setPhase('done'); return }
+            setSentenceIndex(next)
+            await playSentence(dictation, next)
+          }, 1500)
+        } else {
+          setFeedbackType('wrong')
+          setOwlSays(newAttempts === 2 ? 'Още един опит!' : 'Опитай пак!')
+          setTimeout(() => {
+            if (!isActiveRef.current) return
+            beginRecording(dictation, idx)
+          }, 400)
+        }
       }
     }
     mr.stop()
