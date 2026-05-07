@@ -296,12 +296,14 @@ export default function ListeningPage() {
     setRecording(false)
     setLoading(true)
     mr.onstop = async () => {
+      if (!isActiveRef.current) return
       const blob = new Blob(chunksRef.current, { type: mr.mimeType })
       const fd = new FormData()
       const ext = blob.type.includes('mp4') ? 'mp4' : 'webm'
       fd.append('file', blob, `audio.${ext}`)
       fd.append('language', 'bg')
       const res = await fetch('/api/whisper', { method: 'POST', body: fd })
+      if (!isActiveRef.current) return
       const data = await res.json()
       const transcript = (data.text || '').toLowerCase().trim()
       const original = dictation.sentences[idx].text.toLowerCase()
