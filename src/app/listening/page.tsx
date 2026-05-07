@@ -128,7 +128,10 @@ export default function ListeningPage() {
         const source = ctx.createBufferSource()
         currentSourceRef.current = source
         source.buffer = decoded
-        source.connect(ctx.destination)
+        const gainNode = ctx.createGain()
+        gainNode.gain.value = 2.5
+        source.connect(gainNode)
+        gainNode.connect(ctx.destination)
         source.onended = () => { currentSourceRef.current = null; resolve() }
         source.start(0)
       })
@@ -385,7 +388,7 @@ export default function ListeningPage() {
     <main className="u4a-dash min-h-screen p-6">
       <div className="u4a-dash-overlay"></div>
       <div className="max-w-md mx-auto" style={{ position: 'relative', zIndex: 1 }}>
-        <button onClick={() => { setPhase('menu'); setMode(null) }} style={{
+        <button onClick={() => { stopAll(); isActiveRef.current = true; setPhase('menu'); setMode(null) }} style={{
           background: 'none', border: 'none', fontSize: '1.1rem', cursor: 'pointer',
           color: '#F97316', marginBottom: 24, fontFamily: 'Nunito, sans-serif', fontWeight: 800
         }}>← Назад</button>
