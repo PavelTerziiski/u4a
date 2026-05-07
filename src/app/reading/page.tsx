@@ -116,6 +116,8 @@ const unlockAudio = async () => {
     return audioCtxRef.current
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const playTTS = async (text: string, voice = 'kalina', dictationId?: string) => {
     const res = await fetch('/api/tts-azure', {
       method: 'POST',
@@ -141,6 +143,8 @@ const unlockAudio = async () => {
     })
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const typeText = (text: string) => {
     return new Promise<void>((resolve) => {
       setTypedText('')
