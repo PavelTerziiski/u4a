@@ -191,9 +191,11 @@ export default function ListeningPage() {
     setFeedbackType('')
     setOwlSays('')
     chunksRef.current = []
-    if (currentStreamRef.current) currentStreamRef.current.getTracks().forEach(t => t.stop())
-    const stream = await navigator.mediaDevices.getUserMedia({ audio: true })
-    currentStreamRef.current = stream
+    let stream = currentStreamRef.current
+    if (!stream || stream.getTracks().every(t => t.readyState === 'ended')) {
+      stream = await navigator.mediaDevices.getUserMedia({ audio: true })
+      currentStreamRef.current = stream
+    }
     const mimeType = MediaRecorder.isTypeSupported('audio/webm') ? 'audio/webm' : 'audio/mp4'
     const mr = new MediaRecorder(stream, { mimeType })
     mediaRecorderRef.current = mr
@@ -269,9 +271,11 @@ export default function ListeningPage() {
     setFeedbackType('')
     setOwlSays('')
     chunksRef.current = []
-    if (currentStreamRef.current) currentStreamRef.current.getTracks().forEach(t => t.stop())
-    const stream = await navigator.mediaDevices.getUserMedia({ audio: true })
-    currentStreamRef.current = stream
+    let stream = currentStreamRef.current
+    if (!stream || stream.getTracks().every(t => t.readyState === 'ended')) {
+      stream = await navigator.mediaDevices.getUserMedia({ audio: true })
+      currentStreamRef.current = stream
+    }
     const mimeType = MediaRecorder.isTypeSupported('audio/webm') ? 'audio/webm' : 'audio/mp4'
     const mr = new MediaRecorder(stream, { mimeType })
     mediaRecorderRef.current = mr
@@ -390,6 +394,11 @@ export default function ListeningPage() {
         </h2>
         {dictations.map(d => (
           <button key={d.id} onClick={async () => {
+            try {
+              const stream = await navigator.mediaDevices.getUserMedia({ audio: true })
+              if (currentStreamRef.current) currentStreamRef.current.getTracks().forEach(t => t.stop())
+              currentStreamRef.current = stream
+            } catch {}
             await unlockAudio()
             isActiveRef.current = true
             setSelected(d)
