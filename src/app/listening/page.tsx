@@ -196,6 +196,8 @@ export default function ListeningPage() {
     const { data } = await query
     let filtered = data || []
     if (selectedLang === 'bg') filtered = filtered.filter((d: Dictation) => d.language !== 'en' && d.language !== 'de')
+    const seen = new Set<string>()
+    filtered = filtered.filter((d: Dictation) => { if (seen.has(d.id)) return false; seen.add(d.id); return true })
     setDictations(filtered)
     setMode(lvl)
     setPhase('pick')
