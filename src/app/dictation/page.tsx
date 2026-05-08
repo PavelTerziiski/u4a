@@ -79,7 +79,10 @@ export default function DictationPage() {
   const [results, setResults] = useState<SentenceResult[]>([])
   const [speed, setSpeed] = useState(1.0)
   // const [weeklyCount, setWeeklyCount] = useState(0) // legacy removed
+  const trialEndsAt = profile?.trial_ends_at ? new Date(profile.trial_ends_at) : null
+  const trialActive = trialEndsAt ? new Date() < trialEndsAt : false
   const totalSessions = profile?.total_sessions || 0
+  const isFree = !profile?.is_premium && (trialEndsAt ? !trialActive : totalSessions >= FREE_TOTAL_LIMIT)
   const [ocrLoading, setOcrLoading] = useState(false)
   const [explanations, setExplanations] = useState<Record<number, string>>({})
   const [loadingExplanations, setLoadingExplanations] = useState(false)
@@ -275,7 +278,7 @@ export default function DictationPage() {
 
   const startDictation = (d: Dictation) => {
     if (!profile) return
-    if (!profile.is_premium && totalSessions >= FREE_TOTAL_LIMIT) {
+    if (isFree) {
       setPhase('limit')
       return
     }
@@ -513,9 +516,9 @@ export default function DictationPage() {
       <div className="u4a-dash-overlay"></div>
       <div className="max-w-md mx-auto">
         <button onClick={() => router.push('/dashboard')} className="text-orange-400 mb-6 flex items-center gap-2">← Назад</button>
-        <button onClick={() => totalSessions < FREE_TOTAL_LIMIT || profile?.is_premium ? router.push('/scan-dictation') : router.push('/plans')}
+        <button onClick={() => !isFree ? router.push('/scan-dictation') : router.push('/plans')}
           className="w-full bg-white border-2 border-orange-300 text-orange-500 font-bold py-3 rounded-2xl hover:bg-orange-50 transition-colors mb-4 flex items-center justify-center gap-2">
-          📷 Снимай текст и лисицата го чете {!profile?.is_premium && totalSessions >= FREE_TOTAL_LIMIT && <span className="text-xs bg-orange-100 px-2 py-1 rounded-full ml-1">⭐ Premium</span>}
+          📷 Снимай текст и лисицата го чете {isFree && <span className="text-xs bg-orange-100 px-2 py-1 rounded-full ml-1">⭐ Premium</span>}
         </button>
         <h1 className="text-2xl font-bold text-gray-700 mb-2">Избери диктовка</h1>
         {!profile?.is_premium && (
@@ -557,8 +560,8 @@ export default function DictationPage() {
         {/* 🌍 ЧУЖДИ ЕЗИЦИ */}
         <div style={{ marginTop: 24 }}>
           <div style={{
-            background: (profile?.plan_type === 'max' || totalSessions < FREE_TOTAL_LIMIT) ? 'linear-gradient(135deg, #EDE9FE, #F5F3FF)' : '#F5F5F5',
-            border: `2px solid ${(profile?.plan_type === 'max' || totalSessions < FREE_TOTAL_LIMIT) ? '#A78BFA' : '#E5E7EB'}`,
+            background: (profile?.plan_type === 'max' || !isFree) ? 'linear-gradient(135deg, #EDE9FE, #F5F3FF)' : '#F5F5F5',
+            border: `2px solid ${(profile?.plan_type === 'max' || !isFree) ? '#A78BFA' : '#E5E7EB'}`,
             borderRadius: 16,
             padding: '14px 18px',
             marginBottom: 12,
@@ -566,15 +569,15 @@ export default function DictationPage() {
             alignItems: 'center',
             justifyContent: 'space-between'
           }}>
-            <span style={{ fontFamily: 'Russo One, sans-serif', fontSize: '1rem', color: (profile?.plan_type === 'max' || totalSessions < FREE_TOTAL_LIMIT) ? '#5B21B6' : '#9CA3AF' }}>
+            <span style={{ fontFamily: 'Russo One, sans-serif', fontSize: '1rem', color: (profile?.plan_type === 'max' || !isFree) ? '#5B21B6' : '#9CA3AF' }}>
               🌍 Чужди езици
             </span>
-            {profile?.plan_type !== 'max' && totalSessions >= FREE_TOTAL_LIMIT && (
+            {isFree && (
               <span style={{ fontSize: '0.75rem', background: '#7C3AED', color: 'white', borderRadius: 20, padding: '3px 10px', fontWeight: 700 }}>🔒 Max</span>
             )}
           </div>
 
-          {(profile?.plan_type === 'max' || totalSessions < FREE_TOTAL_LIMIT) ? (
+          {(profile?.plan_type === 'max' || !isFree) ? (
             <div>
               <div style={{ display: 'flex', gap: 10, marginBottom: 12 }}>
                 {[{ code: 'en', label: '🇬🇧 Английски' }, { code: 'de', label: '🇩🇪 Немски' }].map(l => (

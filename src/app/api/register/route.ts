@@ -42,6 +42,7 @@ export async function POST(req: NextRequest) {
     grade,
     avatar_id,
     display_name,
+    trial_ends_at: new Date(Date.now() + 48 * 60 * 60 * 1000).toISOString(),
   })
   if (error) return NextResponse.json({ error: error.message }, { status: 400 })
   return NextResponse.json({ success: true })
