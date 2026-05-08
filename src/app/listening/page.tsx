@@ -71,6 +71,7 @@ export default function ListeningPage() {
   const [score, setScore] = useState(0)
   const [typedText, setTypedText] = useState('')
   const [strings, setStrings] = useState<Record<string, string>>({})
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [foxName, setFoxName] = useState('Роки')
 
   const mediaRecorderRef = useRef<MediaRecorder | null>(null)
