@@ -21,6 +21,7 @@ export type Profile = {
   premium_expires_at?: string
   stripe_customer_id?: string
   stripe_subscription_id?: string
+  trial_ends_at?: string
 }
 export type Dictation = {
   id: string
