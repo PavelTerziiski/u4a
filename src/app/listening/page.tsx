@@ -191,7 +191,7 @@ export default function ListeningPage() {
     if (selectedLang === 'bg') {
       query = supabase.from('dictations').select('*').in('grade', grades).or('category.is.null,category.eq.original').order('grade')
     } else {
-      query = supabase.from('dictations').select('*').eq('language', selectedLang).order('grade')
+      query = supabase.from('dictations').select('*').eq('language', selectedLang).eq('difficulty', lvl).order('title')
     }
     const { data } = await query
     let filtered = data || []
