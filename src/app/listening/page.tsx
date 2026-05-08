@@ -70,6 +70,8 @@ export default function ListeningPage() {
   const [owlSays, setOwlSays] = useState('')
   const [score, setScore] = useState(0)
   const [typedText, setTypedText] = useState('')
+  const [strings, setStrings] = useState<Record<string, string>>({})
+  const [foxName, setFoxName] = useState('Роки')
 
   const mediaRecorderRef = useRef<MediaRecorder | null>(null)
   const chunksRef = useRef<Blob[]>([])
@@ -86,6 +88,7 @@ export default function ListeningPage() {
       .then(({ data }) => { if (!data) router.push('/login') })
     supabase.from('pronunciation_words').select('*').order('sort_order')
       .then(({ data }) => { if (data && data.length > 0) setAlphaWords(data) })
+    fetch('/api/pronunciation-strings').then(r => r.json()).then(data => setStrings(data))
   }, [])
 
   useEffect(() => {
@@ -185,6 +188,7 @@ export default function ListeningPage() {
     setFeedbackType('')
     setOwlSays('')
     setPhase('play')
+    if (strings['intro']) await playTTS(strings['intro'])
     await playTTS(alphabet[0].tts_text || alphabet[0].word)
     beginAlphaRecording(0)
   }
@@ -363,7 +367,7 @@ export default function ListeningPage() {
         }}>← Назад</button>
         <Fox mood="happy" size={140} />
         <h1 style={{ fontFamily: 'Nunito, sans-serif', fontWeight: 900, fontSize: '2rem', color: '#7C3AED', marginTop: 12, marginBottom: 8 }}>🎧 Слушай и повтаряй</h1>
-        <p style={{ fontFamily: 'Nunito, sans-serif', color: '#92400E', marginBottom: 28, fontSize: '1rem' }}>Роки казва — ти повтаряш!</p>
+        <p style={{ fontFamily: 'Nunito, sans-serif', color: '#92400E', marginBottom: 28, fontSize: '1rem' }}>{foxName} казва — ти повтаряш!</p>
         <button onClick={startAlphabet} style={{
           width: '100%', background: 'white', color: '#7C3AED',
           border: '2px solid #DDD6FE', borderRadius: 20, padding: '1.2rem',
@@ -467,7 +471,7 @@ export default function ListeningPage() {
         )}
         {loading && (
           <div style={{ background: '#F3F0FF', border: '2px solid #DDD6FE', borderRadius: 16, padding: '12px', marginBottom: 12, textAlign: 'center' }}>
-            <p style={{ fontFamily: 'Nunito, sans-serif', color: '#7C3AED', fontWeight: 700, margin: 0 }}>🦊 Роки слуша...</p>
+            <p style={{ fontFamily: 'Nunito, sans-serif', color: '#7C3AED', fontWeight: 700, margin: 0 }}>{`🦊 ${foxName} слуша...`}</p>
           </div>
         )}
         {feedbackType === 'wrong' && !recording && !loading && (
@@ -516,7 +520,7 @@ export default function ListeningPage() {
           }}>🔊 Чуй пак</button>
           {loading && (
             <div style={{ background: cfg.colorLight, border: `2px solid ${cfg.colorBorder}`, borderRadius: 16, padding: '12px', marginBottom: 12, textAlign: 'center' }}>
-              <p style={{ fontFamily: 'Nunito, sans-serif', color: cfg.color, fontWeight: 700, margin: 0 }}>🦊 Роки слуша...</p>
+              <p style={{ fontFamily: 'Nunito, sans-serif', color: cfg.color, fontWeight: 700, margin: 0 }}>{`🦊 ${foxName} слуша...`}</p>
             </div>
           )}
           {recording && !loading && (
