@@ -52,7 +52,7 @@ const ALPHABET_FALLBACK = [
 const LEVEL_CONFIG = {
   easy: { label: 'Лесно', grades: [1, 2], color: '#2563EB', colorLight: '#EFF6FF', colorBorder: '#BBF7D0', gradient: 'linear-gradient(135deg, #22C55E, #16A34A)', shadow: 'rgba(34,197,94,0.35)', progressBg: '#DCFCE7' },
   medium: { label: 'Средно', grades: [3], color: '#EA580C', colorLight: '#FFF7ED', colorBorder: '#FDE68A', gradient: 'linear-gradient(135deg, #F59E0B, #D97706)', shadow: 'rgba(245,158,11,0.35)', progressBg: '#FEF3C7' },
-  hard: { label: 'Трудно', grades: [4], color: '#2563EB', colorLight: '#FEF2F2', colorBorder: '#BBF7D0', gradient: 'linear-gradient(135deg, #2563EB, #1D4ED8)', shadow: 'rgba(37,99,235,0.35)', progressBg: '#DCFCE7' },
+  hard: { label: 'Трудно', grades: [4], color: '#DC2626', colorLight: '#FEF2F2', colorBorder: '#FECACA', gradient: 'linear-gradient(135deg, #EF4444, #DC2626)', shadow: 'rgba(239,68,68,0.35)', progressBg: '#FEF2F2' },
 }
 
 export default function ListeningPage() {
