@@ -50,9 +50,9 @@ const ALPHABET_FALLBACK = [
 ]
 
 const LEVEL_CONFIG = {
-  easy: { label: 'Лесно', grades: [1, 2], color: '#2563EB', colorLight: '#EFF6FF', colorBorder: '#BFDBFE', gradient: 'linear-gradient(135deg, #3B82F6, #2563EB)', shadow: 'rgba(59,130,246,0.35)', progressBg: '#DBEAFE' },
-  medium: { label: 'Средно', grades: [3], color: '#EA580C', colorLight: '#FFF7ED', colorBorder: '#FED7AA', gradient: 'linear-gradient(135deg, #F97316, #EA580C)', shadow: 'rgba(249,115,22,0.35)', progressBg: '#FFEDD5' },
-  hard: { label: 'Трудно', grades: [4], color: '#7C3AED', colorLight: '#F5F3FF', colorBorder: '#DDD6FE', gradient: 'linear-gradient(135deg, #7C3AED, #6D28D9)', shadow: 'rgba(124,58,237,0.35)', progressBg: '#EDE9FE' },
+  easy: { label: 'Лесно', grades: [1, 2], color: '#2563EB', colorLight: '#EFF6FF', colorBorder: '#BBF7D0', gradient: 'linear-gradient(135deg, #22C55E, #16A34A)', shadow: 'rgba(34,197,94,0.35)', progressBg: '#DCFCE7' },
+  medium: { label: 'Средно', grades: [3], color: '#EA580C', colorLight: '#FFF7ED', colorBorder: '#FDE68A', gradient: 'linear-gradient(135deg, #F59E0B, #D97706)', shadow: 'rgba(245,158,11,0.35)', progressBg: '#FEF3C7' },
+  hard: { label: 'Трудно', grades: [4], color: '#2563EB', colorLight: '#FEF2F2', colorBorder: '#BBF7D0', gradient: 'linear-gradient(135deg, #2563EB, #1D4ED8)', shadow: 'rgba(37,99,235,0.35)', progressBg: '#DCFCE7' },
 }
 
 export default function ListeningPage() {
@@ -367,13 +367,13 @@ export default function ListeningPage() {
           fontFamily: 'Nunito, sans-serif', fontWeight: 800
         }}>← Назад</button>
         <Fox mood="happy" size={140} />
-        <h1 style={{ fontFamily: 'Nunito, sans-serif', fontWeight: 900, fontSize: '2rem', color: '#7C3AED', marginTop: 12, marginBottom: 8 }}>🎧 Слушай и повтаряй</h1>
+        <h1 style={{ fontFamily: 'Nunito, sans-serif', fontWeight: 900, fontSize: '2rem', color: '#2563EB', marginTop: 12, marginBottom: 8 }}>🎧 Слушай и повтаряй</h1>
         <p style={{ fontFamily: 'Nunito, sans-serif', color: '#92400E', marginBottom: 28, fontSize: '1rem' }}>{foxName} казва — ти повтаряш!</p>
         <button onClick={startAlphabet} style={{
-          width: '100%', background: 'white', color: '#7C3AED',
-          border: '2px solid #DDD6FE', borderRadius: 20, padding: '1.2rem',
+          width: '100%', background: 'white', color: '#2563EB',
+          border: '2px solid #BBF7D0', borderRadius: 20, padding: '1.2rem',
           fontFamily: 'Nunito, sans-serif', fontWeight: 900, fontSize: '1.2rem',
-          cursor: 'pointer', boxShadow: '0 4px 12px rgba(124,58,237,0.15)', marginBottom: 12
+          cursor: 'pointer', boxShadow: '0 4px 12px rgba(37,99,235,0.15)', marginBottom: 12
         }}>🔤 Азбука и звуци</button>
         {(['easy', 'medium', 'hard'] as const).map(lvl => {
           const c = LEVEL_CONFIG[lvl]
@@ -439,29 +439,29 @@ export default function ListeningPage() {
       <div className="u4a-dash-overlay"></div>
       <div className="w-full max-w-md" style={{ position: 'relative', zIndex: 1 }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
-          <button onClick={() => { stopAll(); setPhase('menu') }} style={{ background: 'none', border: 'none', fontSize: '1.5rem', cursor: 'pointer', color: '#7C3AED' }}>←</button>
-          <span style={{ fontFamily: 'Nunito, sans-serif', fontWeight: 800, color: '#7C3AED' }}>{alphaIndex + 1} / {alphabet.length}</span>
+          <button onClick={() => { stopAll(); setPhase('menu') }} style={{ background: 'none', border: 'none', fontSize: '1.5rem', cursor: 'pointer', color: '#2563EB' }}>←</button>
+          <span style={{ fontFamily: 'Nunito, sans-serif', fontWeight: 800, color: '#2563EB' }}>{alphaIndex + 1} / {alphabet.length}</span>
           <span style={{ fontFamily: 'Nunito, sans-serif', fontWeight: 800, color: '#F97316' }}>⭐ {score}</span>
         </div>
-        <div style={{ width: '100%', background: '#EDE9FE', borderRadius: 99, height: 10, marginBottom: 24 }}>
-          <div style={{ width: `${(alphaIndex / alphabet.length) * 100}%`, background: 'linear-gradient(90deg, #7C3AED, #A78BFA)', height: 10, borderRadius: 99, transition: 'width 0.5s' }} />
+        <div style={{ width: '100%', background: '#DCFCE7', borderRadius: 99, height: 10, marginBottom: 24 }}>
+          <div style={{ width: `${(alphaIndex / alphabet.length) * 100}%`, background: 'linear-gradient(90deg, #2563EB, #A78BFA)', height: 10, borderRadius: 99, transition: 'width 0.5s' }} />
         </div>
         <div style={{ textAlign: 'center', marginBottom: 12 }}>
           <Fox mood={feedbackType === 'correct' ? 'excited' : feedbackType === 'wrong' ? 'sad' : recording ? 'wink' : 'happy'} size={130} />
         </div>
         {owlSays && (
-          <div style={{ background: feedbackType === 'correct' ? '#F0FDF4' : '#FFF7ED', border: `2px solid ${feedbackType === 'correct' ? '#86EFAC' : '#FED7AA'}`, borderRadius: 16, padding: '10px 16px', marginBottom: 16, textAlign: 'center' }}>
+          <div style={{ background: feedbackType === 'correct' ? '#F0FDF4' : '#FFF7ED', border: `2px solid ${feedbackType === 'correct' ? '#86EFAC' : '#FDE68A'}`, borderRadius: 16, padding: '10px 16px', marginBottom: 16, textAlign: 'center' }}>
             <span style={{ fontSize: '1.3rem' }}>🦉</span>
             <span style={{ fontFamily: 'Nunito, sans-serif', fontWeight: 800, color: feedbackType === 'correct' ? '#166534' : '#92400E', fontSize: '1.05rem', marginLeft: 8 }}>{owlSays}</span>
           </div>
         )}
         <div style={{ background: 'white', borderRadius: 24, padding: '2rem', textAlign: 'center', boxShadow: '0 8px 32px rgba(0,0,0,0.08)', marginBottom: 20 }}>
           <div style={{ fontSize: '5rem', marginBottom: 8 }}>{currentAlpha.emoji}</div>
-          <div style={{ fontFamily: 'Nunito, sans-serif', fontWeight: 900, fontSize: '4rem', color: '#7C3AED', lineHeight: 1 }}>{currentAlpha.letter}</div>
+          <div style={{ fontFamily: 'Nunito, sans-serif', fontWeight: 900, fontSize: '4rem', color: '#2563EB', lineHeight: 1 }}>{currentAlpha.letter}</div>
           <div style={{ fontFamily: 'Nunito, sans-serif', fontWeight: 800, fontSize: '1.8rem', color: '#92400E', marginTop: 8 }}>{currentAlpha.word}</div>
         </div>
         <button onClick={() => playTTS(currentAlpha.tts_text || currentAlpha.word)} style={{
-          width: '100%', background: '#F3F0FF', color: '#7C3AED', border: '2px solid #DDD6FE',
+          width: '100%', background: '#EFF6FF', color: '#2563EB', border: '2px solid #BBF7D0',
           borderRadius: 16, padding: '0.9rem', fontFamily: 'Nunito, sans-serif', fontWeight: 800,
           fontSize: '1rem', cursor: 'pointer', marginBottom: 12
         }}>🔊 Чуй пак</button>
@@ -471,13 +471,13 @@ export default function ListeningPage() {
           </div>
         )}
         {loading && (
-          <div style={{ background: '#F3F0FF', border: '2px solid #DDD6FE', borderRadius: 16, padding: '12px', marginBottom: 12, textAlign: 'center' }}>
-            <p style={{ fontFamily: 'Nunito, sans-serif', color: '#7C3AED', fontWeight: 700, margin: 0 }}>{`🦊 ${foxName} слуша...`}</p>
+          <div style={{ background: '#EFF6FF', border: '2px solid #BBF7D0', borderRadius: 16, padding: '12px', marginBottom: 12, textAlign: 'center' }}>
+            <p style={{ fontFamily: 'Nunito, sans-serif', color: '#2563EB', fontWeight: 700, margin: 0 }}>{`🦊 ${foxName} слуша...`}</p>
           </div>
         )}
         {feedbackType === 'wrong' && !recording && !loading && (
           <button onClick={async () => { const next = alphaIndex + 1; if (next >= alphabet.length) { setPhase('done'); return } setAlphaIndex(next); setFeedbackType(''); setOwlSays(''); await playTTS(alphabet[next].tts_text || alphabet[next].word); beginAlphaRecording(next) }} style={{
-            width: '100%', background: 'none', border: '2px solid #DDD6FE', color: '#7C3AED',
+            width: '100%', background: 'none', border: '2px solid #BBF7D0', color: '#2563EB',
             borderRadius: 16, padding: '0.9rem', fontFamily: 'Nunito, sans-serif', fontWeight: 800, fontSize: '1rem', cursor: 'pointer'
           }}>Пропусни →</button>
         )}
@@ -542,7 +542,7 @@ export default function ListeningPage() {
   // DONE
   if (phase === 'done') {
     const total = mode === 'alphabet' ? alphabet.length : selected?.sentences.length || 0
-    const c = cfg || { color: '#7C3AED', gradient: 'linear-gradient(135deg, #7C3AED, #6D28D9)', shadow: 'rgba(124,58,237,0.35)' }
+    const c = cfg || { color: '#2563EB', gradient: 'linear-gradient(135deg, #2563EB, #1D4ED8)', shadow: 'rgba(37,99,235,0.35)' }
     return (
       <main className="u4a-dash min-h-screen flex flex-col items-center justify-center p-6">
         <div className="u4a-dash-overlay"></div>
@@ -559,7 +559,7 @@ export default function ListeningPage() {
             boxShadow: `0 8px 24px ${c.shadow}`, marginBottom: 12
           }}>Избери друг текст</button>
           <button onClick={() => router.push('/pronunciation')} style={{
-            width: '100%', background: 'none', border: '2px solid #FED7AA', color: '#F97316',
+            width: '100%', background: 'none', border: '2px solid #FDE68A', color: '#F97316',
             borderRadius: 20, padding: '1rem', fontFamily: 'Nunito, sans-serif', fontWeight: 800, fontSize: '1.1rem', cursor: 'pointer'
           }}>← Към Правоговор</button>
         </div>

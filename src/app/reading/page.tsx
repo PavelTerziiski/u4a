@@ -21,31 +21,31 @@ const LEVEL_CONFIG: Record<Level, {
   easy: {
     label: 'Лесно',
     grades: [1, 2],
-    color: '#2563EB',
+    color: '#16A34A',
     colorLight: '#EFF6FF',
-    colorBorder: '#BFDBFE',
-    gradient: 'linear-gradient(135deg, #3B82F6, #2563EB)',
-    shadow: 'rgba(59,130,246,0.35)',
-    progressBg: '#DBEAFE',
+    colorBorder: '#BBF7D0',
+    gradient: 'linear-gradient(135deg, #22C55E, #16A34A)',
+    shadow: 'rgba(34,197,94,0.35)',
+    progressBg: '#DCFCE7',
   },
   medium: {
     label: 'Средно',
     grades: [3],
-    color: '#EA580C',
+    color: '#D97706',
     colorLight: '#FFF7ED',
-    colorBorder: '#FED7AA',
-    gradient: 'linear-gradient(135deg, #F97316, #EA580C)',
-    shadow: 'rgba(249,115,22,0.35)',
-    progressBg: '#FFEDD5',
+    colorBorder: '#FDE68A',
+    gradient: 'linear-gradient(135deg, #F59E0B, #D97706)',
+    shadow: 'rgba(245,158,11,0.35)',
+    progressBg: '#FEF3C7',
   },
   hard: {
     label: 'Трудно',
     grades: [4],
-    color: '#7C3AED',
-    colorLight: '#F5F3FF',
-    colorBorder: '#DDD6FE',
-    gradient: 'linear-gradient(135deg, #7C3AED, #6D28D9)',
-    shadow: 'rgba(124,58,237,0.35)',
+    color: '#DC2626',
+    colorLight: '#FEF2F2',
+    colorBorder: '#FECACA',
+    gradient: 'linear-gradient(135deg, #EF4444, #DC2626)',
+    shadow: 'rgba(239,68,68,0.35)',
     progressBg: '#EDE9FE',
   },
 }
@@ -476,7 +476,7 @@ const unlockAudio = async () => {
           Избери друга диктовка
         </button>
         <button onClick={() => router.push('/pronunciation')} style={{
-          width: '100%', background: 'none', border: '2px solid #FED7AA',
+          width: '100%', background: 'none', border: '2px solid #FDE68A',
           color: '#F97316', borderRadius: 20, padding: '1rem',
           fontFamily: 'Nunito, sans-serif', fontWeight: 800, fontSize: '1.1rem', cursor: 'pointer'
         }}>
