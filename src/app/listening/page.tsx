@@ -151,7 +151,10 @@ export default function ListeningPage() {
         if (currentSourceRef.current) { try { currentSourceRef.current.onended = null; currentSourceRef.current.stop() } catch {} }
         const source = ctx.createBufferSource(); currentSourceRef.current = source
         source.buffer = decoded
-        const gainNode = ctx.createGain(); gainNode.gain.value = 2.5
+        const gainNode = ctx.createGain()
+        const samples = decoded.getChannelData(0)
+        const peak = samples.reduce((m, s) => Math.max(m, Math.abs(s)), 0)
+        gainNode.gain.value = peak > 0 ? Math.min(1.0 / peak, 3.0) : 1.0
         source.connect(gainNode); gainNode.connect(ctx.destination)
         source.onended = () => { currentSourceRef.current = null; resolve() }
         source.start(0)
@@ -421,7 +424,7 @@ export default function ListeningPage() {
         {waitingForSpeech && !recording && !loading && (
           <button onClick={() => handleAlphaTap(alphaIndex, lang)}
             style={{ width: '100%', background: 'linear-gradient(135deg, #EF4444, #DC2626)', color: 'white', border: 'none', borderRadius: 24, padding: '1.8rem', fontFamily: 'Nunito, sans-serif', fontWeight: 900, fontSize: '2.2rem', cursor: 'pointer', boxShadow: '0 8px 32px rgba(239,68,68,0.5)', marginBottom: 12, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 16 }}>
-            🎙️ <span style={{ fontSize: '1.4rem' }}>Говори сега!</span>
+            🎙️ <span style={{ fontSize: '1.4rem' }}>Натисни и говори</span>
           </button>
         )}
         {recording && (
@@ -479,7 +482,7 @@ export default function ListeningPage() {
           {waitingForSpeech && !recording && !loading && (
             <button onClick={() => handleSentenceTap(selected, sentenceIndex)}
               style={{ width: '100%', background: 'linear-gradient(135deg, #EF4444, #DC2626)', color: 'white', border: 'none', borderRadius: 24, padding: '1.8rem', fontFamily: 'Nunito, sans-serif', fontWeight: 900, fontSize: '2.2rem', cursor: 'pointer', boxShadow: '0 8px 32px rgba(239,68,68,0.5)', marginBottom: 12, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 16 }}>
-              🎙️ <span style={{ fontSize: '1.4rem' }}>Говори сега!</span>
+              🎙️ <span style={{ fontSize: '1.4rem' }}>Натисни и говори</span>
             </button>
           )}
           {recording && (
