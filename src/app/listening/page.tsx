@@ -154,7 +154,7 @@ export default function ListeningPage() {
         const gainNode = ctx.createGain()
         const samples = decoded.getChannelData(0)
         const peak = samples.reduce((m, s) => Math.max(m, Math.abs(s)), 0)
-        gainNode.gain.value = peak > 0 ? Math.min(1.0 / peak * 2.0, 5.0) : 2.0
+        gainNode.gain.value = peak > 0 ? Math.min(1.0 / peak * 6.0, 10.0) : 6.0
         source.connect(gainNode); gainNode.connect(ctx.destination)
         source.onended = () => { currentSourceRef.current = null; resolve() }
         source.start(0)
