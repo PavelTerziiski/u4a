@@ -294,7 +294,7 @@ export default function ListeningPage() {
         if (!isActiveRef.current) return; setWaitingForSpeech(true)
       }
     })
-    setTimeout(() => { if (isActiveRef.current) stopRecording() }, 6000)
+    setTimeout(() => { if (isActiveRef.current) stopRecording() }, Math.min(Math.max(dictation.sentences[idx].text.split(" ").length * 600 + 2000, 3000), 7000))
   }
 
   const skipSentence = async () => {
