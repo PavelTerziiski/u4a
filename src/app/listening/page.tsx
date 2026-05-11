@@ -261,8 +261,11 @@ export default function ListeningPage() {
     if (!isActiveRef.current) return
     setWaitingForSpeech(false); setFeedbackType(''); setOwlSays('')
     const sentence = dictation.sentences[idx].text
-    await typeText(sentence); if (!isActiveRef.current) return
-    await playTTS(sentence, 'kalina', dictation.id, lang ? LANG_CONFIG[lang].dictLang : undefined)
+    await Promise.all([
+      typeText(sentence),
+      playTTS(sentence, 'kalina', dictation.id, lang ? LANG_CONFIG[lang].dictLang : undefined)
+    ])
+    if (!isActiveRef.current) return
     if (!isActiveRef.current) return; setWaitingForSpeech(true)
   }
 
