@@ -432,7 +432,7 @@ const unlockAudio = async () => {
           )}
 
           {waitingForSpeech && !recording && !loading && (
-            <button onClick={() => { setWaitingForSpeech(false); beginRecording(dictation, sentenceIndex) }}
+            <button onClick={() => { setWaitingForSpeech(false); beginRecording(selected!, sentenceIndex) }}
               style={{ width: '100%', background: 'linear-gradient(135deg, #EF4444, #DC2626)', color: 'white', border: 'none', borderRadius: 24, padding: '1.8rem', fontFamily: 'Nunito, sans-serif', fontWeight: 900, fontSize: '2.2rem', cursor: 'pointer', boxShadow: '0 8px 32px rgba(239,68,68,0.5)', marginBottom: 12, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 16 }}>
               🎙️ <span style={{ fontSize: '1.4rem' }}>Натисни и говори</span>
             </button>
