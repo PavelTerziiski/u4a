@@ -58,6 +58,7 @@ export default function ReadingPage() {
   const [phase, setPhase] = useState<'pick' | 'play' | 'done'>('pick')
   const [sentenceIndex, setSentenceIndex] = useState(0)
   const [recording, setRecording] = useState(false)
+  const [waitingForSpeech, setWaitingForSpeech] = useState(false)
   const [loading, setLoading] = useState(false)
   const [feedbackType, setFeedbackType] = useState<'correct' | 'wrong' | ''>('')
   const [owlSays, setOwlSays] = useState('')
@@ -170,12 +171,13 @@ const unlockAudio = async () => {
     if (mediaRecorderRef.current) { try { mediaRecorderRef.current.stop() } catch {} mediaRecorderRef.current = null }
     setRecording(false)
     setLoading(false)
+    setWaitingForSpeech(false)
   }
 
   const playSentence = async (dictation: Dictation, idx: number) => {
     const sentence = dictation.sentences[idx].text
     setTypedText(sentence)
-    beginRecording(dictation, idx)
+    setWaitingForSpeech(true)
   }
 
   const beginRecording = async (dictation: Dictation, idx: number) => {
@@ -253,7 +255,7 @@ const unlockAudio = async () => {
           setOwlSays(newAttempts === 2 ? 'Още един опит!' : 'Опитай пак!')
           setTimeout(() => {
             if (!isActiveRef.current) return
-            beginRecording(dictation, idx)
+            setWaitingForSpeech(true)
           }, 400)
         }
       }
@@ -429,15 +431,15 @@ const unlockAudio = async () => {
             </div>
           )}
 
+          {waitingForSpeech && !recording && !loading && (
+            <button onClick={() => { setWaitingForSpeech(false); beginRecording(dictation, sentenceIndex) }}
+              style={{ width: '100%', background: 'linear-gradient(135deg, #EF4444, #DC2626)', color: 'white', border: 'none', borderRadius: 24, padding: '1.8rem', fontFamily: 'Nunito, sans-serif', fontWeight: 900, fontSize: '2.2rem', cursor: 'pointer', boxShadow: '0 8px 32px rgba(239,68,68,0.5)', marginBottom: 12, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 16 }}>
+              🎙️ <span style={{ fontSize: '1.4rem' }}>Натисни и говори</span>
+            </button>
+          )}
           {recording && !loading && (
-            <div style={{
-              width: '100%', background: '#FEF2F2', border: '2px solid #FECACA',
-              borderRadius: 16, padding: '1.2rem', textAlign: 'center',
-              fontFamily: 'Nunito, sans-serif', fontWeight: 900, fontSize: '1.2rem',
-              color: '#DC2626', marginBottom: 12,
-              boxShadow: '0 0 0 8px rgba(239,68,68,0.1)',
-            }}>
-              📖 Прочети на глас!
+            <div style={{ width: '100%', background: '#FEF2F2', border: '2px solid #FECACA', borderRadius: 16, padding: '1.4rem', textAlign: 'center', fontFamily: 'Nunito, sans-serif', fontWeight: 900, fontSize: '1.3rem', color: '#DC2626', marginBottom: 12 }}>
+              🎤 Слушам...
             </div>
           )}
 
