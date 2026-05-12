@@ -380,6 +380,7 @@ const handleScanResult = (sentences: string[]) => {
             <button onClick={async () => { await acquireMic(); await unlockAudio(); startAlphabet(lang) }}
               style={{ width: '100%', background: 'white', color: '#2563EB', border: '2px solid #BFDBFE', borderRadius: 20, padding: '1.2rem', fontFamily: 'Nunito, sans-serif', fontWeight: 900, fontSize: '1.2rem', cursor: 'pointer', boxShadow: '0 4px 12px rgba(37,99,235,0.15)', marginBottom: 12 }}>🔤 Азбука и звуци</button>
           )}
+          <button onClick={() => setScanOpen(true)} style={{ width: '100%', background: 'white', border: '2px dashed #F97316', borderRadius: 20, padding: '1rem', marginBottom: 12, cursor: 'pointer', fontFamily: 'Nunito, sans-serif', fontWeight: 800, color: '#F97316', fontSize: '1rem' }}>📷 Снимай текст от книга</button>
           {(['easy', 'medium', 'hard'] as const).map(lvl => {
             const c = LEVEL_CONFIG[lvl]
             return (
@@ -398,7 +399,6 @@ const handleScanResult = (sentences: string[]) => {
       <div className="max-w-md mx-auto" style={{ position: 'relative', zIndex: 1 }}>
         <button onClick={() => goBack('lang')} style={{ background: 'none', border: 'none', fontSize: '1.1rem', cursor: 'pointer', color: '#F97316', marginBottom: 24, fontFamily: 'Nunito, sans-serif', fontWeight: 800 }}>← Назад</button>
         <h2 style={{ fontFamily: 'Nunito, sans-serif', fontWeight: 900, fontSize: '1.5rem', color: cfg.color, marginBottom: 20 }}>{LANG_CONFIG[lang].flag} {cfg.label} — избери текст</h2>
-        <button onClick={() => setScanOpen(true)} style={{ width: '100%', background: 'white', border: `2px dashed ${cfg.color}`, borderRadius: 16, padding: '0.8rem', marginBottom: 16, cursor: 'pointer', fontFamily: 'Nunito, sans-serif', fontWeight: 800, color: cfg.color, fontSize: '0.95rem' }}>📷 Снимай текст от книга</button>
         {dictations.length === 0 && <p style={{ color: '#9CA3AF', textAlign: 'center', fontFamily: 'Nunito, sans-serif' }}>Зареждане...</p>}
         {dictations.map(d => (
           <button key={d.id} onClick={async () => {
