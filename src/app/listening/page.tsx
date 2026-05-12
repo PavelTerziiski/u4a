@@ -381,6 +381,7 @@ const handleScanResult = (sentences: string[]) => {
               style={{ width: '100%', background: 'white', color: '#2563EB', border: '2px solid #BFDBFE', borderRadius: 20, padding: '1.2rem', fontFamily: 'Nunito, sans-serif', fontWeight: 900, fontSize: '1.2rem', cursor: 'pointer', boxShadow: '0 4px 12px rgba(37,99,235,0.15)', marginBottom: 12 }}>🔤 Азбука и звуци</button>
           )}
           <button onClick={() => setScanOpen(true)} style={{ width: '100%', background: 'white', border: '2px dashed #F97316', borderRadius: 20, padding: '1rem', marginBottom: 12, cursor: 'pointer', fontFamily: 'Nunito, sans-serif', fontWeight: 800, color: '#F97316', fontSize: '1rem' }}>📷 Снимай текст от книга</button>
+          <ScanTextModal open={scanOpen} onClose={() => setScanOpen(false)} onResult={handleScanResult} accentColor="#2563EB" title="Снимай текст за слушане" />
           {(['easy', 'medium', 'hard'] as const).map(lvl => {
             const c = LEVEL_CONFIG[lvl]
             return (
