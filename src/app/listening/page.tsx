@@ -3,6 +3,7 @@ import { useEffect, useState, useRef, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
 import Fox from '@/components/fox/Fox'
+import ScanTextModal from '@/components/ScanTextModal'
 import { Dictation } from '@/lib/types'
 import '../../app/dashboard/dashboard.css'
 
@@ -76,6 +77,7 @@ export default function ListeningPage() {
   const [recording, setRecording] = useState(false)
   const [loading, setLoading] = useState(false)
   const [waitingForSpeech, setWaitingForSpeech] = useState(false)
+  const [scanOpen, setScanOpen] = useState(false)
   const [feedbackType, setFeedbackType] = useState<'correct' | 'wrong' | ''>('')
   const [owlSays, setOwlSays] = useState('')
   const [score, setScore] = useState(0)
@@ -115,7 +117,27 @@ export default function ListeningPage() {
     if (currentStreamRef.current) { currentStreamRef.current.getTracks().forEach(t => t.stop()); currentStreamRef.current = null }
     setRecording(false); setLoading(false); setWaitingForSpeech(false)
   }, [])
-
+const handleScanResult = (sentences: string[]) => {
+    const fakeDictation: Dictation = {
+      id: 'scan-' + Date.now(),
+      title: 'Снимана диктовка',
+      grade: 0,
+      language: lang || 'bg',
+      difficulty: 'easy',
+      level: 1,
+      sentences: sentences.map((text, i) => ({ id: String(i), text })),
+      words: [],
+      is_premium: false,
+      category: 'scan',
+    } as unknown as Dictation
+    setScanOpen(false)
+    acquireMic().then(() => unlockAudio()).then(() => {
+      isActiveRef.current = true
+      setSelected(fakeDictation); setSentenceIndex(0); setScore(0)
+      setFeedbackType(''); setOwlSays(''); setTypedText('')
+      setPhase('play'); playSentence(fakeDictation, 0)
+    })
+  }
   const goBack = useCallback((targetPhase: 'menu' | 'lang' | 'pick' | 'pronunciation') => {
     killEverything()
     isActiveRef.current = true
@@ -376,6 +398,7 @@ export default function ListeningPage() {
       <div className="max-w-md mx-auto" style={{ position: 'relative', zIndex: 1 }}>
         <button onClick={() => goBack('lang')} style={{ background: 'none', border: 'none', fontSize: '1.1rem', cursor: 'pointer', color: '#F97316', marginBottom: 24, fontFamily: 'Nunito, sans-serif', fontWeight: 800 }}>← Назад</button>
         <h2 style={{ fontFamily: 'Nunito, sans-serif', fontWeight: 900, fontSize: '1.5rem', color: cfg.color, marginBottom: 20 }}>{LANG_CONFIG[lang].flag} {cfg.label} — избери текст</h2>
+        <button onClick={() => setScanOpen(true)} style={{ width: '100%', background: 'white', border: `2px dashed ${cfg.color}`, borderRadius: 16, padding: '0.8rem', marginBottom: 16, cursor: 'pointer', fontFamily: 'Nunito, sans-serif', fontWeight: 800, color: cfg.color, fontSize: '0.95rem' }}>📷 Снимай текст от книга</button>
         {dictations.length === 0 && <p style={{ color: '#9CA3AF', textAlign: 'center', fontFamily: 'Nunito, sans-serif' }}>Зареждане...</p>}
         {dictations.map(d => (
           <button key={d.id} onClick={async () => {
@@ -531,5 +554,13 @@ export default function ListeningPage() {
     )
   }
 
-  return null
+  return (
+    <ScanTextModal
+      open={scanOpen}
+      onClose={() => setScanOpen(false)}
+      onResult={handleScanResult}
+      accentColor="#2563EB"
+      title="Снимай текст за слушане"
+    />
+  )
 }
