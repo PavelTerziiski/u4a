@@ -70,7 +70,7 @@ export default function ListeningPage() {
   const [mode, setMode] = useState<Mode | null>(null)
   const [dictations, setDictations] = useState<Dictation[]>([])
   const [selected, setSelected] = useState<Dictation | null>(null)
-  const [phase, setPhase] = useState<'menu' | 'lang' | 'pick' | 'play' | 'done'>('menu')
+  const [phase, setPhase] = useState<'menu' | 'lang' | 'pick' | 'play' | 'done' | 'scan-ready'>('menu')
   const [sentenceIndex, setSentenceIndex] = useState(0)
   const [alphaIndex, setAlphaIndex] = useState(0)
   const [allAlphaWords, setAllAlphaWords] = useState<PronunciationWord[]>([])
@@ -131,12 +131,11 @@ const handleScanResult = (sentences: string[]) => {
       category: 'scan',
     } as unknown as Dictation
     setScanOpen(false)
-    acquireMic().then(() => unlockAudio()).then(() => {
-      isActiveRef.current = true
-      setSelected(fakeDictation); setSentenceIndex(0); setScore(0)
-      setFeedbackType(''); setOwlSays(''); setTypedText('')
-      setPhase('play'); playSentence(fakeDictation, 0)
-    })
+    isActiveRef.current = true
+    setMode('medium')
+    setSelected(fakeDictation); setSentenceIndex(0); setScore(0)
+    setFeedbackType(''); setOwlSays(''); setTypedText('')
+    setPhase('scan-ready')
   }
   const goBack = useCallback((targetPhase: 'menu' | 'lang' | 'pick' | 'pronunciation') => {
     killEverything()
@@ -415,6 +414,31 @@ const handleScanResult = (sentences: string[]) => {
     </main>
   )
 
+  if (phase === 'scan-ready' && selected) return (
+    <main className="u4a-dash min-h-screen flex flex-col items-center justify-center p-6">
+      <div className="u4a-dash-overlay"></div>
+      <div className="w-full max-w-md text-center" style={{ position: 'relative', zIndex: 1 }}>
+        <Fox mood="excited" size={140} />
+        <h1 style={{ fontFamily: 'Nunito, sans-serif', fontWeight: 900, fontSize: '1.8rem', color: '#2563EB', marginTop: 16, marginBottom: 8 }}>Готово!</h1>
+        <p style={{ color: '#6B7280', fontFamily: 'Nunito, sans-serif', marginBottom: 16 }}>Разпознах {selected.sentences.length} изречения. Слушай и повтаряй след мен!</p>
+        <div style={{ background: 'white', borderRadius: 16, padding: 16, boxShadow: '0 4px 12px rgba(0,0,0,0.05)', marginBottom: 16, textAlign: 'left' }}>
+          {selected.sentences.map((sent, i) => (
+            <p key={i} style={{ color: '#4B5563', fontSize: '0.95rem', marginBottom: 4, fontFamily: 'Nunito, sans-serif' }}>{i + 1}. {sent.text}</p>
+          ))}
+        </div>
+        <button onClick={async () => {
+          await acquireMic(); await unlockAudio()
+          isActiveRef.current = true
+          setPhase('play'); playSentence(selected, 0)
+        }} style={{ width: '100%', background: 'linear-gradient(135deg, #3B82F6, #2563EB)', color: 'white', border: 'none', borderRadius: 20, padding: '1.2rem', fontFamily: 'Nunito, sans-serif', fontWeight: 900, fontSize: '1.2rem', cursor: 'pointer', boxShadow: '0 8px 24px rgba(37,99,235,0.35)', marginBottom: 12 }}>
+          Готов съм! 🎙️
+        </button>
+        <button onClick={() => { setPhase('menu'); setScanOpen(true) }} style={{ background: 'none', border: 'none', color: '#2563EB', fontFamily: 'Nunito, sans-serif', fontWeight: 700, cursor: 'pointer' }}>
+          ← Снимай отново
+        </button>
+      </div>
+    </main>
+  )
   if (phase === 'play' && mode === 'alphabet' && lang) return (
     <main className="u4a-dash min-h-screen flex flex-col items-center p-6 pt-10">
       <div className="u4a-dash-overlay"></div>
