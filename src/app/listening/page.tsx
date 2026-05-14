@@ -172,7 +172,7 @@ const handleScanResult = (sentences: string[]) => {
         if (currentSourceRef.current) { try { currentSourceRef.current.onended = null; currentSourceRef.current.stop() } catch {} }
         const source = ctx.createBufferSource(); currentSourceRef.current = source
         source.buffer = decoded
-        const gainNode = ctx.createGain(); gainNode.gain.value = 3.5
+        const gainNode = ctx.createGain(); gainNode.gain.value = 1.8
         source.connect(gainNode); gainNode.connect(ctx.destination)
         source.onended = () => { currentSourceRef.current = null; resolve() }
         source.start(0)
