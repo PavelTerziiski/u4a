@@ -22,8 +22,8 @@ export default function AnimatedFox({
         height: size,
         display: 'inline-block',
         position: 'relative',
-        WebkitMaskImage: 'radial-gradient(circle at center, black 40%, transparent 70%)',
-        maskImage: 'radial-gradient(circle at center, black 40%, transparent 70%)',
+        WebkitMaskImage: 'radial-gradient(circle at center, black 55%, transparent 78%)',
+        maskImage: 'radial-gradient(circle at center, black 55%, transparent 78%)',
       }}
     >
       <video
@@ -37,8 +37,9 @@ export default function AnimatedFox({
           width: '100%',
           height: '100%',
           objectFit: 'cover',
-          objectPosition: 'center 30%',
+          objectPosition: 'center 35%',
           display: 'block',
+          transform: 'scale(1.15)',
         }}
       />
     </div>
