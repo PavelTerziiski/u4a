@@ -24,7 +24,7 @@ export default function AnimatedFox({
         position: 'relative',
         borderRadius: '50%',
         overflow: 'hidden',
-        boxShadow: '0 0 60px 20px #FEF3E7',
+        boxShadow: 'inset 0 0 40px 20px #FEF3E7, 0 0 50px 15px #FEF3E7',
       }}
     >
       <video
@@ -35,13 +35,10 @@ export default function AnimatedFox({
         muted
         playsInline
         style={{
-          position: 'absolute',
-          top: '50%',
-          left: '50%',
-          transform: 'translate(-50%, -50%)',
+          width: '100%',
           height: '100%',
-          width: 'auto',
-          minWidth: '100%',
+          objectFit: 'cover',
+          objectPosition: 'center top',
           display: 'block',
         }}
       />
