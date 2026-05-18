@@ -10,7 +10,7 @@ const SRC: Record<Mood, string> = {
 
 export default function AnimatedFox({
   mood = 'happy',
-  size = 220,
+  size = 240,
 }: {
   mood?: Mood
   size?: number
@@ -22,9 +22,8 @@ export default function AnimatedFox({
         height: size,
         display: 'inline-block',
         position: 'relative',
-        // Radial gradient mask — fades video edges into background
-        WebkitMaskImage: 'radial-gradient(circle, black 55%, transparent 75%)',
-        maskImage: 'radial-gradient(circle, black 55%, transparent 75%)',
+        WebkitMaskImage: 'radial-gradient(circle at center, black 40%, transparent 70%)',
+        maskImage: 'radial-gradient(circle at center, black 40%, transparent 70%)',
       }}
     >
       <video
@@ -37,7 +36,8 @@ export default function AnimatedFox({
         style={{
           width: '100%',
           height: '100%',
-          objectFit: 'contain',
+          objectFit: 'cover',
+          objectPosition: 'center 30%',
           display: 'block',
         }}
       />
