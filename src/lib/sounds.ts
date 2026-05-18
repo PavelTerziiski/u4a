@@ -25,7 +25,7 @@ export function playSound(name: SoundName) {
     }
     audio.currentTime = 0
     audio.play().catch(() => {})
-  } catch (e) {
+  } catch {
     // тихо игнорираме ако файлът липсва
   }
 }
