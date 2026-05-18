@@ -320,7 +320,7 @@ const handleScanResult = (sentences: string[]) => {
       const originalWords = original.replace(/[.,!?;:]/g, '').split(' ')
       const transcriptWords = transcript.replace(/[.,!?;:]/g, '').split(' ')
       const matchCount = originalWords.filter((w: string) => transcriptWords.includes(w)).length
-      const isCorrect = transcript.length > 2 && matchCount >= Math.ceil(originalWords.length * 0.5)
+      const isCorrect = transcript.length > 2 && matchCount >= Math.ceil(originalWords.length * 0.3)
       setLoading(false); if (!isActiveRef.current) return
       if (isCorrect) {
         setFeedbackType('correct'); setOwlSays('Браво!'); setScore(s => s + 1); playSound('correct')
