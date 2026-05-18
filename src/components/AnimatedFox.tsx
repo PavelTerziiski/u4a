@@ -24,8 +24,7 @@ export default function AnimatedFox({
         position: 'relative',
         borderRadius: '50%',
         overflow: 'hidden',
-        WebkitMaskImage: 'radial-gradient(circle, black 60%, transparent 80%)',
-        maskImage: 'radial-gradient(circle, black 60%, transparent 80%)',
+        boxShadow: '0 0 60px 20px #FEF3E7',
       }}
     >
       <video
