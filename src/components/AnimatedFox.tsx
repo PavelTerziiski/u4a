@@ -1,13 +1,13 @@
 'use client'
-
-type Mood = 'happy' | 'excited' | 'tryagain'
-
+type Mood = 'happy' | 'excited' | 'tryagain' | 'writes' | 'sad' | 'wink'
 const SRC: Record<Mood, string> = {
   happy: '/videos/fox-happy-pp.mp4',
   excited: '/videos/fox-excited-pp.mp4',
   tryagain: '/videos/fox-tryagain-pp.mp4',
+  writes: '/videos/fox-writes-pp.mp4',
+  sad: '/videos/fox-sad-pp.mp4',
+  wink: '/videos/fox-wink-pp.mp4',
 }
-
 export default function AnimatedFox({
   mood = 'happy',
   size = 260,

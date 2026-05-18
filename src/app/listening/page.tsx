@@ -3,6 +3,9 @@ import { useEffect, useState, useRef, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
 import Fox from '@/components/fox/Fox'
+import AnimatedFox from '@/components/AnimatedFox'
+import Confetti from '@/components/Confetti'
+import { playSound } from '@/lib/sounds'
 import ScanTextModal from '@/components/ScanTextModal'
 import { Dictation } from '@/lib/types'
 import '../../app/dashboard/dashboard.css'
@@ -84,6 +87,20 @@ export default function ListeningPage() {
   const [typedText, setTypedText] = useState('')
   const [strings, setStrings] = useState<Record<string, string>>({})
   const [foxName, setFoxName] = useState('Роки')
+  const [confettiActive, setConfettiActive] = useState(false)
+
+  useEffect(() => {
+    if (phase === 'done') {
+      const alpha = lang ? getAlphabet(lang) : ALPHABET_FALLBACK
+      const total = mode === 'alphabet' ? alpha.length : selected?.sentences.length || 0
+      if (total > 0 && score >= total * 0.7) {
+        playSound('finish')
+        setConfettiActive(true)
+      }
+    } else {
+      setConfettiActive(false)
+    }
+  }, [phase])
 
   const mediaRecorderRef = useRef<MediaRecorder | null>(null)
   const chunksRef = useRef<Blob[]>([])
@@ -251,7 +268,7 @@ const handleScanResult = (sentences: string[]) => {
       const isCorrect = transcript.length > 1 && (transcript.includes(target) || transcript.includes(targetRoot) || target.includes(transcript.replace(/[^a-zа-яё]/gi, '').substring(0, 3)))
       setLoading(false); if (!isActiveRef.current) return
       if (isCorrect) {
-        setFeedbackType('correct'); setOwlSays('Браво!'); setScore(s => s + 1)
+        setFeedbackType('correct'); setOwlSays('Браво!'); setScore(s => s + 1); playSound('correct')
         await playTTS('Браво!', 'borisslav'); if (!isActiveRef.current) return
         const next = idx + 1
         if (next >= alpha.length) { setPhase('done'); return }
@@ -259,7 +276,7 @@ const handleScanResult = (sentences: string[]) => {
         await playTTS(alpha[next].tts_text || alpha[next].word, 'kalina', undefined, LANG_CONFIG[selectedLang].dictLang)
         if (!isActiveRef.current) return; setWaitingForSpeech(true)
       } else {
-        setFeedbackType('wrong'); setOwlSays('Опитай пак!')
+        setFeedbackType('wrong'); setOwlSays('Опитай пак!'); playSound('wrong')
         await playTTS('Опитай пак!', 'borisslav'); if (!isActiveRef.current) return
         await playTTS(alpha[idx].tts_text || alpha[idx].word, 'kalina', undefined, LANG_CONFIG[selectedLang].dictLang)
         if (!isActiveRef.current) return; setWaitingForSpeech(true)
@@ -306,13 +323,13 @@ const handleScanResult = (sentences: string[]) => {
       const isCorrect = transcript.length > 2 && matchCount >= Math.ceil(originalWords.length * 0.5)
       setLoading(false); if (!isActiveRef.current) return
       if (isCorrect) {
-        setFeedbackType('correct'); setOwlSays('Браво!'); setScore(s => s + 1)
+        setFeedbackType('correct'); setOwlSays('Браво!'); setScore(s => s + 1); playSound('correct')
         await playTTS('Браво!', 'borisslav'); if (!isActiveRef.current) return
         const next = idx + 1
         if (next >= dictation.sentences.length) { setPhase('done'); return }
         setSentenceIndex(next); await playSentence(dictation, next)
       } else {
-        setFeedbackType('wrong'); setOwlSays('Опитай пак!')
+        setFeedbackType('wrong'); setOwlSays('Опитай пак!'); playSound('wrong')
         await playTTS('Опитай пак!', 'borisslav'); if (!isActiveRef.current) return
         await playTTS(dictation.sentences[idx].text, 'kalina', dictation.id, lang ? LANG_CONFIG[lang].dictLang : undefined)
         if (!isActiveRef.current) return; setWaitingForSpeech(true)
@@ -452,7 +469,7 @@ const handleScanResult = (sentences: string[]) => {
           <div style={{ width: `${(alphaIndex / getAlphabet(lang).length) * 100}%`, background: 'linear-gradient(90deg, #2563EB, #60A5FA)', height: 10, borderRadius: 99, transition: 'width 0.5s' }} />
         </div>
         <div style={{ textAlign: 'center', marginBottom: 12 }}>
-          <Fox mood={feedbackType === 'correct' ? 'excited' : feedbackType === 'wrong' ? 'sad' : recording ? 'wink' : 'happy'} size={130} />
+          <AnimatedFox mood={feedbackType === 'correct' ? 'excited' : feedbackType === 'wrong' ? 'tryagain' : recording ? 'wink' : 'happy'} size={150} />
         </div>
         {owlSays && (
           <div style={{ background: feedbackType === 'correct' ? '#F0FDF4' : '#FFF7ED', border: `2px solid ${feedbackType === 'correct' ? '#86EFAC' : '#FDE68A'}`, borderRadius: 16, padding: '10px 16px', marginBottom: 16, textAlign: 'center' }}>
@@ -510,7 +527,7 @@ const handleScanResult = (sentences: string[]) => {
             <div style={{ width: `${(sentenceIndex / selected.sentences.length) * 100}%`, background: cfg.gradient, height: 10, borderRadius: 99, transition: 'width 0.5s' }} />
           </div>
           <div style={{ textAlign: 'center', marginBottom: 12 }}>
-            <Fox mood={feedbackType === 'correct' ? 'excited' : feedbackType === 'wrong' ? 'sad' : recording ? 'wink' : 'happy'} size={130} />
+            <AnimatedFox mood={feedbackType === 'correct' ? 'excited' : feedbackType === 'wrong' ? 'tryagain' : recording ? 'wink' : 'happy'} size={150} />
           </div>
           {owlSays && (
             <div style={{ background: feedbackType === 'correct' ? '#F0FDF4' : cfg.colorLight, border: `2px solid ${feedbackType === 'correct' ? '#86EFAC' : cfg.colorBorder}`, borderRadius: 16, padding: '10px 16px', marginBottom: 16, textAlign: 'center' }}>
@@ -559,10 +576,12 @@ const handleScanResult = (sentences: string[]) => {
     const total = mode === 'alphabet' ? alpha.length : selected?.sentences.length || 0
     const c = cfg || { color: '#2563EB', gradient: 'linear-gradient(135deg, #2563EB, #1D4ED8)', shadow: 'rgba(37,99,235,0.35)' }
     return (
+      <>
+      <Confetti active={confettiActive} />
       <main className="u4a-dash min-h-screen flex flex-col items-center justify-center p-6">
         <div className="u4a-dash-overlay"></div>
         <div className="w-full max-w-md text-center" style={{ position: 'relative', zIndex: 1 }}>
-          <Fox mood={score >= total * 0.7 ? 'excited' : 'happy'} size={160} />
+          <AnimatedFox mood={score >= total * 0.7 ? 'excited' : 'happy'} size={200} />
           <h1 style={{ fontFamily: 'Nunito, sans-serif', fontWeight: 900, fontSize: '2.5rem', color: c.color, marginTop: 16 }}>{score >= total * 0.7 ? '🎉 Браво!' : '👍 Добре!'}</h1>
           <p style={{ fontFamily: 'Nunito, sans-serif', fontSize: '4rem', fontWeight: 900, color: '#F97316' }}>{score}/{total}</p>
           <p style={{ color: '#92400E', fontFamily: 'Nunito, sans-serif', marginBottom: 32 }}>верни отговора</p>
@@ -576,6 +595,7 @@ const handleScanResult = (sentences: string[]) => {
           </button>
         </div>
       </main>
+      </>
     )
   }
 
