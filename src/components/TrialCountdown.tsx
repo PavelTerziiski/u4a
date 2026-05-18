@@ -24,7 +24,7 @@ export default function TrialCountdown({ trialEndsAt }: { trialEndsAt: string })
         <span style={{ fontFamily: 'SF Mono, Menlo, Consolas, monospace', fontSize: '1.1rem', fontWeight: 800, color: '#7C2D12', letterSpacing: '1px' }}>
           {pad(h)}:{pad(m)}:{pad(s)}
         </span>
-        <span style={{ fontSize: '0.65rem', color: '#B45309', fontFamily: 'Nunito, sans-serif', fontWeight: 700 }}>ОСТАВАТ · ч : м : с</span>
+        <span style={{ fontSize: '0.65rem', color: '#B45309', fontFamily: 'Nunito, sans-serif', fontWeight: 700 }}>ОСТАВАТ</span>
       </div>
       <style jsx>{`
         @keyframes u4a-pulse {

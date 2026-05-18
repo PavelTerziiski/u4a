@@ -2,9 +2,25 @@ import type { Metadata } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  icons: { icon: "/favicon.ico", apple: "/apple-touch-icon.png" },
+  metadataBase: new URL("https://u4a.bg"),
+  icons: { icon: "/favicon.png", apple: "/apple-touch-icon.png" },
   title: "u4a — Правопис и Правоговор За Твоето Дете",
-  description: "Диктовки за деца 1-4 клас с изкуствен интелект",
+  description: "Правопис, правоговор и чужди езици — детето учи с лисицата всеки ден.",
+  openGraph: {
+    title: "u4a — Правопис и Правоговор За Твоето Дете",
+    description: "Правопис, правоговор и чужди езици — детето учи с лисицата всеки ден.",
+    url: "https://u4a.bg",
+    siteName: "u4a",
+    images: [{ url: "/og-image.png", width: 1200, height: 630, alt: "u4a — Правопис и Правоговор" }],
+    locale: "bg_BG",
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "u4a — Правопис и Правоговор За Твоето Дете",
+    description: "Правопис, правоговор и чужди езици — детето учи с лисицата всеки ден.",
+    images: ["/og-image.png"],
+  },
 };
 
 export default function RootLayout({
