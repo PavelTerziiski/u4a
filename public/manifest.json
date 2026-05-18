@@ -1,16 +1,23 @@
 {
-  "name": "u4a — Диктовки за деца",
+  "name": "u4a — Правопис и правоговор за твоето дете",
   "short_name": "u4a",
-  "description": "Диктовки за деца 2-5 клас",
+  "description": "Правопис, правоговор и чужди езици с лисицата.",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#FFF8F0",
+  "background_color": "#FEF3E7",
   "theme_color": "#F97316",
   "icons": [
     {
-      "src": "/favicon.ico",
-      "sizes": "any",
-      "type": "image/x-icon"
+      "src": "/favicon.png",
+      "sizes": "471x486",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/apple-touch-icon.png",
+      "sizes": "471x486",
+      "type": "image/png",
+      "purpose": "any maskable"
     }
   ]
 }
