@@ -4,10 +4,10 @@ import "./globals.css";
 export const metadata: Metadata = {
   metadataBase: new URL("https://u4a.bg"),
   icons: { icon: "/favicon.png", apple: "/apple-touch-icon.png" },
-  title: "u4a — Правопис и Правоговор За Твоето Дете",
+  title: "u4a — Правопис и правоговор за твоето дете",
   description: "Правопис, правоговор и чужди езици — детето учи с лисицата всеки ден.",
   openGraph: {
-    title: "u4a — Правопис и Правоговор За Твоето Дете",
+    title: "u4a — Правопис и правоговор за твоето дете",
     description: "Правопис, правоговор и чужди езици — детето учи с лисицата всеки ден.",
     url: "https://u4a.bg",
     siteName: "u4a",
@@ -17,7 +17,7 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "u4a — Правопис и Правоговор За Твоето Дете",
+    title: "u4a — Правопис и правоговор за твоето дете",
     description: "Правопис, правоговор и чужди езици — детето учи с лисицата всеки ден.",
     images: ["/og-image.png"],
   },
