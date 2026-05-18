@@ -131,20 +131,14 @@ export default function Dashboard() {
           </div>
         )}
 
-        {profile?.username === 'Pavel' ? (
-          <div className="fade-up fade-up-3" style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-            <button className="main-btn" onClick={() => router.push('/dictation')}>
-              ✏️ Правопис
-            </button>
-            <button className="main-btn" onClick={() => router.push('/pronunciation')} style={{ background: 'linear-gradient(135deg, #3B82F6, #2563EB)' }}>
-              🗣️ Правоговор
-            </button>
-          </div>
-        ) : (
-          <button className="main-btn fade-up fade-up-3" onClick={() => router.push('/dictation')}>
-            ✏️ Започни диктовка!
+        <div className="fade-up fade-up-3" style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+          <button className="main-btn" onClick={() => router.push('/dictation')}>
+            ✏️ Правопис
           </button>
-        )}
+          <button className="main-btn" onClick={() => router.push('/pronunciation')} style={{ background: 'linear-gradient(135deg, #3B82F6, #2563EB)' }}>
+            🗣️ Правоговор
+          </button>
+        </div>
 
 
       </div>
