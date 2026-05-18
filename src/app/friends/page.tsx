@@ -116,31 +116,25 @@ export default function Friends() {
       <div className="bottom-nav">
         <div className="nav-item" onClick={() => router.push('/dashboard')}>
           <span style={{background:'white',borderRadius:'50%',width:56,height:56,display:'flex',alignItems:'center',justifyContent:'center',marginBottom:2,boxShadow:'0 2px 8px rgba(0,0,0,0.15)'}}>
-            <img src="/icons/home.png" style={{width:36,height:36,objectFit:'contain'}} />
+            <span style={{fontSize:32}}>🏡</span>
           </span>
           Начало
         </div>
-        <div className="nav-item" onClick={() => router.push('/dictation')}>
-          <span style={{background:'white',borderRadius:'50%',width:56,height:56,display:'flex',alignItems:'center',justifyContent:'center',marginBottom:2,boxShadow:'0 2px 8px rgba(0,0,0,0.15)'}}>
-            <img src="/icons/dictations.png" style={{width:36,height:36,objectFit:'contain'}} />
-          </span>
-          Диктовки
-        </div>
         <div className="nav-item active">
           <span style={{background:'white',borderRadius:'50%',width:56,height:56,display:'flex',alignItems:'center',justifyContent:'center',marginBottom:2,boxShadow:'0 2px 8px rgba(0,0,0,0.15)'}}>
-            <img src="/icons/friends.png" style={{width:36,height:36,objectFit:'contain'}} />
+            <span style={{fontSize:32}}>🐻</span>
           </span>
           Приятели
         </div>
         <div className="nav-item" onClick={() => router.push('/settings')}>
           <span style={{background:'white',borderRadius:'50%',width:56,height:56,display:'flex',alignItems:'center',justifyContent:'center',marginBottom:2,boxShadow:'0 2px 8px rgba(0,0,0,0.15)'}}>
-            <img src="/icons/settings.png" style={{width:36,height:36,objectFit:'contain'}} />
+            <span style={{fontSize:32}}>⚙️</span>
           </span>
           Настройки
         </div>
         <div className="nav-item" onClick={() => router.push('/parent-view')}>
           <span style={{background:'white',borderRadius:'50%',width:56,height:56,display:'flex',alignItems:'center',justifyContent:'center',marginBottom:2,boxShadow:'0 2px 8px rgba(0,0,0,0.15)'}}>
-            <span style={{fontSize:28}}>👨‍👩‍👧</span>
+            <span style={{fontSize:32}}>👨‍👩‍👧</span>
           </span>
           За родителя
         </div>
