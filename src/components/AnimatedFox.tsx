@@ -3,14 +3,14 @@
 type Mood = 'happy' | 'excited' | 'tryagain'
 
 const SRC: Record<Mood, string> = {
-  happy: '/videos/fox-happy.mp4',
-  excited: '/videos/fox-excited.mp4',
-  tryagain: '/videos/fox-tryagain.mp4',
+  happy: '/videos/fox-happy-pp.mp4',
+  excited: '/videos/fox-excited-pp.mp4',
+  tryagain: '/videos/fox-tryagain-pp.mp4',
 }
 
 export default function AnimatedFox({
   mood = 'happy',
-  size = 180,
+  size = 220,
 }: {
   mood?: Mood
   size?: number
@@ -20,11 +20,11 @@ export default function AnimatedFox({
       style={{
         width: size,
         height: size,
-        borderRadius: '50%',
-        overflow: 'hidden',
-        background: '#FEF3E7',
         display: 'inline-block',
         position: 'relative',
+        // Radial gradient mask — fades video edges into background
+        WebkitMaskImage: 'radial-gradient(circle, black 55%, transparent 75%)',
+        maskImage: 'radial-gradient(circle, black 55%, transparent 75%)',
       }}
     >
       <video
@@ -37,7 +37,7 @@ export default function AnimatedFox({
         style={{
           width: '100%',
           height: '100%',
-          objectFit: 'cover',
+          objectFit: 'contain',
           display: 'block',
         }}
       />
