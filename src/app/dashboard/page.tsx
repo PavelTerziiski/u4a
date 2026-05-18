@@ -118,9 +118,8 @@ export default function Dashboard() {
 
         {!profile?.is_premium && (
           <div className="premium-banner fade-up fade-up-3">
-            <div style={{ fontSize: '1.8rem' }}>🌰</div>
             <div style={{ flex: 1 }}>
-              <div className="premium-title">🎯 Пробен период</div>
+              <div className="premium-title">Пробен период</div>
               {profile?.trial_ends_at ? <TrialCountdown trialEndsAt={profile.trial_ends_at} /> : <div className="premium-sub">Имаш 6 безплатни диктовки · После избери план</div>}
             </div>
             <button onClick={() => router.push("/plans")} style={{
