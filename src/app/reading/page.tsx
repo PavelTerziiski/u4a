@@ -218,7 +218,7 @@ const unlockAudio = async () => {
       const stopWords = new Set(['и','на','в','от','се','да','не','с','за','по','до','при','но','а','като','че','е','са','го','я','им','ги','ни','ви','му','й'])
       const originalWords = original.replace(/[.,!?;:]/g, '').split(' ').filter((w: string) => !stopWords.has(w))
       const transcriptWords = transcript.replace(/[.,!?;:]/g, '').split(' ')
-      const matchCount = originalWords.filter((w: string) => || w.includes(t.slice(0,4)))).length
+      const matchCount = originalWords.filter((w: string) => transcriptWords.some((t: string) => t.includes(w.slice(0,3)) || w.includes(t.slice(0,3)))).length
       const isCorrect = transcript.length > 2 && matchCount >= Math.ceil(originalWords.length * 0.25)
       setLoading(false)
       if (isCorrect) {
