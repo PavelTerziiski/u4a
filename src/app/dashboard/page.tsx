@@ -5,6 +5,7 @@ import { supabase } from '@/lib/supabase'
 import { Profile } from '@/lib/types'
 import Fox from '@/components/fox/Fox'
 import './dashboard.css'
+import TrialCountdown from '@/components/TrialCountdown'
 
 const AVATAR_FILES = ['fox','bear','owl','squirrel','deer','rabbit','hedgehog','wolf']
 
@@ -120,7 +121,7 @@ export default function Dashboard() {
             <div style={{ fontSize: '1.8rem' }}>🌰</div>
             <div style={{ flex: 1 }}>
               <div className="premium-title">🎯 Пробен период</div>
-              {profile?.trial_ends_at ? (new Date(profile.trial_ends_at) > new Date() ? <div className="premium-sub">⏳ Остават {Math.ceil((new Date(profile.trial_ends_at).getTime() - Date.now()) / 3600000)} ч. пробен период</div> : <div className="premium-sub">Пробният период изтече · Избери план</div>) : <div className="premium-sub">Имаш 6 безплатни диктовки · После избери план</div>}
+              {profile?.trial_ends_at ? <TrialCountdown trialEndsAt={profile.trial_ends_at} /> : <div className="premium-sub">Имаш 6 безплатни диктовки · После избери план</div>}
             </div>
             <button onClick={() => router.push("/plans")} style={{
               background: '#F97316', color: 'white', border: 'none',
