@@ -4,6 +4,7 @@ import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
 import { Profile } from '@/lib/types'
 import Fox from '@/components/fox/Fox'
+import AnimatedFox from '@/components/AnimatedFox'
 import './dashboard.css'
 import TrialCountdown from '@/components/TrialCountdown'
 
@@ -102,7 +103,7 @@ export default function Dashboard() {
         </div>
 
         <div className="fox-section fade-up fade-up-1">
-          <Fox mood="happy" size={150} />
+          <AnimatedFox mood="happy" size={180} />
         </div>
 
         <div className="stats-grid fade-up fade-up-2">
