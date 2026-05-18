@@ -24,7 +24,7 @@ export default function AnimatedFox({
         position: 'relative',
         borderRadius: '50%',
         overflow: 'hidden',
-        boxShadow: 'inset 0 0 40px 20px #FEF3E7, 0 0 50px 15px #FEF3E7',
+        boxShadow: 'inset 0 0 25px 8px #FEF3E7, 0 0 30px 8px rgba(254, 243, 231, 0.7)',
       }}
     >
       <video
