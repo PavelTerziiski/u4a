@@ -1,6 +1,6 @@
 'use client'
 import { useState, useRef } from 'react'
-type Mood = 'happy' | 'excited' | 'tryagain' | 'writes' | 'sad' | 'wink'
+type Mood = 'happy' | 'excited' | 'tryagain' | 'writes' | 'sad' | 'wink' | 'tickle'
 const SRC: Record<Mood, string> = {
   happy: '/videos/fox-happy-pp.mp4',
   excited: '/videos/fox-excited-pp.mp4',
@@ -8,6 +8,7 @@ const SRC: Record<Mood, string> = {
   writes: '/videos/fox-writes-pp.mp4',
   sad: '/videos/fox-sad-pp.mp4',
   wink: '/videos/fox-wink-pp.mp4',
+  tickle: '/videos/fox-tickle-pp.mp4',
 }
 
 type Ripple = { id: number; x: number; y: number }
@@ -16,18 +17,27 @@ export default function AnimatedFox({
   mood = 'happy',
   size = 260,
   onClick,
+  tickleOnClick = false,
 }: {
   mood?: Mood
   size?: number
   onClick?: () => void
+  tickleOnClick?: boolean
 }) {
+  const [tempMood, setTempMood] = useState<Mood | null>(null)
   const [ripples, setRipples] = useState<Ripple[]>([])
   const rippleIdRef = useRef(0)
   const videoRef = useRef<HTMLVideoElement>(null)
+  const activeMood = tempMood ?? mood
 
   const handleClick = (e: React.MouseEvent<HTMLDivElement> | React.TouchEvent<HTMLDivElement>) => {
     if (!onClick) return
     onClick()
+
+    if (tickleOnClick) {
+      setTempMood('tickle')
+      setTimeout(() => setTempMood(null), 2000)
+    }
 
     const rect = e.currentTarget.getBoundingClientRect()
     let clientX = 0, clientY = 0
@@ -76,8 +86,8 @@ export default function AnimatedFox({
       >
         <video
           ref={videoRef}
-          key={mood}
-          src={SRC[mood]}
+          key={activeMood}
+          src={SRC[activeMood]}
           autoPlay
           loop
           muted
