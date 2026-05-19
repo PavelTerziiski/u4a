@@ -2,7 +2,6 @@
 import { useEffect, useState, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
-import Fox from '@/components/fox/Fox'
 import AnimatedFox from '@/components/AnimatedFox'
 import Confetti from '@/components/Confetti'
 import { playSound, playSoundViaContext } from '@/lib/sounds'
