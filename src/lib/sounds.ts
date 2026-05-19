@@ -1,32 +1,67 @@
 'use client'
 
-// SOUND CONFIG — за смяна на звук просто замени файла в /public/sounds/
-// със същото име. Volume е 0-1 (1 = пълно).
 export const SOUNDS = {
-  correct: { src: '/sounds/correct.mp3', volume: 0.7 },
-  wrong:   { src: '/sounds/wrong.mp3',   volume: 0.6 },
-  click:   { src: '/sounds/click.mp3',   volume: 0.5 },
-  finish:  { src: '/sounds/finish.mp3',  volume: 0.8 },
+  correct: { src: '/sounds/correct.mp3', volume: 0.5 },
+  wrong:   { src: '/sounds/wrong.mp3',   volume: 0.45 },
+  click:   { src: '/sounds/click.mp3',   volume: 0.4 },
+  finish:  { src: '/sounds/finish.mp3',  volume: 0.35 },
 } as const
 
 export type SoundName = keyof typeof SOUNDS
 
+// --- HTML Audio fallback (Android, и където няма AudioContext) ---
 const audioCache: Partial<Record<SoundName, HTMLAudioElement>> = {}
 
 export function playSound(name: SoundName) {
   if (typeof window === 'undefined') return
   try {
-    const cfg = SOUNDS[name]
     let audio = audioCache[name]
     if (!audio) {
-      audio = new Audio(cfg.src)
-      audio.volume = cfg.volume
+      audio = new Audio(SOUNDS[name].src)
+      audio.volume = SOUNDS[name].volume
       audioCache[name] = audio
     }
     audio.currentTime = 0
     audio.play().catch(() => {})
+  } catch {}
+}
+
+// --- Web Audio API (iOS Safari работи когато TTS вече е bud-нал AudioContext) ---
+const bufferCache: Partial<Record<SoundName, AudioBuffer>> = {}
+
+async function getBuffer(ctx: AudioContext, name: SoundName): Promise<AudioBuffer | null> {
+  if (bufferCache[name]) return bufferCache[name]!
+  try {
+    const res = await fetch(SOUNDS[name].src)
+    if (!res.ok) return null
+    const arrayBuffer = await res.arrayBuffer()
+    const decoded = await new Promise<AudioBuffer>((resolve, reject) => {
+      ctx.decodeAudioData(arrayBuffer, resolve, reject)
+    })
+    bufferCache[name] = decoded
+    return decoded
   } catch {
-    // тихо игнорираме ако файлът липсва
+    return null
+  }
+}
+
+export async function playSoundViaContext(ctx: AudioContext | null, name: SoundName) {
+  if (!ctx) { playSound(name); return }
+  try {
+    if (ctx.state === 'suspended') {
+      await ctx.resume().catch(() => {})
+    }
+    const buffer = await getBuffer(ctx, name)
+    if (!buffer) { playSound(name); return }
+    const source = ctx.createBufferSource()
+    source.buffer = buffer
+    const gain = ctx.createGain()
+    gain.gain.value = SOUNDS[name].volume
+    source.connect(gain)
+    gain.connect(ctx.destination)
+    source.start(0)
+  } catch {
+    playSound(name)
   }
 }
 

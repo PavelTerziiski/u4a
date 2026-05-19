@@ -5,7 +5,7 @@ import { supabase } from '@/lib/supabase'
 import Fox from '@/components/fox/Fox'
 import AnimatedFox from '@/components/AnimatedFox'
 import Confetti from '@/components/Confetti'
-import { playSound } from '@/lib/sounds'
+import { playSound, playSoundViaContext } from '@/lib/sounds'
 import ScanTextModal from '@/components/ScanTextModal'
 import { Dictation } from '@/lib/types'
 import '../../app/dashboard/dashboard.css'
@@ -94,7 +94,7 @@ export default function ListeningPage() {
       const alpha = lang ? getAlphabet(lang) : ALPHABET_FALLBACK
       const total = mode === 'alphabet' ? alpha.length : selected?.sentences.length || 0
       if (total > 0 && score >= total * 0.7) {
-        playSound('finish')
+        setTimeout(() => playSoundViaContext(audioCtxRef.current, 'finish'), 400)
         setConfettiActive(true)
       }
     } else {
