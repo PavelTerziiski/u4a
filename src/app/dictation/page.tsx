@@ -6,6 +6,7 @@ import { supabase } from '@/lib/supabase'
 import '../dashboard/dashboard.css'
 import { Dictation, Profile } from '@/lib/types'
 import Fox, { FoxMood } from '@/components/fox/Fox'
+import AnimatedFox from '@/components/AnimatedFox'
 import SurveyScreen from '@/components/SurveyScreen'
 import DoneScreen from '@/components/DoneScreen'
 
@@ -676,7 +677,7 @@ export default function DictationPage() {
     <main className="u4a-dash min-h-screen flex flex-col items-center justify-center p-6">
       <div className="u4a-dash-overlay"></div>
       <div className="w-full max-w-md text-center">
-        <Fox mood="happy" size={160} />
+        <AnimatedFox mood="happy" size={180} />
         <h2 className="text-2xl font-bold text-gray-700 mt-6 mb-2">{selected.title}</h2>
         <p className="text-gray-500 mb-2">{(selected.sentences as Sentence[]).length} изречения</p>
         <p className="text-gray-500 mb-8">Вземи молив и хартия. Когато си готов, натисни бутона!</p>
@@ -705,7 +706,7 @@ export default function DictationPage() {
           <div className="w-full bg-orange-100 rounded-full h-3 mb-6">
             <div className="bg-orange-500 h-3 rounded-full transition-all" style={{ width: `${(sentenceIndex / sentences.length) * 100}%` }} />
           </div>
-          <div className="flex justify-center mb-4"><Fox mood={foxMood} size={140} /></div>
+          <div className="flex justify-center mb-4"><AnimatedFox mood={foxMood === 'writing' ? 'writes' : foxMood === 'sad' ? 'tryagain' : foxMood === 'excited' ? 'excited' : 'happy'} size={160} /></div>
           <div className="bg-white rounded-3xl p-6 shadow-lg mb-4">
             {speaking && <p className="text-orange-500 font-bold text-lg animate-pulse">🔊 Лисицата чете...</p>}
             {pausing && (
