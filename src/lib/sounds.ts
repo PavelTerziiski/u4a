@@ -5,6 +5,10 @@ export const SOUNDS = {
   wrong:   { src: '/sounds/wrong.mp3',   volume: 0.45 },
   click:   { src: '/sounds/click.mp3',   volume: 0.4 },
   finish:  { src: '/sounds/finish.mp3',  volume: 0.35 },
+  tickle1: { src: '/sounds/tickle1.mp3', volume: 0.5 },
+  tickle2: { src: '/sounds/tickle2.mp3', volume: 0.5 },
+  tickle3: { src: '/sounds/tickle3.mp3', volume: 0.5 },
+  tickle4: { src: '/sounds/tickle4.mp3', volume: 0.5 },
 } as const
 
 export type SoundName = keyof typeof SOUNDS
@@ -63,6 +67,14 @@ export async function playSoundViaContext(ctx: AudioContext | null, name: SoundN
   } catch {
     playSound(name)
   }
+}
+
+
+// Random tickle — пуска един от 4-те варианта произволно
+export function playTickle() {
+  const variants: SoundName[] = ['tickle1', 'tickle2', 'tickle3', 'tickle4']
+  const pick = variants[Math.floor(Math.random() * variants.length)]
+  playSound(pick)
 }
 
 export function useSound() {

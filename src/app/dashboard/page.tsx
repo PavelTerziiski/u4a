@@ -4,6 +4,7 @@ import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
 import { Profile } from '@/lib/types'
 import AnimatedFox from '@/components/AnimatedFox'
+import { playTickle } from '@/lib/sounds'
 import './dashboard.css'
 import TrialCountdown from '@/components/TrialCountdown'
 
@@ -60,13 +61,22 @@ export default function Dashboard() {
       <div className="dash-header">
         <img src="/logo.png" style={{height:52,objectFit:"contain"}} />
         <div className="header-actions">
-          {profile?.is_premium && (
-            <div style={{
+          {profile?.is_premium ? (
+            <button onClick={() => router.push('/plans')} style={{
               background: 'linear-gradient(135deg, #FFF7ED, #FFEDD5)',
               border: '1.5px solid #FED7AA', borderRadius: '99px',
-              padding: '4px 10px', fontSize: '0.75rem',
-              fontWeight: 800, color: '#92400E', fontFamily: 'Nunito, sans-serif'
-            }}>{profile?.plan_type === 'max' ? '🌍 Max' : '⭐ Premium'}</div>
+              padding: '4px 12px', fontSize: '0.75rem',
+              fontWeight: 800, color: '#92400E', fontFamily: 'Nunito, sans-serif',
+              cursor: 'pointer',
+            }}>{profile?.plan_type === 'max' ? '🌍 Max' : '⭐ Premium'}</button>
+          ) : (
+            <button onClick={() => router.push('/plans')} style={{
+              background: 'linear-gradient(135deg, #F97316, #FB923C)',
+              border: 'none', borderRadius: '99px',
+              padding: '6px 14px', fontSize: '0.78rem',
+              fontWeight: 900, color: 'white', fontFamily: 'Nunito, sans-serif',
+              cursor: 'pointer', boxShadow: '0 4px 12px rgba(249,115,22,0.35)',
+            }}>⚡ Ъпгрейд</button>
           )}
           <button onClick={() => { localStorage.removeItem('u4a_username'); router.push('/') }} style={{
             background: '#EF4444', color: 'white', border: 'none',
@@ -102,7 +112,7 @@ export default function Dashboard() {
         </div>
 
         <div className="fox-section fade-up fade-up-1">
-          <AnimatedFox mood="happy" size={180} />
+          <AnimatedFox mood="happy" size={180} onClick={() => playTickle()} />
         </div>
 
         <div className="stats-grid fade-up fade-up-2">
