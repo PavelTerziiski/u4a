@@ -112,7 +112,7 @@ export default function Dashboard() {
         </div>
 
         <div className="fox-section fade-up fade-up-1">
-          <AnimatedFox mood="happy" size={180} onClick={() => playTickle()} tickleOnClick />
+          <AnimatedFox mood="happy" size={180} onClick={() => playTickle()} />
         </div>
 
         <div className="stats-grid fade-up fade-up-2">

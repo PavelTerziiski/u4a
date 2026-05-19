@@ -82,6 +82,7 @@ export default function ListeningPage() {
   const [waitingForSpeech, setWaitingForSpeech] = useState(false)
   const [scanOpen, setScanOpen] = useState(false)
   const [feedbackType, setFeedbackType] = useState<'correct' | 'wrong' | ''>('')
+  const [lastMood, setLastMood] = useState<'excited' | 'tryagain' | null>(null)
   const [owlSays, setOwlSays] = useState('')
   const [score, setScore] = useState(0)
   const [typedText, setTypedText] = useState('')
@@ -268,15 +269,15 @@ const handleScanResult = (sentences: string[]) => {
       const isCorrect = transcript.length > 1 && (transcript.includes(target) || transcript.includes(targetRoot) || target.includes(transcript.replace(/[^a-zа-яё]/gi, '').substring(0, 3)))
       setLoading(false); if (!isActiveRef.current) return
       if (isCorrect) {
-        setFeedbackType('correct'); setOwlSays('Браво!'); setScore(s => s + 1); playSound('correct')
-        await playTTS('Браво!', 'borisslav'); if (!isActiveRef.current) return
+        setFeedbackType('correct'); setOwlSays('Браво!'); setScore(s => s + 1); playSound('correct'); setLastMood('excited')
+        await playTTS('Браво!', 'borisslav'); if (!isActiveRef.current) return; await new Promise(r => setTimeout(r, 500)); if (!isActiveRef.current) return
         const next = idx + 1
         if (next >= alpha.length) { setPhase('done'); return }
         setAlphaIndex(next); setFeedbackType(''); setOwlSays('')
         await playTTS(alpha[next].tts_text || alpha[next].word, 'kalina', undefined, LANG_CONFIG[selectedLang].dictLang)
         if (!isActiveRef.current) return; setWaitingForSpeech(true)
       } else {
-        setFeedbackType('wrong'); setOwlSays('Опитай пак!'); playSound('wrong')
+        setFeedbackType('wrong'); setOwlSays('Опитай пак!'); playSound('wrong'); setLastMood('tryagain')
         await playTTS('Опитай пак!', 'borisslav'); if (!isActiveRef.current) return
         await playTTS(alpha[idx].tts_text || alpha[idx].word, 'kalina', undefined, LANG_CONFIG[selectedLang].dictLang)
         if (!isActiveRef.current) return; setWaitingForSpeech(true)
@@ -323,13 +324,13 @@ const handleScanResult = (sentences: string[]) => {
       const isCorrect = transcript.length > 2 && matchCount >= Math.ceil(originalWords.length * 0.3)
       setLoading(false); if (!isActiveRef.current) return
       if (isCorrect) {
-        setFeedbackType('correct'); setOwlSays('Браво!'); setScore(s => s + 1); playSound('correct')
-        await playTTS('Браво!', 'borisslav'); if (!isActiveRef.current) return
+        setFeedbackType('correct'); setOwlSays('Браво!'); setScore(s => s + 1); playSound('correct'); setLastMood('excited')
+        await playTTS('Браво!', 'borisslav'); if (!isActiveRef.current) return; await new Promise(r => setTimeout(r, 500)); if (!isActiveRef.current) return
         const next = idx + 1
         if (next >= dictation.sentences.length) { setPhase('done'); return }
-        setSentenceIndex(next); await playSentence(dictation, next)
+        setSentenceIndex(next); setFeedbackType(''); setLastMood(null); await playSentence(dictation, next)
       } else {
-        setFeedbackType('wrong'); setOwlSays('Опитай пак!'); playSound('wrong')
+        setFeedbackType('wrong'); setOwlSays('Опитай пак!'); playSound('wrong'); setLastMood('tryagain')
         await playTTS('Опитай пак!', 'borisslav'); if (!isActiveRef.current) return
         await playTTS(dictation.sentences[idx].text, 'kalina', dictation.id, lang ? LANG_CONFIG[lang].dictLang : undefined)
         if (!isActiveRef.current) return; setWaitingForSpeech(true)
@@ -469,7 +470,7 @@ const handleScanResult = (sentences: string[]) => {
           <div style={{ width: `${(alphaIndex / getAlphabet(lang).length) * 100}%`, background: 'linear-gradient(90deg, #2563EB, #60A5FA)', height: 10, borderRadius: 99, transition: 'width 0.5s' }} />
         </div>
         <div style={{ textAlign: 'center', marginBottom: 12 }}>
-          <AnimatedFox mood={feedbackType === 'correct' ? 'excited' : feedbackType === 'wrong' ? 'tryagain' : recording ? 'wink' : 'happy'} size={150} />
+          <AnimatedFox mood={recording ? 'wink' : feedbackType === 'correct' ? 'excited' : feedbackType === 'wrong' ? 'tryagain' : lastMood ?? 'happy'} size={150} />
         </div>
         {owlSays && (
           <div style={{ background: feedbackType === 'correct' ? '#F0FDF4' : '#FFF7ED', border: `2px solid ${feedbackType === 'correct' ? '#86EFAC' : '#FDE68A'}`, borderRadius: 16, padding: '10px 16px', marginBottom: 16, textAlign: 'center' }}>
@@ -527,7 +528,7 @@ const handleScanResult = (sentences: string[]) => {
             <div style={{ width: `${(sentenceIndex / selected.sentences.length) * 100}%`, background: cfg.gradient, height: 10, borderRadius: 99, transition: 'width 0.5s' }} />
           </div>
           <div style={{ textAlign: 'center', marginBottom: 12 }}>
-            <AnimatedFox mood={feedbackType === 'correct' ? 'excited' : feedbackType === 'wrong' ? 'tryagain' : recording ? 'wink' : 'happy'} size={150} />
+            <AnimatedFox mood={recording ? 'wink' : feedbackType === 'correct' ? 'excited' : feedbackType === 'wrong' ? 'tryagain' : lastMood ?? 'happy'} size={150} />
           </div>
           {owlSays && (
             <div style={{ background: feedbackType === 'correct' ? '#F0FDF4' : cfg.colorLight, border: `2px solid ${feedbackType === 'correct' ? '#86EFAC' : cfg.colorBorder}`, borderRadius: 16, padding: '10px 16px', marginBottom: 16, textAlign: 'center' }}>

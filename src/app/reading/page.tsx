@@ -3,6 +3,9 @@ import { useEffect, useState, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
 import Fox from '@/components/fox/Fox'
+import AnimatedFox from '@/components/AnimatedFox'
+import Confetti from '@/components/Confetti'
+import { playSound, playSoundViaContext } from '@/lib/sounds'
 import { Dictation } from '@/lib/types'
 import '../dashboard/dashboard.css'
 
@@ -61,6 +64,8 @@ export default function ReadingPage() {
   const [waitingForSpeech, setWaitingForSpeech] = useState(false)
   const [loading, setLoading] = useState(false)
   const [feedbackType, setFeedbackType] = useState<'correct' | 'wrong' | ''>('')
+  const [lastMood, setLastMood] = useState<'excited' | 'tryagain' | null>(null)
+  const [confettiActive, setConfettiActive] = useState(false)
   const [owlSays, setOwlSays] = useState('')
   const [score, setScore] = useState(0)
   const [typedText, setTypedText] = useState('')
@@ -90,6 +95,18 @@ export default function ReadingPage() {
   useEffect(() => {
     return () => { if (typingIntervalRef.current) clearInterval(typingIntervalRef.current) }
   }, [])
+
+  useEffect(() => {
+    if (phase === 'done') {
+      const total = selected?.sentences.length || 0
+      if (total > 0 && score >= total * 0.7) {
+        setTimeout(() => playSoundViaContext(audioCtxRef.current, 'finish'), 400)
+        setConfettiActive(true)
+      }
+    } else {
+      setConfettiActive(false)
+    }
+  }, [phase])
 
   const loadLevel = async (lvl: Level) => {
     const grades = LEVEL_CONFIG[lvl].grades
@@ -225,6 +242,8 @@ const unlockAudio = async () => {
         setFeedbackType('correct')
         setOwlSays('Браво!')
         setScore(s => s + 1)
+        setLastMood('excited')
+        playSound('correct')
         // await playTTS('Браво!', 'borisslav')
         setTimeout(async () => {
           if (!isActiveRef.current) return
@@ -235,13 +254,15 @@ const unlockAudio = async () => {
             setSentenceIndex(next)
             await playSentence(dictation, next)
           }
-        }, 1200)
+        }, 1700)
       } else {
         const newAttempts = attempts + 1
         setAttempts(newAttempts)
         if (newAttempts >= 3) {
           setFeedbackType('wrong')
           setOwlSays('Да минем нататък!')
+          setLastMood('tryagain')
+          playSound('wrong')
           setTimeout(async () => {
             if (!isActiveRef.current) return
             setAttempts(0)
@@ -253,6 +274,8 @@ const unlockAudio = async () => {
         } else {
           setFeedbackType('wrong')
           setOwlSays(newAttempts === 2 ? 'Още един опит!' : 'Опитай пак!')
+          setLastMood('tryagain')
+          playSound('wrong')
           setTimeout(() => {
             if (!isActiveRef.current) return
             setWaitingForSpeech(true)
@@ -297,7 +320,7 @@ const unlockAudio = async () => {
         {!level ? (
           <>
             <div style={{ textAlign: 'center', marginBottom: 32 }}>
-              <Fox mood="happy" size={120} />
+              <AnimatedFox mood="happy" size={140} />
               <h1 style={{ fontFamily: 'Nunito, sans-serif', fontWeight: 900, fontSize: '2rem', color: '#374151', marginTop: 12, marginBottom: 8 }}>
                 📖 Четене на глас
               </h1>
@@ -385,7 +408,7 @@ const unlockAudio = async () => {
           </div>
 
           <div style={{ textAlign: 'center', marginBottom: 12 }}>
-            <Fox mood={feedbackType === 'correct' ? 'excited' : feedbackType === 'wrong' ? 'sad' : recording ? 'wink' : 'happy'} size={130} />
+            <AnimatedFox mood={recording ? 'wink' : feedbackType === 'correct' ? 'excited' : feedbackType === 'wrong' ? 'tryagain' : lastMood ?? 'happy'} size={150} />
           </div>
 
           {owlSays && (
@@ -458,10 +481,12 @@ const unlockAudio = async () => {
   }
 
   if (phase === 'done' && selected && cfg) return (
+    <>
+    <Confetti active={confettiActive} />
     <main className="u4a-dash min-h-screen flex flex-col items-center justify-center p-6">
       <div className="u4a-dash-overlay"></div>
       <div className="w-full max-w-md text-center" style={{ position: 'relative', zIndex: 1 }}>
-        <Fox mood={score >= selected.sentences.length * 0.7 ? 'excited' : 'happy'} size={160} />
+        <AnimatedFox mood={score >= selected.sentences.length * 0.7 ? 'excited' : 'happy'} size={200} />
         <h1 style={{ fontFamily: 'Nunito, sans-serif', fontWeight: 900, fontSize: '2.5rem', color: cfg.color, marginTop: 16 }}>
           {score >= selected.sentences.length * 0.7 ? '🎉 Браво!' : '👍 Добре!'}
         </h1>
@@ -486,6 +511,7 @@ const unlockAudio = async () => {
         </button>
       </div>
     </main>
+    </>
   )
 
   return null
