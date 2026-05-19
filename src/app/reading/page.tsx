@@ -243,7 +243,8 @@ const unlockAudio = async () => {
         setScore(s => s + 1)
         setLastMood('excited')
         playSound('correct')
-        // await playTTS('Браво!', 'borisslav')
+        await playTTS('Браво!', 'borisslav')
+        await new Promise(r => setTimeout(r, 500))
         setTimeout(async () => {
           if (!isActiveRef.current) return
           const next = idx + 1

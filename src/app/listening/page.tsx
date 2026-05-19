@@ -328,7 +328,7 @@ const handleScanResult = (sentences: string[]) => {
         await playTTS('Браво!', 'borisslav'); if (!isActiveRef.current) return; await new Promise(r => setTimeout(r, 500)); if (!isActiveRef.current) return
         const next = idx + 1
         if (next >= dictation.sentences.length) { setPhase('done'); return }
-        setSentenceIndex(next); setFeedbackType(''); setLastMood(null); await playSentence(dictation, next)
+        setSentenceIndex(next); setFeedbackType(''); await playSentence(dictation, next)
       } else {
         setFeedbackType('wrong'); setOwlSays('Опитай пак!'); playSound('wrong'); setLastMood('tryagain')
         await playTTS('Опитай пак!', 'borisslav'); if (!isActiveRef.current) return
