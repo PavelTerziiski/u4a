@@ -21,16 +21,18 @@ export default function AnimatedFox({
   size?: number
   onClick?: () => void
 }) {
-  const [tempMood, setTempMood] = useState<Mood | null>(null)
   const [ripples, setRipples] = useState<Ripple[]>([])
   const rippleIdRef = useRef(0)
-  const activeMood = tempMood ?? mood
+  const videoRef = useRef<HTMLVideoElement>(null)
 
   const handleClick = (e: React.MouseEvent<HTMLDivElement> | React.TouchEvent<HTMLDivElement>) => {
     if (!onClick) return
     onClick()
-    setTempMood('wink')
-    setTimeout(() => setTempMood(null), 900)
+    // Seek tryagain video to middle on click
+    const v = videoRef.current
+    if (v && v.duration && isFinite(v.duration)) {
+      try { v.currentTime = v.duration / 2 } catch {}
+    }
 
     const rect = e.currentTarget.getBoundingClientRect()
     let clientX = 0, clientY = 0
@@ -78,8 +80,9 @@ export default function AnimatedFox({
         }}
       >
         <video
-          key={activeMood}
-          src={SRC[activeMood]}
+          ref={videoRef}
+          key={mood}
+          src={SRC[mood]}
           autoPlay
           loop
           muted
