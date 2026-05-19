@@ -263,6 +263,7 @@ const unlockAudio = async () => {
           setOwlSays('Да минем нататък!')
           setLastMood('tryagain')
           playSound('wrong')
+          playTTS('Да минем нататък!', 'borisslav')
           setTimeout(async () => {
             if (!isActiveRef.current) return
             setAttempts(0)
@@ -276,6 +277,7 @@ const unlockAudio = async () => {
           setOwlSays(newAttempts === 2 ? 'Още един опит!' : 'Опитай пак!')
           setLastMood('tryagain')
           playSound('wrong')
+          playTTS(newAttempts === 2 ? 'Още един опит!' : 'Опитай пак!', 'borisslav')
           setTimeout(() => {
             if (!isActiveRef.current) return
             setWaitingForSpeech(true)
