@@ -28,11 +28,6 @@ export default function AnimatedFox({
   const handleClick = (e: React.MouseEvent<HTMLDivElement> | React.TouchEvent<HTMLDivElement>) => {
     if (!onClick) return
     onClick()
-    // Seek tryagain video to middle on click
-    const v = videoRef.current
-    if (v && v.duration && isFinite(v.duration)) {
-      try { v.currentTime = v.duration / 2 } catch {}
-    }
 
     const rect = e.currentTarget.getBoundingClientRect()
     let clientX = 0, clientY = 0
