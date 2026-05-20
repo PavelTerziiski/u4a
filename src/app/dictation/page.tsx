@@ -800,7 +800,7 @@ export default function DictationPage() {
     const sentences = selected.sentences as Sentence[]
     const score = results.filter(r => r.correct).length
     const percent = Math.round((score / sentences.length) * 100)
-    return <DoneScreen score={score} total={sentences.length} percent={percent} streak={profile?.streak || 0} results={results} explanations={explanations} loadingExplanations={loadingExplanations} onHome={() => router.push('/dashboard')} />
+    return <DoneScreen score={score} total={sentences.length} percent={percent} streak={profile?.streak || 0} results={results} explanations={explanations} loadingExplanations={loadingExplanations} onHome={() => router.push('/dashboard')} onAnotherDictation={() => { setSelected(null); setPhase('pick'); setResults([]); setExplanations({}); setSentenceIndex(0) }} />
   }
   return null
 }

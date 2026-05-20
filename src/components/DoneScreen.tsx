@@ -15,6 +15,7 @@ type Props = {
   explanations: Record<number, string>
   loadingExplanations: boolean
   onHome: () => void
+  onAnotherDictation?: () => void
 }
 
 function Confetti() {
@@ -60,7 +61,7 @@ function Confetti() {
   return <canvas ref={canvasRef} style={{ position: 'fixed', top: 0, left: 0, pointerEvents: 'none', zIndex: 999 }} />
 }
 
-export default function DoneScreen({ score, total, percent, streak, results, explanations, loadingExplanations, onHome }: Props) {
+export default function DoneScreen({ score, total, percent, streak, results, explanations, loadingExplanations, onHome, onAnotherDictation }: Props) {
   const mood: FoxMood = percent >= 80 ? 'excited' : percent >= 50 ? 'wink' : 'sad'
   const showConfetti = percent >= 80
 
@@ -142,7 +143,12 @@ export default function DoneScreen({ score, total, percent, streak, results, exp
           ))}
         </div>
 
-        <button onClick={onHome} className="w-full bg-orange-500 text-white text-xl font-bold py-4 rounded-2xl hover:bg-orange-600 transition-colors">
+        {onAnotherDictation && (
+          <button onClick={onAnotherDictation} className="w-full bg-orange-500 text-white text-xl font-bold py-4 rounded-2xl hover:bg-orange-600 transition-colors mb-3">
+            Избери друга диктовка ✏️
+          </button>
+        )}
+        <button onClick={onHome} className="w-full bg-white text-orange-500 text-xl font-bold py-4 rounded-2xl border-2 border-orange-300 hover:bg-orange-50 transition-colors">
           Към началото 🏠
         </button>
       </div>

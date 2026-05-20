@@ -1,6 +1,6 @@
 'use client'
 import { useState, useRef } from 'react'
-type Mood = 'happy' | 'excited' | 'tryagain' | 'writes' | 'sad' | 'wink' | 'tickle'
+type Mood = 'happy' | 'excited' | 'tryagain' | 'writes' | 'sad' | 'wink' | 'tickle' | 'confused'
 const SRC: Record<Mood, string> = {
   happy: '/videos/fox-happy-pp.mp4',
   excited: '/videos/fox-excited-pp.mp4',
@@ -9,6 +9,7 @@ const SRC: Record<Mood, string> = {
   sad: '/videos/fox-sad-pp.mp4',
   wink: '/videos/fox-wink-pp.mp4',
   tickle: '/videos/fox-tickle-pp.mp4',
+  confused: '/videos/fox-confused-pp.mp4',
 }
 
 // Per-mood vertical positioning (защото лисиците са различно центрирани в кадъра)
@@ -20,6 +21,7 @@ const MOOD_POSITION: Record<Mood, string> = {
   sad: 'center top',
   wink: 'center top',
   tickle: 'center top',
+  confused: 'center top',
 }
 
 type Ripple = { id: number; x: number; y: number }

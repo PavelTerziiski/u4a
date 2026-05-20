@@ -5,9 +5,9 @@ import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
 import '../dashboard/dashboard.css'
 import { Profile } from '@/lib/types'
+import AnimatedFox from '@/components/AnimatedFox'
 
 const CHARS_PER_SECOND: Record<number, number> = { 1: 0.75, 2: 1.0, 3: 1.4, 4: 1.7 }
-import Fox from '@/components/fox/Fox'
 
 type WordResult = { word: string; correct: boolean; input: string }
 type SentenceResult = { sentence: string; input: string; wordResults: WordResult[]; correct: boolean; explanation?: string | null }
@@ -343,7 +343,7 @@ export default function ScanDictationPage() {
     <main className="u4a-dash min-h-screen flex flex-col items-center justify-center p-6">
       <div className="u4a-dash-overlay"></div>
       <div className="w-full max-w-md text-center" style={{ position: 'relative', zIndex: 1 }}>
-        <Fox mood="happy" size={140} />
+        <AnimatedFox mood="happy" size={160} />
         <h1 className="text-2xl font-bold text-gray-700 mt-6 mb-2">Снимай текста</h1>
         <p className="text-gray-500 mb-2">Снимай страница от учебника и лисицата ще я прочете!</p>
         <p style={{ fontSize: "0.8rem", color: "#92400E", fontStyle: "italic", marginBottom: 16 }}>💡 Снимай на добро осветление и дръж камерата право над текста за по-точно разпознаване.</p>
@@ -366,7 +366,7 @@ export default function ScanDictationPage() {
     <main className="u4a-dash min-h-screen flex flex-col items-center justify-center p-6">
       <div className="u4a-dash-overlay"></div>
       <div className="w-full max-w-md text-center" style={{ position: 'relative', zIndex: 1 }}>
-        <Fox mood="excited" size={140} />
+        <AnimatedFox mood="excited" size={160} />
         <h1 className="text-2xl font-bold text-gray-700 mt-6 mb-2">Готово!</h1>
         <p className="text-gray-500 mb-4">Разпознах {sentences.length} изречения. Вземи молив и хартия!</p>
         <div className="bg-white rounded-2xl p-4 shadow mb-4 text-left">
@@ -397,7 +397,7 @@ export default function ScanDictationPage() {
         <div className="w-full bg-orange-100 rounded-full h-3 mb-6">
           <div className="bg-orange-500 h-3 rounded-full transition-all" style={{ width: `${(sentenceIndex / sentences.length) * 100}%` }} />
         </div>
-        <div className="flex justify-center mb-4"><Fox mood={speaking ? 'happy' : 'writing'} size={140} /></div>
+        <div className="flex justify-center mb-4"><AnimatedFox mood={speaking ? 'happy' : 'writes'} size={160} /></div>
         <div className="bg-white rounded-3xl p-6 shadow-lg mb-4">
           <p className="text-orange-500 font-bold">Изречение {sentenceIndex + 1} от {sentences.length}</p>
           {speaking && <p className="text-orange-500 animate-pulse mt-2">🔊 Лисицата чете...</p>}
@@ -434,7 +434,7 @@ export default function ScanDictationPage() {
     <main className="u4a-dash min-h-screen flex flex-col items-center justify-center p-6">
       <div className="u4a-dash-overlay"></div>
       <div className="w-full max-w-md text-center" style={{ position: 'relative', zIndex: 1 }}>
-        <Fox mood="pointing" size={140} />
+        <AnimatedFox mood="happy" size={160} />
         <h2 className="text-2xl font-bold text-gray-700 mt-4 mb-2">Диктовката свърши!</h2>
         <p className="text-gray-500 mb-2">Снимай написаното на хартия</p>
         <p style={{ fontSize: "0.8rem", color: "#92400E", fontStyle: "italic", marginBottom: 16 }}>💡 Снимай на добро осветление. За по-добро разпознаване, пиши през ред.</p>
@@ -458,7 +458,7 @@ export default function ScanDictationPage() {
       <div className="u4a-dash-overlay"></div>
       <div className="w-full max-w-lg" style={{ position: 'relative', zIndex: 1 }}>
         <div className="text-center mb-4">
-          <Fox mood="pointing" size={100} />
+          <AnimatedFox mood="happy" size={120} />
           <h2 className="text-xl font-bold text-gray-700 mt-2">Провери разпознатото</h2>
           <p className="text-gray-500 text-sm mt-1">Ако лисицата е сбъркала — поправи го</p>
         </div>
@@ -492,7 +492,7 @@ export default function ScanDictationPage() {
         <div className="u4a-dash-overlay"></div>
         <div className="w-full max-w-lg" style={{ position: 'relative', zIndex: 1 }}>
           <div className="text-center mb-6">
-            <Fox mood={percent >= 80 ? 'excited' : percent >= 50 ? 'wink' : 'sad'} size={128} />
+            <AnimatedFox mood={percent >= 80 ? 'excited' : percent >= 50 ? 'wink' : 'confused'} size={180} />
             <h1 className="text-3xl font-bold text-gray-700 mb-2 mt-4">
               {percent >= 80 ? '🎉 Браво!' : percent >= 50 ? '👍 Добре!' : '💪 Продължавай!'}
             </h1>
