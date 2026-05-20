@@ -5,6 +5,8 @@ import { supabase } from '@/lib/supabase'
 import AnimatedFox from '@/components/AnimatedFox'
 import Confetti from '@/components/Confetti'
 import { playSound, playSoundViaContext } from '@/lib/sounds'
+import { updateStreak } from '@/lib/streak'
+import type { Profile } from '@/lib/types'
 import { Dictation } from '@/lib/types'
 import '../dashboard/dashboard.css'
 
@@ -69,6 +71,7 @@ export default function ReadingPage() {
   const [score, setScore] = useState(0)
   const [typedText, setTypedText] = useState('')
   const [foxName, setFoxName] = useState('Роки')
+  const [profile, setProfile] = useState<Profile | null>(null)
   const [attempts, setAttempts] = useState(0)
 
   const mediaRecorderRef = useRef<MediaRecorder | null>(null)
@@ -86,6 +89,7 @@ export default function ReadingPage() {
       .then(({ data }) => {
         if (!data) { router.push('/login'); return }
         if (data.fox_name) setFoxName(data.fox_name)
+        setProfile(data)
         const lvl = new URLSearchParams(window.location.search).get('level') as Level | null
         if (lvl && ['easy','medium','hard'].includes(lvl)) loadLevel(lvl)
       })
@@ -97,6 +101,7 @@ export default function ReadingPage() {
 
   useEffect(() => {
     if (phase === 'done') {
+      if (profile) { updateStreak(profile, setProfile) }
       const total = selected?.sentences.length || 0
       if (total > 0 && score >= total * 0.7) {
         setTimeout(() => playSoundViaContext(audioCtxRef.current, 'finish'), 400)

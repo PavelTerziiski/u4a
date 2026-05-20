@@ -6,8 +6,9 @@ import Fox from '@/components/fox/Fox'
 import AnimatedFox from '@/components/AnimatedFox'
 import Confetti from '@/components/Confetti'
 import { playSound, playSoundViaContext } from '@/lib/sounds'
+import { updateStreak } from '@/lib/streak'
 import ScanTextModal from '@/components/ScanTextModal'
-import { Dictation } from '@/lib/types'
+import { Dictation, Profile } from '@/lib/types'
 import '../../app/dashboard/dashboard.css'
 
 type Mode = 'alphabet' | 'easy' | 'medium' | 'hard'
@@ -88,10 +89,12 @@ export default function ListeningPage() {
   const [typedText, setTypedText] = useState('')
   const [strings, setStrings] = useState<Record<string, string>>({})
   const [foxName, setFoxName] = useState('Роки')
+  const [profile, setProfile] = useState<Profile | null>(null)
   const [confettiActive, setConfettiActive] = useState(false)
 
   useEffect(() => {
     if (phase === 'done') {
+      if (profile) { updateStreak(profile, setProfile) }
       const alpha = lang ? getAlphabet(lang) : ALPHABET_FALLBACK
       const total = mode === 'alphabet' ? alpha.length : selected?.sentences.length || 0
       if (total > 0 && score >= total * 0.7) {
@@ -118,6 +121,7 @@ export default function ListeningPage() {
       .then(({ data }) => {
         if (!data) { router.push('/login'); return }
         if (data.fox_name) setFoxName(data.fox_name)
+        setProfile(data)
       })
     supabase.from('pronunciation_words').select('*').order('sort_order')
       .then(({ data }) => { if (data && data.length > 0) setAllAlphaWords(data) })
