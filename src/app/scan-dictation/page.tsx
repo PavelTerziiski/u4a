@@ -5,6 +5,8 @@ import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
 import '../dashboard/dashboard.css'
 import { Profile } from '@/lib/types'
+
+const CHARS_PER_SECOND: Record<number, number> = { 1: 0.75, 2: 1.0, 3: 1.4, 4: 1.7 }
 import Fox from '@/components/fox/Fox'
 
 type WordResult = { word: string; correct: boolean; input: string }
@@ -128,7 +130,7 @@ export default function ScanDictationPage() {
           setPausing(true); setPauseProgress(0)
           let step = 0
           const steps = 50
-          const pauseMs = Math.max(3000, Math.round((text.length / (1.4 / speedRef.current)) * 1000))
+          const grade = profile?.grade || 2; const charsPerSec = CHARS_PER_SECOND[grade] || 1.0; const pauseMs = Math.max(3000, Math.round((text.length / charsPerSec) * 1000 / speedRef.current))
           progressTimer.current = setInterval(() => {
             step++
             setPauseProgress(Math.round((step / steps) * 100))
