@@ -32,7 +32,7 @@ export async function updateStreak(
         },
       }),
     })
-  } catch (e) {
+  } catch {
     // тихо игнорираме мрежови грешки
   }
 
