@@ -11,6 +11,17 @@ const SRC: Record<Mood, string> = {
   tickle: '/videos/fox-tickle-pp.mp4',
 }
 
+// Per-mood vertical positioning (защото лисиците са различно центрирани в кадъра)
+const MOOD_POSITION: Record<Mood, string> = {
+  happy: 'center top',
+  excited: 'center top',
+  tryagain: 'center top',
+  writes: 'center 30%',
+  sad: 'center top',
+  wink: 'center top',
+  tickle: 'center top',
+}
+
 type Ripple = { id: number; x: number; y: number }
 
 export default function AnimatedFox({
@@ -96,7 +107,7 @@ export default function AnimatedFox({
             width: '100%',
             height: '100%',
             objectFit: 'cover',
-            objectPosition: 'center top',
+            objectPosition: MOOD_POSITION[activeMood] || 'center top',
             display: 'block',
           }}
         />
