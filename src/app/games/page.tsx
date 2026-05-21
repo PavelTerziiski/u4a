@@ -2,7 +2,7 @@
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
-import Fox from '@/components/fox/Fox'
+import AnimatedFox from '@/components/AnimatedFox'
 import '../dashboard/dashboard.css'
 
 export default function GamesPage() {
@@ -43,7 +43,7 @@ export default function GamesPage() {
           fontFamily: 'Nunito, sans-serif', fontWeight: 800
         }}>← Назад</button>
 
-        <Fox mood="excited" size={150} />
+        <AnimatedFox mood="excited" size={150} />
 
         <h1 style={{
           fontFamily: 'Nunito, sans-serif', fontWeight: 900, fontSize: '2.2rem',
