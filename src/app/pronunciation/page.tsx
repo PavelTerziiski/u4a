@@ -249,7 +249,7 @@ export default function PronunciationPage() {
           color: '#78350F', border: 'none', borderRadius: 20, padding: '1.3rem',
           fontFamily: 'Nunito, sans-serif', fontWeight: 900, fontSize: '1.3rem',
           cursor: 'pointer', boxShadow: '0 8px 24px rgba(234,179,8,0.4)'
-        }}>⭐ Игри (beta)</button>
+        }}>🎮 Игри (beta)</button>
       )}
     </div>
   </main>
