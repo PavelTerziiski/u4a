@@ -9,7 +9,7 @@ function RotatingCube({ color1, color2, isRevealed, isShaking }: {
   const meshRef = useRef<THREE.Mesh>(null)
   const targetRotY = useRef(0)
 
-  useFrame((state, delta) => {
+  useFrame((state) => {
     if (!meshRef.current) return
     targetRotY.current = isRevealed ? Math.PI : 0
     meshRef.current.rotation.y += (targetRotY.current - meshRef.current.rotation.y) * 0.15
