@@ -245,11 +245,11 @@ export default function PronunciationPage() {
 
       {(profile?.email as string) === 'pavel.impro@gmail.com' && (
         <button onClick={() => router.push('/games')} style={{
-          width: '100%', background: 'linear-gradient(135deg, #A78BFA, #7C3AED)',
-          color: 'white', border: '2px dashed #FBBF24', borderRadius: 20, padding: '1.3rem',
+          width: '100%', background: 'linear-gradient(135deg, #FACC15, #EAB308)',
+          color: '#78350F', border: 'none', borderRadius: 20, padding: '1.3rem',
           fontFamily: 'Nunito, sans-serif', fontWeight: 900, fontSize: '1.3rem',
-          cursor: 'pointer', boxShadow: '0 8px 24px rgba(167,139,250,0.4)'
-        }}>☆ Игри (beta)</button>
+          cursor: 'pointer', boxShadow: '0 8px 24px rgba(234,179,8,0.4)'
+        }}>⭐ Игри (beta)</button>
       )}
     </div>
   </main>
