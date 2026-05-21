@@ -204,7 +204,6 @@ export default function CubeScene({ items, tileColors, revealed, shakingIdx, onT
       gl={{ antialias: true, alpha: true }}
       style={{ width: '100%', height: '100%', touchAction: 'manipulation' }}
     >
-      <color attach="background" args={['#00000000']} />
       <ambientLight intensity={0.55} />
       <directionalLight position={[5, 8, 6]} intensity={1.2} castShadow shadow-mapSize={[1024, 1024]} />
       <pointLight position={[-4, -3, 4]} intensity={0.6} color="#FACC15" />
