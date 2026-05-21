@@ -47,18 +47,18 @@ export default function GamesPage() {
 
         <h1 style={{
           fontFamily: 'Nunito, sans-serif', fontWeight: 900, fontSize: '2.2rem',
-          color: '#7C3AED', marginTop: 16, marginBottom: 4
-        }}>☆ Игри</h1>
+          color: '#78350F', marginTop: 16, marginBottom: 4
+        }}>🎮 Игри</h1>
         <p style={{
           fontFamily: 'Nunito, sans-serif', color: '#92400E', marginBottom: 24,
           fontSize: '0.95rem'
         }}>Учи се докато играеш</p>
 
         <button onClick={() => router.push('/games/cube')} style={{
-          width: '100%', background: 'linear-gradient(135deg, #A78BFA, #7C3AED)',
-          color: 'white', border: 'none', borderRadius: 20, padding: '1.4rem',
+          width: '100%', background: 'linear-gradient(135deg, #FACC15, #EAB308)',
+          color: '#78350F', border: 'none', borderRadius: 20, padding: '1.4rem',
           fontFamily: 'Nunito, sans-serif', fontWeight: 900, fontSize: '1.3rem',
-          cursor: 'pointer', boxShadow: '0 8px 24px rgba(167,139,250,0.4)', marginBottom: 14
+          cursor: 'pointer', boxShadow: '0 8px 24px rgba(234,179,8,0.4)', marginBottom: 14
         }}>🎲 Куб Игра</button>
 
         <div style={{
