@@ -41,7 +41,7 @@ export async function GET() {
   const { data: dictations, error } = await supabase
     .from('dictations')
     .select('words, sentences, grade')
-    .eq('category', 'original')
+    .eq('category', 'original').eq('language', 'bg')
 
   if (error || !dictations) {
     return NextResponse.json({ error: error?.message || 'no data' }, { status: 500 })
