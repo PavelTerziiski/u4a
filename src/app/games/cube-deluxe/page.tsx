@@ -4,9 +4,12 @@ import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
 import { motion, AnimatePresence } from 'framer-motion'
 import confetti from 'canvas-confetti'
+import dynamic from 'next/dynamic'
 import AnimatedFox from '@/components/AnimatedFox'
-import Cube3D from './Cube3D'
 import '../../dashboard/dashboard.css'
+
+// Lazy-load CubeScene to avoid SSR issues with three.js
+const CubeScene = dynamic(() => import('./CubeScene'), { ssr: false })
 
 type CubeItem = {
   type: 'word' | 'sentence_easy' | 'sentence_hard' | 'mystery'
@@ -22,12 +25,9 @@ const TILE_COLORS = [
 ]
 
 const MUSIC_TRACKS = [
-  '/sounds/cube-music-1.mp3',
-  '/sounds/cube-music-2.mp3',
-  '/sounds/cube-music-3.mp3',
-  '/sounds/cube-music-4.mp3',
+  '/sounds/cube-music-1.mp3', '/sounds/cube-music-2.mp3',
+  '/sounds/cube-music-3.mp3', '/sounds/cube-music-4.mp3',
 ]
-
 const MUSIC_PREF_KEY = 'u4a_cube_music_on'
 
 function shuffle<T>(arr: T[]): T[] {
@@ -64,7 +64,7 @@ export default function CubeDeluxePage() {
   const lastBeepSecRef = useRef<number>(-1)
   const acornIdRef = useRef(0)
   const scoreboardRef = useRef<HTMLDivElement | null>(null)
-  const tileRefs = useRef<(HTMLDivElement | null)[]>([])
+  const gridContainerRef = useRef<HTMLDivElement | null>(null)
 
   useEffect(() => {
     const pref = localStorage.getItem(MUSIC_PREF_KEY)
@@ -111,17 +111,8 @@ export default function CubeDeluxePage() {
   useEffect(() => {
     if (phase === 'playing' && revealed.every(r => r)) {
       if (timerRef.current) clearInterval(timerRef.current)
-      // Big confetti burst
-      confetti({
-        particleCount: 200,
-        spread: 100,
-        origin: { y: 0.5 },
-        colors: ['#FACC15', '#EAB308', '#F97316', '#10B981', '#8B5CF6']
-      })
-      setTimeout(() => {
-        stopMusic()
-        setPhase('done')
-      }, 1500)
+      confetti({ particleCount: 200, spread: 100, origin: { y: 0.5 } })
+      setTimeout(() => { stopMusic(); setPhase('done') }, 1500)
     }
   }, [revealed, phase])
 
@@ -140,10 +131,8 @@ export default function CubeDeluxePage() {
       osc.type = 'sine'
       gain.gain.setValueAtTime(0.15, ctx.currentTime)
       gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.2)
-      osc.connect(gain)
-      gain.connect(ctx.destination)
-      osc.start()
-      osc.stop(ctx.currentTime + 0.2)
+      osc.connect(gain); gain.connect(ctx.destination)
+      osc.start(); osc.stop(ctx.currentTime + 0.2)
     } catch {}
   }
 
@@ -173,9 +162,7 @@ export default function CubeDeluxePage() {
     else if (phase === 'playing') startMusic()
   }
 
-  const vibrate = (ms: number) => {
-    try { if (navigator.vibrate) navigator.vibrate(ms) } catch {}
-  }
+  const vibrate = (ms: number) => { try { if (navigator.vibrate) navigator.vibrate(ms) } catch {} }
 
   const startGame = async () => {
     setLoading(true)
@@ -183,16 +170,12 @@ export default function CubeDeluxePage() {
       const res = await fetch('/api/game-cube')
       const data = await res.json()
       if (!data.items || data.items.length < 9) {
-        alert('Грешка при зареждане.')
-        setLoading(false)
-        return
+        alert('Грешка при зареждане.'); setLoading(false); return
       }
       setItems(data.items)
       setTileColors(shuffle(TILE_COLORS))
       setRevealed(Array(9).fill(false))
-      setScore(0)
-      setTimeLeft(90)
-      setActiveIdx(null)
+      setScore(0); setTimeLeft(90); setActiveIdx(null)
       setFlyingAcorns([])
       lastBeepSecRef.current = -1
       setPhase('playing')
@@ -206,8 +189,7 @@ export default function CubeDeluxePage() {
   const handleTileClick = (i: number) => {
     if (revealed[i] || activeIdx !== null) return
     vibrate(15)
-    // shake neighbors briefly
-    const neighbors = [i - 1, i + 1, i - 3, i + 3].filter(n => n >= 0 && n < 9 && Math.abs((n % 3) - (i % 3)) <= 1)
+    const neighbors = [i - 1, i + 1, i - 3, i + 3].filter(n => n >= 0 && n < 9)
     neighbors.forEach((n, idx) => {
       setTimeout(() => setShakingIdx(n), idx * 30)
       setTimeout(() => setShakingIdx(null), 400 + idx * 30)
@@ -226,30 +208,31 @@ export default function CubeDeluxePage() {
     setTimeout(() => setGridShake(false), 400)
     setRevealed(r => r.map((v, i) => (i === idx ? true : v)))
     setActiveIdx(null)
-    // Spawn flying acorns from tile -> scoreboard
-    const tileEl = tileRefs.current[idx]
-    if (tileEl) {
-      const rect = tileEl.getBoundingClientRect()
+
+    // Spawn flying acorns from grid center -> scoreboard
+    const gridEl = gridContainerRef.current
+    if (gridEl) {
+      const rect = gridEl.getBoundingClientRect()
+      // estimate tile position (3x3)
+      const col = idx % 3, row = Math.floor(idx / 3)
+      const tileX = rect.left + (rect.width / 3) * (col + 0.5)
+      const tileY = rect.top + (rect.height / 3) * (row + 0.5)
       const newAcorns: FlyingAcorn[] = []
       const count = Math.min(points + 2, 8)
       for (let k = 0; k < count; k++) {
         acornIdRef.current += 1
         newAcorns.push({
           id: acornIdRef.current,
-          startX: rect.left + rect.width / 2 + (Math.random() - 0.5) * 30,
-          startY: rect.top + rect.height / 2 + (Math.random() - 0.5) * 30
+          startX: tileX + (Math.random() - 0.5) * 30,
+          startY: tileY + (Math.random() - 0.5) * 30,
         })
       }
       setFlyingAcorns(a => [...a, ...newAcorns])
     }
-    // Confetti burst (small)
     confetti({
-      particleCount: 30,
-      spread: 60,
-      origin: { y: 0.6 },
+      particleCount: 30, spread: 60, origin: { y: 0.6 },
       colors: ['#FACC15', '#F97316', '#EAB308']
     })
-    // Score boom after acorns arrive
     setTimeout(() => {
       setScore(s => s + points)
       setScoreBoom(true)
@@ -280,28 +263,22 @@ export default function CubeDeluxePage() {
         }}>{musicOn ? '🔊' : '🔇'}</button>
 
         <AnimatedFox mood="excited" size={170} />
-
         <h1 style={{ fontFamily: 'Nunito', fontWeight: 900, fontSize: '2.2rem', color: '#78350F', marginTop: 16 }}>
           🎲 Куб Deluxe ✨
         </h1>
         <p style={{ fontFamily: 'Nunito', color: '#92400E', marginBottom: 24, fontSize: '1.05rem' }}>
-          3D кубчета • Жълъди • Конфети<br/>90 секунди magic ⚡
+          Истински 3D кубчета<br/>90 секунди magic ⚡
         </p>
-
         <motion.button
-          whileHover={{ scale: 1.05 }}
-          whileTap={{ scale: 0.95 }}
-          onClick={startGame}
-          disabled={loading}
+          whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}
+          onClick={startGame} disabled={loading}
           style={{
             width: '100%', background: 'linear-gradient(135deg, #FACC15, #EAB308)',
             color: '#78350F', border: 'none', borderRadius: 20, padding: '1.3rem',
             fontFamily: 'Nunito', fontWeight: 900, fontSize: '1.3rem', cursor: 'pointer',
             boxShadow: '0 8px 28px rgba(234,179,8,0.5)'
           }}
-        >
-          {loading ? 'Зареждам...' : '🚀 Започни!'}
-        </motion.button>
+        >{loading ? 'Зареждам...' : '🚀 Започни!'}</motion.button>
       </div>
     </main>
   )
@@ -315,20 +292,15 @@ export default function CubeDeluxePage() {
         <AnimatedGradientBg />
         <div className="w-full max-w-md text-center" style={{ position: 'relative', zIndex: 1 }}>
           <AnimatedFox mood={score >= 10 ? 'excited' : 'happy'} size={200} />
-          <motion.h1
-            initial={{ scale: 0 }}
-            animate={{ scale: 1 }}
-            transition={{ type: 'spring', stiffness: 200 }}
-            style={{ fontFamily: 'Nunito', fontWeight: 900, fontSize: '2.4rem', color: '#78350F', marginTop: 16 }}
-          >
+          <motion.h1 initial={{ scale: 0 }} animate={{ scale: 1 }} transition={{ type: 'spring' }}
+            style={{ fontFamily: 'Nunito', fontWeight: 900, fontSize: '2.4rem', color: '#78350F', marginTop: 16 }}>
             {allRevealed ? '🎉 Браво!' : '⏰ Краят!'}
           </motion.h1>
-          <motion.p
-            initial={{ scale: 0, rotate: -180 }}
-            animate={{ scale: 1, rotate: 0 }}
-            transition={{ type: 'spring', stiffness: 150, delay: 0.2 }}
-            style={{ fontFamily: 'Nunito', fontSize: '5rem', fontWeight: 900, color: '#EAB308' }}
-          >{score}</motion.p>
+          <motion.p initial={{ scale: 0, rotate: -180 }} animate={{ scale: 1, rotate: 0 }}
+            transition={{ type: 'spring', delay: 0.2 }}
+            style={{ fontFamily: 'Nunito', fontSize: '5rem', fontWeight: 900, color: '#EAB308' }}>
+            {score}
+          </motion.p>
           <p style={{ color: '#92400E', fontFamily: 'Nunito', marginBottom: 24 }}>точки</p>
           <motion.button whileTap={{ scale: 0.95 }} onClick={startGame} style={{
             width: '100%', background: 'linear-gradient(135deg, #FACC15, #EAB308)',
@@ -357,7 +329,8 @@ export default function CubeDeluxePage() {
 
       {revealFlash && (
         <div style={{
-          position: 'fixed', inset: 0, background: 'radial-gradient(circle, rgba(250,204,21,0.4) 0%, transparent 60%)',
+          position: 'fixed', inset: 0,
+          background: 'radial-gradient(circle, rgba(250,204,21,0.4) 0%, transparent 60%)',
           pointerEvents: 'none', zIndex: 50, animation: 'flashFade 0.3s ease-out'
         }} />
       )}
@@ -371,8 +344,7 @@ export default function CubeDeluxePage() {
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16, gap: 8 }}>
           <button onClick={() => {
             if (timerRef.current) clearInterval(timerRef.current)
-            stopMusic()
-            setPhase('intro')
+            stopMusic(); setPhase('intro')
           }} style={{ background: 'none', border: 'none', fontSize: '1.5rem', cursor: 'pointer' }}>←</button>
 
           <motion.div
@@ -382,8 +354,7 @@ export default function CubeDeluxePage() {
               fontFamily: 'Nunito', fontWeight: 900, fontSize: '1.5rem',
               color: timerLow ? '#DC2626' : timerMid ? '#EA580C' : '#78350F',
               flex: 1, textAlign: 'center'
-            }}
-          >⏱ {timeLeft}</motion.div>
+            }}>⏱ {timeLeft}</motion.div>
 
           <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
             <button onClick={toggleMusic} style={{ background: 'none', border: 'none', fontSize: '1.3rem', cursor: 'pointer' }}>
@@ -396,75 +367,26 @@ export default function CubeDeluxePage() {
               style={{
                 fontFamily: 'Nunito', fontWeight: 900, fontSize: '1.4rem', color: '#EAB308',
                 filter: scoreBoom ? 'drop-shadow(0 0 12px rgba(234,179,8,0.8))' : 'none'
-              }}
-            >⭐ {score}</motion.div>
+              }}>⭐ {score}</motion.div>
           </div>
         </div>
 
-        <div style={{
-          display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 10,
-          aspectRatio: '1 / 1', marginBottom: 16, position: 'relative'
-        }}>
-          {items.map((item, i) => {
-            const colors = tileColors[i] || ['#9CA3AF', '#6B7280']
-            const isRevealed = revealed[i]
-            const isShaking = shakingIdx === i
-            return (
-              <motion.div
-                key={i}
-                ref={(el) => { tileRefs.current[i] = el }}
-                initial={{ scale: 0, rotate: -180, opacity: 0 }}
-                animate={{ scale: 1, rotate: 0, opacity: 1 }}
-                transition={{ type: 'spring', stiffness: 220, damping: 18, delay: i * 0.06 }}
-                whileTap={{ scale: 0.93 }}
-                onClick={() => handleTileClick(i)}
-                style={{
-                  position: 'relative', cursor: isRevealed ? 'default' : 'pointer',
-                  borderRadius: 16, overflow: 'hidden',
-                  background: `linear-gradient(135deg, ${colors[0]}, ${colors[1]})`,
-                  boxShadow: isRevealed
-                    ? '0 4px 12px rgba(0,0,0,0.1)'
-                    : `0 6px 20px ${colors[1]}66, 0 0 0 2px ${colors[0]}40`
-                }}
-              >
-                {/* 3D Cube layer */}
-                <div style={{ position: 'absolute', inset: 0, opacity: 0.95 }}>
-                  <Cube3D color1={colors[0]} color2={colors[1]} isRevealed={isRevealed} isShaking={isShaking} />
-                </div>
-                {/* Question mark overlay (closed) */}
-                {!isRevealed && (
-                  <div style={{
-                    position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    color: 'white', fontFamily: 'Nunito', fontWeight: 900, fontSize: '2.5rem',
-                    textShadow: '0 2px 6px rgba(0,0,0,0.3)', pointerEvents: 'none'
-                  }}>?</div>
-                )}
-                {/* Word overlay (revealed) */}
-                {isRevealed && (
-                  <motion.div
-                    initial={{ opacity: 0, scale: 0.5 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    transition={{ delay: 0.3, type: 'spring' }}
-                    style={{
-                      position: 'absolute', inset: 0, background: 'rgba(255,255,255,0.95)',
-                      display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
-                      padding: '4px', pointerEvents: 'none', borderRadius: 16
-                    }}
-                  >
-                    <div style={{
-                      fontFamily: 'Nunito', fontWeight: 900,
-                      fontSize: item.type === 'word' ? (item.text.length > 8 ? '0.9rem' : '1.05rem') : '0.7rem',
-                      color: '#78350F', textAlign: 'center', lineHeight: 1.15,
-                      wordBreak: 'break-word', maxWidth: '95%'
-                    }}>{item.text}</div>
-                    <div style={{
-                      fontFamily: 'Nunito', fontWeight: 900, fontSize: '0.95rem', color: '#EAB308', marginTop: 4
-                    }}>+{item.points}</div>
-                  </motion.div>
-                )}
-              </motion.div>
-            )
-          })}
+        {/* THE 3D SCENE — single Canvas with all 9 cubes */}
+        <div
+          ref={gridContainerRef}
+          style={{
+            width: '100%', aspectRatio: '1 / 1', marginBottom: 16,
+            position: 'relative', borderRadius: 24, overflow: 'hidden'
+          }}>
+          {items.length === 9 && tileColors.length === 9 && (
+            <CubeScene
+              items={items}
+              tileColors={tileColors}
+              revealed={revealed}
+              shakingIdx={shakingIdx}
+              onTileClick={handleTileClick}
+            />
+          )}
         </div>
 
         <div style={{ textAlign: 'center', fontFamily: 'Nunito', fontWeight: 800, color: '#92400E' }}>
@@ -476,28 +398,22 @@ export default function CubeDeluxePage() {
       <AnimatePresence>
         {activeIdx !== null && items[activeIdx] && (
           <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
+            initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
             onClick={handleClaim}
             style={{
               position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.7)',
               display: 'flex', alignItems: 'center', justifyContent: 'center',
               zIndex: 100, padding: 20
-            }}
-          >
+            }}>
             <motion.div
-              initial={{ scale: 0, rotate: -10 }}
-              animate={{ scale: 1, rotate: 0 }}
-              exit={{ scale: 0, opacity: 0 }}
+              initial={{ scale: 0, rotate: -10 }} animate={{ scale: 1, rotate: 0 }} exit={{ scale: 0, opacity: 0 }}
               transition={{ type: 'spring', stiffness: 200, damping: 15 }}
               onClick={e => e.stopPropagation()}
               style={{
                 background: 'white', borderRadius: 24, padding: '2rem 1.5rem',
                 maxWidth: 420, width: '100%', textAlign: 'center',
                 boxShadow: '0 20px 60px rgba(0,0,0,0.4)'
-              }}
-            >
+              }}>
               <div style={{
                 fontFamily: 'Nunito', fontWeight: 900,
                 fontSize: items[activeIdx].type === 'word' ? '2.5rem' : '1.4rem',
@@ -535,17 +451,13 @@ export default function CubeDeluxePage() {
                 position: 'fixed', top: 0, left: 0, fontSize: '1.8rem',
                 pointerEvents: 'none', zIndex: 90,
                 filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.3))'
-              }}
-            >🌰</motion.div>
+              }}>🌰</motion.div>
           )
         })}
       </AnimatePresence>
 
       <style jsx>{`
-        @keyframes flashFade {
-          0% { opacity: 1; }
-          100% { opacity: 0; }
-        }
+        @keyframes flashFade { 0% { opacity: 1; } 100% { opacity: 0; } }
       `}</style>
     </main>
   )
@@ -574,29 +486,19 @@ function IdleSparkles() {
   return (
     <>
       {sparkles.map(i => (
-        <motion.div
-          key={i}
+        <motion.div key={i}
           initial={{ opacity: 0, scale: 0 }}
-          animate={{
-            opacity: [0, 1, 0],
-            scale: [0, 1, 0],
-            y: [0, -30, -60],
-          }}
+          animate={{ opacity: [0, 1, 0], scale: [0, 1, 0], y: [0, -30, -60] }}
           transition={{
             duration: 3 + Math.random() * 2,
-            repeat: Infinity,
-            delay: i * 0.5,
-            ease: 'easeOut'
+            repeat: Infinity, delay: i * 0.5, ease: 'easeOut'
           }}
           style={{
             position: 'fixed',
             left: `${10 + (i * 11) % 80}%`,
             top: `${30 + (i * 7) % 50}%`,
-            fontSize: '1.2rem',
-            pointerEvents: 'none',
-            zIndex: 5
-          }}
-        >✨</motion.div>
+            fontSize: '1.2rem', pointerEvents: 'none', zIndex: 5
+          }}>✨</motion.div>
       ))}
     </>
   )
