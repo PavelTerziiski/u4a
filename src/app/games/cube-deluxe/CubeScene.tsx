@@ -148,7 +148,6 @@ function SceneCube({ position, color1, color2, item, isRevealed, isShaking, onCl
           fontWeight={900}
           maxWidth={1.2}
           textAlign="center"
-          font="/fonts/Nunito-Black.ttf"
         >
           {item.text}
         </Text>
