@@ -24,6 +24,15 @@ const TILE_COLORS = [
   ['#86EFAC', '#22C55E'],
 ]
 
+const MUSIC_TRACKS = [
+  '/sounds/cube-music-1.mp3',
+  '/sounds/cube-music-2.mp3',
+  '/sounds/cube-music-3.mp3',
+  '/sounds/cube-music-4.mp3',
+]
+
+const MUSIC_PREF_KEY = 'u4a_cube_music_on'
+
 function shuffle<T>(arr: T[]): T[] {
   const a = [...arr]
   for (let i = a.length - 1; i > 0; i--) {
@@ -44,8 +53,19 @@ export default function CubeGamePage() {
   const [timeLeft, setTimeLeft] = useState(90)
   const [tileColors, setTileColors] = useState<string[][]>([])
   const [loading, setLoading] = useState(false)
+  const [musicOn, setMusicOn] = useState(true)
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null)
+  const audioRef = useRef<HTMLAudioElement | null>(null)
+  const beepCtxRef = useRef<AudioContext | null>(null)
+  const lastBeepSecRef = useRef<number>(-1)
 
+  // Read music preference from localStorage on mount
+  useEffect(() => {
+    const pref = localStorage.getItem(MUSIC_PREF_KEY)
+    if (pref === 'off') setMusicOn(false)
+  }, [])
+
+  // Auth gate
   useEffect(() => {
     const username = localStorage.getItem('u4a_username')
     if (!username) { router.push('/login'); return }
@@ -59,12 +79,14 @@ export default function CubeGamePage() {
       })
   }, [])
 
+  // Timer
   useEffect(() => {
     if (phase !== 'playing') return
     timerRef.current = setInterval(() => {
       setTimeLeft(t => {
         if (t <= 1) {
           if (timerRef.current) clearInterval(timerRef.current)
+          stopMusic()
           setPhase('done')
           return 0
         }
@@ -74,12 +96,84 @@ export default function CubeGamePage() {
     return () => { if (timerRef.current) clearInterval(timerRef.current) }
   }, [phase])
 
+  // Beep on last 5 seconds
+  useEffect(() => {
+    if (phase !== 'playing') return
+    if (timeLeft > 5 || timeLeft <= 0) return
+    if (lastBeepSecRef.current === timeLeft) return
+    lastBeepSecRef.current = timeLeft
+    playBeep(timeLeft === 1 ? 880 : 660)
+  }, [timeLeft, phase])
+
+  // All revealed -> done
   useEffect(() => {
     if (phase === 'playing' && revealed.every(r => r)) {
       if (timerRef.current) clearInterval(timerRef.current)
-      setTimeout(() => setPhase('done'), 800)
+      setTimeout(() => {
+        stopMusic()
+        setPhase('done')
+      }, 800)
     }
   }, [revealed, phase])
+
+  // Cleanup on unmount
+  useEffect(() => {
+    return () => {
+      stopMusic()
+      if (timerRef.current) clearInterval(timerRef.current)
+    }
+  }, [])
+
+  const playBeep = (freq: number) => {
+    try {
+      if (!beepCtxRef.current) {
+        const AC = window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext
+        beepCtxRef.current = new AC()
+      }
+      const ctx = beepCtxRef.current
+      const osc = ctx.createOscillator()
+      const gain = ctx.createGain()
+      osc.frequency.value = freq
+      osc.type = 'sine'
+      gain.gain.setValueAtTime(0.15, ctx.currentTime)
+      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.2)
+      osc.connect(gain)
+      gain.connect(ctx.destination)
+      osc.start()
+      osc.stop(ctx.currentTime + 0.2)
+    } catch {}
+  }
+
+  const startMusic = () => {
+    if (!musicOn) return
+    const track = MUSIC_TRACKS[Math.floor(Math.random() * MUSIC_TRACKS.length)]
+    const audio = new Audio(track)
+    audio.loop = true
+    audio.volume = 0.4
+    audio.play().catch(() => {})
+    audioRef.current = audio
+  }
+
+  const stopMusic = () => {
+    if (audioRef.current) {
+      try {
+        audioRef.current.pause()
+        audioRef.current.currentTime = 0
+      } catch {}
+      audioRef.current = null
+    }
+  }
+
+  const toggleMusic = () => {
+    const next = !musicOn
+    setMusicOn(next)
+    localStorage.setItem(MUSIC_PREF_KEY, next ? 'on' : 'off')
+    if (!next) {
+      stopMusic()
+    } else if (phase === 'playing') {
+      startMusic()
+    }
+  }
 
   const startGame = async () => {
     setLoading(true)
@@ -97,7 +191,10 @@ export default function CubeGamePage() {
       setScore(0)
       setTimeLeft(90)
       setActiveIdx(null)
+      lastBeepSecRef.current = -1
       setPhase('playing')
+      // delay music a bit so it starts after UI transition
+      setTimeout(() => startMusic(), 300)
     } catch {
       alert('Грешка при зареждане. Опитай пак.')
     }
@@ -122,6 +219,17 @@ export default function CubeGamePage() {
     </main>
   )
 
+  // Music toggle button (used in playing screen)
+  const MusicToggle = () => (
+    <button onClick={toggleMusic} style={{
+      background: 'none', border: 'none', fontSize: '1.4rem', cursor: 'pointer',
+      padding: 4
+    }} aria-label="toggle music">
+      {musicOn ? '🔊' : '🔇'}
+    </button>
+  )
+
+  // ─── INTRO ──────────────────────────────────────────────
   if (phase === 'intro') return (
     <main className="u4a-dash min-h-screen flex flex-col items-center justify-center p-6">
       <div className="u4a-dash-overlay"></div>
@@ -131,6 +239,13 @@ export default function CubeGamePage() {
           position: 'absolute', top: -40, left: 0, color: '#F97316',
           fontFamily: 'Nunito, sans-serif', fontWeight: 800
         }}>← Назад</button>
+
+        <button onClick={toggleMusic} style={{
+          background: 'none', border: 'none', fontSize: '1.4rem', cursor: 'pointer',
+          position: 'absolute', top: -40, right: 0, padding: 4
+        }} aria-label="toggle music">
+          {musicOn ? '🔊' : '🔇'}
+        </button>
 
         <AnimatedFox mood="happy" size={160} />
 
@@ -161,6 +276,7 @@ export default function CubeGamePage() {
     </main>
   )
 
+  // ─── DONE ──────────────────────────────────────────────
   if (phase === 'done') {
     const allRevealed = revealed.every(r => r)
     return (
@@ -194,6 +310,7 @@ export default function CubeGamePage() {
     )
   }
 
+  // ─── PLAYING ──────────────────────────────────────────────
   const timerLow = timeLeft <= 10
   const timerMid = timeLeft <= 30 && timeLeft > 10
 
@@ -202,9 +319,10 @@ export default function CubeGamePage() {
       <div className="u4a-dash-overlay"></div>
       <div className="w-full max-w-md" style={{ position: 'relative', zIndex: 1 }}>
 
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16, gap: 8 }}>
           <button onClick={() => {
             if (timerRef.current) clearInterval(timerRef.current)
+            stopMusic()
             setPhase('intro')
           }} style={{ background: 'none', border: 'none', fontSize: '1.5rem', cursor: 'pointer' }}>←</button>
 
@@ -212,14 +330,20 @@ export default function CubeGamePage() {
             fontFamily: 'Nunito, sans-serif', fontWeight: 900, fontSize: '1.4rem',
             color: timerLow ? '#DC2626' : timerMid ? '#EA580C' : '#78350F',
             transform: timerLow ? 'scale(1.15)' : 'scale(1)',
-            transition: 'transform 0.2s'
+            transition: 'transform 0.2s',
+            flex: 1, textAlign: 'center'
           }}>
             ⏱ {timeLeft}
           </div>
 
           <div style={{
-            fontFamily: 'Nunito, sans-serif', fontWeight: 900, fontSize: '1.3rem', color: '#EAB308'
-          }}>⭐ {score}</div>
+            display: 'flex', alignItems: 'center', gap: 12
+          }}>
+            <MusicToggle />
+            <div style={{
+              fontFamily: 'Nunito, sans-serif', fontWeight: 900, fontSize: '1.3rem', color: '#EAB308'
+            }}>⭐ {score}</div>
+          </div>
         </div>
 
         <div style={{
@@ -240,6 +364,7 @@ export default function CubeGamePage() {
                   transition: 'transform 0.6s',
                   transform: isRevealed ? 'rotateY(180deg)' : 'rotateY(0deg)'
                 }}>
+                  {/* Front (closed) */}
                   <div style={{
                     position: 'absolute', inset: 0, backfaceVisibility: 'hidden',
                     WebkitBackfaceVisibility: 'hidden',
@@ -249,6 +374,7 @@ export default function CubeGamePage() {
                     fontSize: '2.5rem', boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
                     textShadow: '0 2px 4px rgba(0,0,0,0.2)'
                   }}>?</div>
+                  {/* Back (opened) — word + points */}
                   <div style={{
                     position: 'absolute', inset: 0, backfaceVisibility: 'hidden',
                     WebkitBackfaceVisibility: 'hidden',
@@ -256,13 +382,24 @@ export default function CubeGamePage() {
                     background: 'white', borderRadius: 16,
                     border: '3px solid #FDE68A',
                     display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    flexDirection: 'column', padding: 6,
-                    boxShadow: '0 4px 12px rgba(0,0,0,0.08)'
+                    flexDirection: 'column', padding: '6px 4px',
+                    boxShadow: '0 4px 12px rgba(0,0,0,0.08)',
+                    overflow: 'hidden'
                   }}>
-                    <div style={{ fontSize: '1.5rem' }}>{item.emoji}</div>
                     <div style={{
-                      fontFamily: 'Nunito, sans-serif', fontWeight: 900, fontSize: '0.9rem',
-                      color: '#EAB308'
+                      fontFamily: 'Nunito, sans-serif', fontWeight: 900,
+                      fontSize: item.type === 'word'
+                        ? (item.text.length > 8 ? '0.85rem' : '1rem')
+                        : '0.65rem',
+                      color: '#78350F', lineHeight: 1.15, textAlign: 'center',
+                      wordBreak: 'break-word',
+                      maxWidth: '95%'
+                    }}>
+                      {item.text}
+                    </div>
+                    <div style={{
+                      fontFamily: 'Nunito, sans-serif', fontWeight: 900, fontSize: '0.95rem',
+                      color: '#EAB308', marginTop: 4
                     }}>+{item.points}</div>
                   </div>
                 </div>
