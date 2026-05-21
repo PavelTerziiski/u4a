@@ -376,7 +376,9 @@ export default function CubeDeluxePage() {
           ref={gridContainerRef}
           style={{
             width: '100%', aspectRatio: '1 / 1', marginBottom: 16,
-            position: 'relative', borderRadius: 24, overflow: 'hidden'
+            position: 'relative', borderRadius: 24, overflow: 'hidden',
+            background: 'radial-gradient(circle at 30% 20%, #FEF3C7 0%, #FDE68A 30%, #FBBF24 70%, #F59E0B 100%)',
+            boxShadow: 'inset 0 4px 24px rgba(0,0,0,0.1), 0 8px 32px rgba(234,179,8,0.25)'
           }}>
           {items.length === 9 && tileColors.length === 9 && (
             <CubeScene

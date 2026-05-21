@@ -87,9 +87,19 @@ function SceneCube({ position, color1, color2, item, isRevealed, isShaking, onCl
   // For revealed back face, choose font size based on text length
   const isWord = item.type === 'word'
   const textLen = item.text.length
-  const fontSize = isWord
-    ? (textLen > 8 ? 0.18 : 0.24)
-    : 0.11
+  // Words: aggressive dynamic scaling
+  // Sentences: smaller, multi-line capable
+  let fontSize: number
+  if (isWord) {
+    if (textLen <= 5) fontSize = 0.34
+    else if (textLen <= 8) fontSize = 0.28
+    else if (textLen <= 11) fontSize = 0.22
+    else fontSize = 0.18
+  } else {
+    if (textLen <= 20) fontSize = 0.15
+    else if (textLen <= 40) fontSize = 0.13
+    else fontSize = 0.11
+  }
 
   return (
     <group
@@ -137,7 +147,7 @@ function SceneCube({ position, color1, color2, item, isRevealed, isShaking, onCl
       {/* Back face - word + points (visible after flip) */}
       <group position={[0, 0, -0.255]} rotation={[0, Math.PI, 0]}>
         <RoundedBox args={[1.35, 1.35, 0.02]} radius={0.08} smoothness={4}>
-          <meshStandardMaterial color="#FFFBEB" metalness={0} roughness={0.6} />
+          <meshStandardMaterial color="#FEFCE8" metalness={0.05} roughness={0.5} emissive="#FEF3C7" emissiveIntensity={0.15} />
         </RoundedBox>
         <Text
           position={[0, 0.1, 0.02]}
