@@ -7,7 +7,7 @@ import '../dashboard/dashboard.css'
 
 export default function GamesPage() {
   const router = useRouter()
-  const [profile, setProfile] = useState<Record<string, unknown> | null>(null)
+  const [, setProfile] = useState<Record<string, unknown> | null>(null)
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
