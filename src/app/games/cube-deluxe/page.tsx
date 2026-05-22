@@ -412,8 +412,8 @@ function CubeDeluxeInner() {
       isActiveRef.current = true
       setPhase('playing')
       setTimeout(() => startMusic(), 300)
-      // Pre-acquire mic for reading mode (avoid permission dialog mid-game)
-      if (mode === 'read') acquireMic()
+      // Pre-acquire mic for voice modes (avoid permission dialog mid-game)
+      if (mode === 'read' || mode === 'listen') acquireMic()
     } catch {
       alert('Грешка при зареждане.')
     }
@@ -429,10 +429,15 @@ function CubeDeluxeInner() {
       setTimeout(() => setShakingIdx(null), 400 + idx * 30)
     })
     setActiveIdx(i)
-    // Reset reading-mode state for new cube
     setAttempts(0)
     setFeedbackType('')
     setOwlSays('')
+    // Listen mode: auto-play TTS after a short delay so modal animation finishes
+    if (mode === 'listen' && items[i]) {
+      setTimeout(() => {
+        if (isActiveRef.current) playTTS(items[i].text, 'kalina')
+      }, 500)
+    }
   }
 
   const handleClaim = (awardPoints: boolean = true) => {
@@ -510,6 +515,8 @@ function CubeDeluxeInner() {
         <p style={{ fontFamily: 'Nunito', color: '#92400E', marginBottom: 24, fontSize: '1.05rem' }}>
           {mode === 'read'
             ? <>Прочети на глас и спечели точки!<br/>📖 90 секунди ⚡</>
+            : mode === 'listen'
+            ? <>Слушай и повтори след Калина!<br/>👂 90 секунди ⚡</>
             : <>Истински 3D кубчета<br/>90 секунди magic ⚡</>}
         </p>
         <motion.button
@@ -564,6 +571,8 @@ function CubeDeluxeInner() {
   const timerLow = timeLeft <= 10
   const timerMid = timeLeft <= 30 && timeLeft > 10
   const isReadMode = mode === 'read'
+  const isListenMode = mode === 'listen'
+  const isVoiceMode = isReadMode || isListenMode
 
   return (
     <main className="u4a-dash min-h-screen flex flex-col items-center p-4 pt-6" style={{ position: 'relative', overflow: 'hidden' }}>
@@ -654,7 +663,7 @@ function CubeDeluxeInner() {
         {activeIdx !== null && items[activeIdx] && (
           <motion.div
             initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-            onClick={isReadMode ? undefined : () => handleClaim(true)}
+            onClick={isVoiceMode ? undefined : () => handleClaim(true)}
             style={{
               position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.7)',
               display: 'flex', alignItems: 'center', justifyContent: 'center',
@@ -669,18 +678,39 @@ function CubeDeluxeInner() {
                 maxWidth: 420, width: '100%', textAlign: 'center',
                 boxShadow: '0 20px 60px rgba(0,0,0,0.4)'
               }}>
-              <div style={{
-                fontFamily: 'Nunito', fontWeight: 900,
-                fontSize: items[activeIdx].type === 'word' ? '2.5rem' : '1.4rem',
-                color: '#78350F', lineHeight: 1.3, marginBottom: 16
-              }}>{items[activeIdx].text}</div>
+              {isListenMode && feedbackType !== 'correct' && attempts < MAX_ATTEMPTS ? (
+                <div style={{
+                  fontFamily: 'Nunito', fontWeight: 900, fontSize: '2.5rem',
+                  color: '#78350F', marginBottom: 16, padding: '1rem'
+                }}>👂 Слушай...</div>
+              ) : (
+                <div style={{
+                  fontFamily: 'Nunito', fontWeight: 900,
+                  fontSize: items[activeIdx].type === 'word' ? '2.5rem' : '1.4rem',
+                  color: '#78350F', lineHeight: 1.3, marginBottom: 16
+                }}>{items[activeIdx].text}</div>
+              )}
               <div style={{
                 display: 'inline-block', background: '#FEF3C7', color: '#92400E',
                 borderRadius: 99, padding: '6px 16px', fontWeight: 800,
                 fontFamily: 'Nunito', marginBottom: 20
               }}>+{items[activeIdx].points} точки</div>
 
-              {isReadMode ? (
+              {/* Listen mode: "Hear again" button (free, no attempt cost) */}
+              {isListenMode && !recording && !whisperLoading && (
+                <button
+                  onClick={() => playTTS(items[activeIdx].text, 'kalina')}
+                  style={{
+                    width: '100%', background: '#EFF6FF', color: '#2563EB',
+                    border: '2px solid #BFDBFE', borderRadius: 16,
+                    padding: '0.8rem', fontFamily: 'Nunito', fontWeight: 800,
+                    fontSize: '1rem', cursor: 'pointer', marginBottom: 12
+                  }}>
+                  🔊 Чуй пак
+                </button>
+              )}
+
+              {isVoiceMode ? (
                 <>
                   {/* Attempts indicator */}
                   {attempts > 0 && (
