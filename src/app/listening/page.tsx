@@ -122,7 +122,6 @@ export default function ListeningPage() {
         if (!data) { router.push('/login'); return }
         if (data.fox_name) setFoxName(data.fox_name)
         setProfile(data)
-        console.log('[u4a-debug] /listening profile loaded:', { username: data.username, email: data.email, hasEmail: !!data.email })
       })
     supabase.from('pronunciation_words').select('*').order('sort_order')
       .then(({ data }) => { if (data && data.length > 0) setAllAlphaWords(data) })
