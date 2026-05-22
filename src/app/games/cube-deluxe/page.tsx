@@ -1,6 +1,6 @@
 'use client'
-import { useEffect, useRef, useState } from 'react'
-import { useRouter } from 'next/navigation'
+import { useEffect, useRef, useState, Suspense } from 'react'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
 import { motion, AnimatePresence } from 'framer-motion'
 import confetti from 'canvas-confetti'
@@ -8,7 +8,6 @@ import dynamic from 'next/dynamic'
 import AnimatedFox from '@/components/AnimatedFox'
 import '../../dashboard/dashboard.css'
 
-// Lazy-load CubeScene to avoid SSR issues with three.js
 const CubeScene = dynamic(() => import('./CubeScene'), { ssr: false })
 
 type CubeItem = {
@@ -17,6 +16,8 @@ type CubeItem = {
   points: number
   emoji: string
 }
+
+type GameMode = 'classic' | 'read' | 'listen'
 
 const TILE_COLORS = [
   ['#FBBF24', '#F59E0B'], ['#34D399', '#10B981'], ['#60A5FA', '#3B82F6'],
@@ -29,6 +30,9 @@ const MUSIC_TRACKS = [
   '/sounds/cube-music-3.mp3', '/sounds/cube-music-4.mp3',
 ]
 const MUSIC_PREF_KEY = 'u4a_cube_music_on'
+const MUSIC_VOL_NORMAL = 0.4
+const MUSIC_VOL_DUCKED = 0.05
+const MAX_ATTEMPTS = 3
 
 function shuffle<T>(arr: T[]): T[] {
   const a = [...arr]
@@ -41,8 +45,11 @@ function shuffle<T>(arr: T[]): T[] {
 
 type FlyingAcorn = { id: number; startX: number; startY: number }
 
-export default function CubeDeluxePage() {
+function CubeDeluxeInner() {
   const router = useRouter()
+  const searchParams = useSearchParams()
+  const mode: GameMode = (searchParams.get('mode') as GameMode) || 'classic'
+
   const [authChecked, setAuthChecked] = useState(false)
   const [phase, setPhase] = useState<'intro' | 'playing' | 'done'>('intro')
   const [items, setItems] = useState<CubeItem[]>([])
@@ -58,6 +65,14 @@ export default function CubeDeluxePage() {
   const [flyingAcorns, setFlyingAcorns] = useState<FlyingAcorn[]>([])
   const [gridShake, setGridShake] = useState(false)
   const [revealFlash, setRevealFlash] = useState(false)
+
+  // Reading mode state
+  const [recording, setRecording] = useState(false)
+  const [whisperLoading, setWhisperLoading] = useState(false)
+  const [attempts, setAttempts] = useState(0)
+  const [feedbackType, setFeedbackType] = useState<'correct' | 'wrong' | ''>('')
+  const [owlSays, setOwlSays] = useState('')
+
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null)
   const audioRef = useRef<HTMLAudioElement | null>(null)
   const beepCtxRef = useRef<AudioContext | null>(null)
@@ -65,6 +80,15 @@ export default function CubeDeluxePage() {
   const acornIdRef = useRef(0)
   const scoreboardRef = useRef<HTMLDivElement | null>(null)
   const gridContainerRef = useRef<HTMLDivElement | null>(null)
+
+  // Recording refs (same pattern as /listening)
+  const mediaRecorderRef = useRef<MediaRecorder | null>(null)
+  const chunksRef = useRef<Blob[]>([])
+  const ttsCtxRef = useRef<AudioContext | null>(null)
+  const ttsSourceRef = useRef<AudioBufferSourceNode | null>(null)
+  const streamRef = useRef<MediaStream | null>(null)
+  const isActiveRef = useRef(true)
+  const autoStopTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   useEffect(() => {
     const pref = localStorage.getItem(MUSIC_PREF_KEY)
@@ -116,7 +140,36 @@ export default function CubeDeluxePage() {
     }
   }, [revealed, phase])
 
-  useEffect(() => () => { stopMusic(); if (timerRef.current) clearInterval(timerRef.current) }, [])
+  useEffect(() => () => {
+    isActiveRef.current = false
+    stopMusic()
+    if (timerRef.current) clearInterval(timerRef.current)
+    if (autoStopTimeoutRef.current) clearTimeout(autoStopTimeoutRef.current)
+    cleanupRecording()
+    cleanupTTS()
+  }, [])
+
+  const cleanupRecording = () => {
+    if (mediaRecorderRef.current) {
+      try {
+        mediaRecorderRef.current.onstop = null
+        mediaRecorderRef.current.ondataavailable = null
+        if (mediaRecorderRef.current.state !== 'inactive') mediaRecorderRef.current.stop()
+      } catch {}
+      mediaRecorderRef.current = null
+    }
+    if (streamRef.current) {
+      streamRef.current.getTracks().forEach(t => t.stop())
+      streamRef.current = null
+    }
+  }
+
+  const cleanupTTS = () => {
+    if (ttsSourceRef.current) {
+      try { ttsSourceRef.current.onended = null; ttsSourceRef.current.stop() } catch {}
+      ttsSourceRef.current = null
+    }
+  }
 
   const playBeep = (freq: number) => {
     try {
@@ -142,7 +195,7 @@ export default function CubeDeluxePage() {
     const track = MUSIC_TRACKS[Math.floor(Math.random() * MUSIC_TRACKS.length)]
     const audio = new Audio(track)
     audio.loop = true
-    audio.volume = 0.4
+    audio.volume = MUSIC_VOL_NORMAL
     audio.play().catch(() => {})
     audioRef.current = audio
   }
@@ -152,6 +205,23 @@ export default function CubeDeluxePage() {
       try { audioRef.current.pause(); audioRef.current.currentTime = 0 } catch {}
       audioRef.current = null
     }
+  }
+
+  const fadeMusic = (target: number, duration = 200) => {
+    const audio = audioRef.current
+    if (!audio) return
+    const start = audio.volume
+    const steps = 10
+    const stepTime = duration / steps
+    const stepDelta = (target - start) / steps
+    let i = 0
+    const fade = () => {
+      i++
+      if (!audioRef.current) return
+      audioRef.current.volume = Math.max(0, Math.min(1, start + stepDelta * i))
+      if (i < steps) setTimeout(fade, stepTime)
+    }
+    setTimeout(fade, stepTime)
   }
 
   const toggleMusic = () => {
@@ -164,10 +234,171 @@ export default function CubeDeluxePage() {
 
   const vibrate = (ms: number) => { try { if (navigator.vibrate) navigator.vibrate(ms) } catch {} }
 
+  const getTTSCtx = () => {
+    if (!ttsCtxRef.current || ttsCtxRef.current.state === 'closed') {
+      const AC = window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext
+      ttsCtxRef.current = new AC()
+    }
+    return ttsCtxRef.current
+  }
+
+  const playTTS = async (text: string, voice = 'borisslav'): Promise<void> => {
+    if (!isActiveRef.current) return
+    try {
+      const res = await fetch('/api/tts-azure', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ text, voice, speed: 0.9, lang: 'bg' })
+      })
+      if (!isActiveRef.current) return
+      const blob = await res.blob()
+      const arrayBuffer = await blob.arrayBuffer()
+      const ctx = getTTSCtx()
+      if (ctx.state === 'suspended') await ctx.resume()
+      return new Promise<void>((resolve) => {
+        if (!isActiveRef.current) { resolve(); return }
+        ctx.decodeAudioData(arrayBuffer, (decoded) => {
+          if (!isActiveRef.current) { resolve(); return }
+          cleanupTTS()
+          const source = ctx.createBufferSource()
+          ttsSourceRef.current = source
+          source.buffer = decoded
+          const gainNode = ctx.createGain()
+          gainNode.gain.value = 1.6
+          source.connect(gainNode); gainNode.connect(ctx.destination)
+          source.onended = () => { ttsSourceRef.current = null; resolve() }
+          source.start(0)
+        }, () => resolve())
+      })
+    } catch { return }
+  }
+
+  const acquireMic = async (): Promise<MediaStream | null> => {
+    try {
+      if (streamRef.current && streamRef.current.getTracks().some(t => t.readyState === 'live')) {
+        return streamRef.current
+      }
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true })
+      streamRef.current = stream
+      return stream
+    } catch {
+      return null
+    }
+  }
+
+  const startRecording = async (onStop: (blob: Blob, mimeType: string) => void) => {
+    if (!isActiveRef.current) return
+    const stream = await acquireMic()
+    if (!stream || !isActiveRef.current) return
+    chunksRef.current = []
+    const mimeType = MediaRecorder.isTypeSupported('audio/webm') ? 'audio/webm' : 'audio/mp4'
+    const mr = new MediaRecorder(stream, { mimeType })
+    mediaRecorderRef.current = mr
+    mr.ondataavailable = (e) => { if (e.data.size > 0) chunksRef.current.push(e.data) }
+    mr.onstop = () => {
+      const blob = new Blob(chunksRef.current, { type: mimeType })
+      onStop(blob, mimeType)
+    }
+    mr.start()
+    setRecording(true)
+    fadeMusic(MUSIC_VOL_DUCKED, 200)
+  }
+
+  const stopRecording = () => {
+    const mr = mediaRecorderRef.current
+    if (!mr || mr.state === 'inactive') return
+    try { mr.stop() } catch {}
+    setRecording(false)
+    setWhisperLoading(true)
+    if (autoStopTimeoutRef.current) {
+      clearTimeout(autoStopTimeoutRef.current)
+      autoStopTimeoutRef.current = null
+    }
+  }
+
+  const handleMicTap = async () => {
+    if (activeIdx === null) return
+    if (recording) {
+      stopRecording()
+      return
+    }
+    if (whisperLoading) return
+    vibrate(20)
+    setFeedbackType('')
+    setOwlSays('')
+
+    const idx = activeIdx
+    const targetText = items[idx].text
+    const wordCount = targetText.split(/\s+/).length
+    const maxRecMs = Math.min(Math.max(wordCount * 700 + 2500, 3500), 8000)
+
+    await startRecording(async (blob, mimeType) => {
+      if (!isActiveRef.current) return
+      try {
+        const fd = new FormData()
+        const ext = mimeType.includes('mp4') ? 'mp4' : 'webm'
+        fd.append('file', blob, `audio.${ext}`)
+        fd.append('language', 'bg')
+        const res = await fetch('/api/whisper', { method: 'POST', body: fd })
+        if (!isActiveRef.current) return
+        const data = await res.json()
+        const transcript = (data.text || '').toLowerCase().trim()
+        const original = targetText.toLowerCase()
+
+        let isCorrect = false
+        if (items[idx].type === 'word') {
+          // Word match: transcript contains target OR target root
+          const root = original.substring(0, Math.max(3, Math.floor(original.length * 0.6)))
+          isCorrect = transcript.length > 1 && (transcript.includes(original) || transcript.includes(root))
+        } else {
+          // Sentence match: 30%+ word overlap (same logic as /listening)
+          const originalWords = original.replace(/[.,!?;:]/g, '').split(/\s+/).filter(Boolean)
+          const transcriptWords = transcript.replace(/[.,!?;:]/g, '').split(/\s+/).filter(Boolean)
+          const matchCount = originalWords.filter(w => transcriptWords.includes(w)).length
+          isCorrect = transcript.length > 2 && matchCount >= Math.ceil(originalWords.length * 0.3)
+        }
+
+        setWhisperLoading(false)
+        fadeMusic(MUSIC_VOL_NORMAL, 300)
+
+        if (isCorrect) {
+          setFeedbackType('correct')
+          setOwlSays('Браво!')
+          await playTTS('Браво!', 'borisslav')
+          if (!isActiveRef.current) return
+          // Claim with full points
+          handleClaim(true)
+        } else {
+          const nextAttempt = attempts + 1
+          setAttempts(nextAttempt)
+          setFeedbackType('wrong')
+          setOwlSays('Опитай пак!')
+          await playTTS('Опитай пак!', 'borisslav')
+          if (!isActiveRef.current) return
+          if (nextAttempt >= MAX_ATTEMPTS) {
+            // Out of attempts — reveal cube but give 0 points
+            handleClaim(false)
+          }
+          // else: stay on modal, child can try again
+        }
+      } catch {
+        setWhisperLoading(false)
+        fadeMusic(MUSIC_VOL_NORMAL, 300)
+      }
+    })
+
+    // Auto-stop after timeout
+    autoStopTimeoutRef.current = setTimeout(() => {
+      if (isActiveRef.current && recording) stopRecording()
+    }, maxRecMs)
+  }
+
   const startGame = async () => {
     setLoading(true)
     try {
-      const res = await fetch('/api/game-cube')
+      // Reading mode: prefer sentences (more challenging for reading practice)
+      const url = mode === 'read' ? '/api/game-cube?bias=sentences' : '/api/game-cube'
+      const res = await fetch(url)
       const data = await res.json()
       if (!data.items || data.items.length < 9) {
         alert('Грешка при зареждане.'); setLoading(false); return
@@ -178,8 +409,11 @@ export default function CubeDeluxePage() {
       setScore(0); setTimeLeft(90); setActiveIdx(null)
       setFlyingAcorns([])
       lastBeepSecRef.current = -1
+      isActiveRef.current = true
       setPhase('playing')
       setTimeout(() => startMusic(), 300)
+      // Pre-acquire mic for reading mode (avoid permission dialog mid-game)
+      if (mode === 'read') acquireMic()
     } catch {
       alert('Грешка при зареждане.')
     }
@@ -195,49 +429,56 @@ export default function CubeDeluxePage() {
       setTimeout(() => setShakingIdx(null), 400 + idx * 30)
     })
     setActiveIdx(i)
+    // Reset reading-mode state for new cube
+    setAttempts(0)
+    setFeedbackType('')
+    setOwlSays('')
   }
 
-  const handleClaim = () => {
+  const handleClaim = (awardPoints: boolean = true) => {
     if (activeIdx === null) return
     const idx = activeIdx
-    const points = items[idx].points
-    vibrate(40)
+    const points = awardPoints ? items[idx].points : 0
+    vibrate(awardPoints ? 40 : 15)
     setRevealFlash(true)
     setTimeout(() => setRevealFlash(false), 300)
     setGridShake(true)
     setTimeout(() => setGridShake(false), 400)
     setRevealed(r => r.map((v, i) => (i === idx ? true : v)))
     setActiveIdx(null)
+    setAttempts(0)
+    setFeedbackType('')
+    setOwlSays('')
 
-    // Spawn flying acorns from grid center -> scoreboard
-    const gridEl = gridContainerRef.current
-    if (gridEl) {
-      const rect = gridEl.getBoundingClientRect()
-      // estimate tile position (3x3)
-      const col = idx % 3, row = Math.floor(idx / 3)
-      const tileX = rect.left + (rect.width / 3) * (col + 0.5)
-      const tileY = rect.top + (rect.height / 3) * (row + 0.5)
-      const newAcorns: FlyingAcorn[] = []
-      const count = Math.min(points + 2, 8)
-      for (let k = 0; k < count; k++) {
-        acornIdRef.current += 1
-        newAcorns.push({
-          id: acornIdRef.current,
-          startX: tileX + (Math.random() - 0.5) * 30,
-          startY: tileY + (Math.random() - 0.5) * 30,
-        })
+    if (awardPoints) {
+      const gridEl = gridContainerRef.current
+      if (gridEl) {
+        const rect = gridEl.getBoundingClientRect()
+        const col = idx % 3, row = Math.floor(idx / 3)
+        const tileX = rect.left + (rect.width / 3) * (col + 0.5)
+        const tileY = rect.top + (rect.height / 3) * (row + 0.5)
+        const newAcorns: FlyingAcorn[] = []
+        const count = Math.min(points + 2, 8)
+        for (let k = 0; k < count; k++) {
+          acornIdRef.current += 1
+          newAcorns.push({
+            id: acornIdRef.current,
+            startX: tileX + (Math.random() - 0.5) * 30,
+            startY: tileY + (Math.random() - 0.5) * 30,
+          })
+        }
+        setFlyingAcorns(a => [...a, ...newAcorns])
       }
-      setFlyingAcorns(a => [...a, ...newAcorns])
+      confetti({
+        particleCount: 30, spread: 60, origin: { y: 0.6 },
+        colors: ['#FACC15', '#F97316', '#EAB308']
+      })
+      setTimeout(() => {
+        setScore(s => s + points)
+        setScoreBoom(true)
+        setTimeout(() => setScoreBoom(false), 500)
+      }, 600)
     }
-    confetti({
-      particleCount: 30, spread: 60, origin: { y: 0.6 },
-      colors: ['#FACC15', '#F97316', '#EAB308']
-    })
-    setTimeout(() => {
-      setScore(s => s + points)
-      setScoreBoom(true)
-      setTimeout(() => setScoreBoom(false), 500)
-    }, 600)
   }
 
   if (!authChecked) return (
@@ -252,7 +493,7 @@ export default function CubeDeluxePage() {
       <div className="u4a-dash-overlay"></div>
       <AnimatedGradientBg />
       <div className="w-full max-w-md text-center" style={{ position: 'relative', zIndex: 1 }}>
-        <button onClick={() => router.push('/games')} style={{
+        <button onClick={() => router.back()} style={{
           background: 'none', border: 'none', fontSize: '1.1rem', cursor: 'pointer',
           position: 'absolute', top: -40, left: 0, color: '#F97316',
           fontFamily: 'Nunito, sans-serif', fontWeight: 800
@@ -267,7 +508,9 @@ export default function CubeDeluxePage() {
           🎲 Куб Deluxe ✨
         </h1>
         <p style={{ fontFamily: 'Nunito', color: '#92400E', marginBottom: 24, fontSize: '1.05rem' }}>
-          Истински 3D кубчета<br/>90 секунди magic ⚡
+          {mode === 'read'
+            ? <>Прочети на глас и спечели точки!<br/>📖 90 секунди ⚡</>
+            : <>Истински 3D кубчета<br/>90 секунди magic ⚡</>}
         </p>
         <motion.button
           whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}
@@ -307,11 +550,11 @@ export default function CubeDeluxePage() {
             color: '#78350F', border: 'none', borderRadius: 20, padding: '1.2rem',
             fontFamily: 'Nunito', fontWeight: 900, fontSize: '1.2rem', cursor: 'pointer', marginBottom: 12
           }}>🔄 Още веднъж</motion.button>
-          <button onClick={() => router.push('/games')} style={{
+          <button onClick={() => router.back()} style={{
             width: '100%', background: 'white', color: '#78350F',
             border: '2px solid #FDE68A', borderRadius: 20, padding: '1rem',
             fontFamily: 'Nunito', fontWeight: 800, fontSize: '1.05rem', cursor: 'pointer'
-          }}>← Други игри</button>
+          }}>← Назад</button>
         </div>
       </main>
     )
@@ -320,6 +563,7 @@ export default function CubeDeluxePage() {
   // ─── PLAYING ──────────────────────────────────────────
   const timerLow = timeLeft <= 10
   const timerMid = timeLeft <= 30 && timeLeft > 10
+  const isReadMode = mode === 'read'
 
   return (
     <main className="u4a-dash min-h-screen flex flex-col items-center p-4 pt-6" style={{ position: 'relative', overflow: 'hidden' }}>
@@ -335,6 +579,16 @@ export default function CubeDeluxePage() {
         }} />
       )}
 
+      {/* Recording fox indicator (top-right) */}
+      {(recording || whisperLoading) && (
+        <div style={{
+          position: 'fixed', top: 16, right: 16, zIndex: 110,
+          pointerEvents: 'none', filter: 'drop-shadow(0 4px 12px rgba(0,0,0,0.3))'
+        }}>
+          <AnimatedFox mood="excited" size={80} />
+        </div>
+      )}
+
       <motion.div
         animate={gridShake ? { x: [0, -8, 8, -6, 6, 0] } : { x: 0 }}
         transition={{ duration: 0.4 }}
@@ -344,7 +598,7 @@ export default function CubeDeluxePage() {
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16, gap: 8 }}>
           <button onClick={() => {
             if (timerRef.current) clearInterval(timerRef.current)
-            stopMusic(); setPhase('intro')
+            stopMusic(); cleanupRecording(); setPhase('intro')
           }} style={{ background: 'none', border: 'none', fontSize: '1.5rem', cursor: 'pointer' }}>←</button>
 
           <motion.div
@@ -371,7 +625,6 @@ export default function CubeDeluxePage() {
           </div>
         </div>
 
-        {/* THE 3D SCENE — single Canvas with all 9 cubes */}
         <div
           ref={gridContainerRef}
           style={{
@@ -401,7 +654,7 @@ export default function CubeDeluxePage() {
         {activeIdx !== null && items[activeIdx] && (
           <motion.div
             initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-            onClick={handleClaim}
+            onClick={isReadMode ? undefined : () => handleClaim(true)}
             style={{
               position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.7)',
               display: 'flex', alignItems: 'center', justifyContent: 'center',
@@ -426,11 +679,88 @@ export default function CubeDeluxePage() {
                 borderRadius: 99, padding: '6px 16px', fontWeight: 800,
                 fontFamily: 'Nunito', marginBottom: 20
               }}>+{items[activeIdx].points} точки</div>
-              <motion.button whileTap={{ scale: 0.93 }} onClick={handleClaim} style={{
-                width: '100%', background: 'linear-gradient(135deg, #FACC15, #EAB308)',
-                color: '#78350F', border: 'none', borderRadius: 16, padding: '1rem',
-                fontFamily: 'Nunito', fontWeight: 900, fontSize: '1.1rem', cursor: 'pointer'
-              }}>Вземи! ✨</motion.button>
+
+              {isReadMode ? (
+                <>
+                  {/* Attempts indicator */}
+                  {attempts > 0 && (
+                    <div style={{
+                      fontFamily: 'Nunito', fontWeight: 800, color: '#92400E',
+                      fontSize: '0.9rem', marginBottom: 12
+                    }}>
+                      Опит {attempts + 1} от {MAX_ATTEMPTS}
+                    </div>
+                  )}
+
+                  {/* Feedback bubble */}
+                  {owlSays && (
+                    <div style={{
+                      background: feedbackType === 'correct' ? '#F0FDF4' : '#FEF2F2',
+                      border: `2px solid ${feedbackType === 'correct' ? '#86EFAC' : '#FECACA'}`,
+                      borderRadius: 16, padding: '10px 16px', marginBottom: 16
+                    }}>
+                      <span style={{ fontSize: '1.3rem' }}>🦉</span>
+                      <span style={{
+                        fontFamily: 'Nunito', fontWeight: 800,
+                        color: feedbackType === 'correct' ? '#166534' : '#991B1B',
+                        fontSize: '1.05rem', marginLeft: 8
+                      }}>{owlSays}</span>
+                    </div>
+                  )}
+
+                  {/* Mic button states */}
+                  {!recording && !whisperLoading && (
+                    <motion.button
+                      whileTap={{ scale: 0.95 }}
+                      onClick={handleMicTap}
+                      style={{
+                        width: '100%',
+                        background: 'linear-gradient(135deg, #EF4444, #DC2626)',
+                        color: 'white', border: 'none', borderRadius: 20,
+                        padding: '1.4rem', fontFamily: 'Nunito', fontWeight: 900,
+                        fontSize: '1.3rem', cursor: 'pointer',
+                        boxShadow: '0 8px 24px rgba(239,68,68,0.4)',
+                        display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 12
+                      }}>
+                      🎙️ <span>Натисни и говори</span>
+                    </motion.button>
+                  )}
+
+                  {recording && (
+                    <motion.button
+                      animate={{ scale: [1, 1.05, 1] }}
+                      transition={{ duration: 0.8, repeat: Infinity }}
+                      onClick={handleMicTap}
+                      style={{
+                        width: '100%',
+                        background: 'linear-gradient(135deg, #F97316, #EA580C)',
+                        color: 'white', border: 'none', borderRadius: 20,
+                        padding: '1.4rem', fontFamily: 'Nunito', fontWeight: 900,
+                        fontSize: '1.3rem', cursor: 'pointer',
+                        boxShadow: '0 8px 24px rgba(249,115,22,0.5)'
+                      }}>
+                      🎤 Слушам... (тап за стоп)
+                    </motion.button>
+                  )}
+
+                  {whisperLoading && (
+                    <div style={{
+                      width: '100%', background: '#FEF3C7',
+                      border: '2px solid #FDE68A', borderRadius: 20,
+                      padding: '1.4rem', fontFamily: 'Nunito', fontWeight: 900,
+                      fontSize: '1.2rem', color: '#92400E', textAlign: 'center'
+                    }}>
+                      🦊 Проверявам...
+                    </div>
+                  )}
+                </>
+              ) : (
+                <motion.button whileTap={{ scale: 0.93 }} onClick={() => handleClaim(true)} style={{
+                  width: '100%', background: 'linear-gradient(135deg, #FACC15, #EAB308)',
+                  color: '#78350F', border: 'none', borderRadius: 16, padding: '1rem',
+                  fontFamily: 'Nunito', fontWeight: 900, fontSize: '1.1rem', cursor: 'pointer'
+                }}>Вземи! ✨</motion.button>
+              )}
             </motion.div>
           </motion.div>
         )}
@@ -462,6 +792,18 @@ export default function CubeDeluxePage() {
         @keyframes flashFade { 0% { opacity: 1; } 100% { opacity: 0; } }
       `}</style>
     </main>
+  )
+}
+
+export default function CubeDeluxePage() {
+  return (
+    <Suspense fallback={
+      <main className="u4a-dash min-h-screen flex items-center justify-center">
+        <div className="u4a-dash-overlay"></div>
+      </main>
+    }>
+      <CubeDeluxeInner />
+    </Suspense>
   )
 }
 

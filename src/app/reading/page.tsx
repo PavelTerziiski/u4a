@@ -352,6 +352,26 @@ const unlockAudio = async () => {
                 </button>
               )
             })}
+
+            {/* 🎮 Игра: Кубчета — beta, само за Pavel засега */}
+            {profile?.email === 'pavel.impro@gmail.com' && (
+              <button onClick={() => router.push('/games/cube-deluxe?mode=read')} style={{
+                width: '100%',
+                background: 'linear-gradient(135deg, #A78BFA, #7C3AED)',
+                color: 'white', border: 'none', borderRadius: 20,
+                padding: '1.3rem 1.5rem',
+                fontFamily: 'Nunito, sans-serif', fontWeight: 900, fontSize: '1.3rem',
+                cursor: 'pointer',
+                boxShadow: '0 8px 24px rgba(124,58,237,0.4)',
+                marginBottom: 16,
+                display: 'flex', justifyContent: 'space-between', alignItems: 'center'
+              }}>
+                <span>🎮 Игра: Кубчета</span>
+                <span style={{ opacity: 0.85, fontSize: '0.8rem', fontWeight: 700, background: 'rgba(255,255,255,0.2)', padding: '4px 10px', borderRadius: 99 }}>
+                  beta ✨
+                </span>
+              </button>
+            )}
           </>
         ) : (
           <>
