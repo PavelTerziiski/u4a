@@ -411,8 +411,8 @@ const handleScanResult = (sentences: string[]) => {
             )
           })}
 
-          {/* 🎮 Игра: Кубчета — beta, само за Pavel засега */}
-          {profile?.email === 'pavel.impro@gmail.com' && (
+          {/* 🎮 Игра: Кубчета — beta, само за Pavel + BG засега (EN/DE предстои) */}
+          {profile?.email === 'pavel.impro@gmail.com' && lang === 'bg' && (
             <button onClick={() => router.push('/games/cube-deluxe?mode=listen')} style={{
               width: '100%',
               background: 'linear-gradient(135deg, #A78BFA, #7C3AED)',
