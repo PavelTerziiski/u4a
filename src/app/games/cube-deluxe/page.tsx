@@ -32,7 +32,7 @@ const MUSIC_TRACKS = [
 ]
 const MUSIC_PREF_KEY = 'u4a_cube_music_on'
 const MUSIC_VOL_NORMAL = 1.0
-const MUSIC_VOL_DUCKED = 0.10
+const MUSIC_VOL_DUCKED = 0.15
 const MAX_ATTEMPTS = 3
 
 function shuffle<T>(arr: T[]): T[] {
@@ -58,7 +58,7 @@ function CubeDeluxeInner() {
   const [activeIdx, setActiveIdx] = useState<number | null>(null)
   const [shakingIdx, setShakingIdx] = useState<number | null>(null)
   const [score, setScore] = useState(0)
-  const [timeLeft, setTimeLeft] = useState(90)
+  const [timeLeft, setTimeLeft] = useState(150)
   const [tileColors, setTileColors] = useState<string[][]>([])
   const [loading, setLoading] = useState(false)
   const [musicOn, setMusicOn] = useState(true)
@@ -389,7 +389,7 @@ function CubeDeluxeInner() {
       setItems(data.items)
       setTileColors(shuffle(TILE_COLORS))
       setRevealed(Array(9).fill(false))
-      setScore(0); setTimeLeft(90); setActiveIdx(null)
+      setScore(0); setTimeLeft(150); setActiveIdx(null)
       setFlyingAcorns([])
       lastBeepSecRef.current = -1
       isActiveRef.current = true
