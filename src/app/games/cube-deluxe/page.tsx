@@ -30,7 +30,7 @@ const MUSIC_TRACKS = [
   '/sounds/cube-music-3.mp3', '/sounds/cube-music-4.mp3',
 ]
 const MUSIC_PREF_KEY = 'u4a_cube_music_on'
-const MUSIC_VOL_NORMAL = 0.4
+const MUSIC_VOL_NORMAL = 1.0
 const MUSIC_VOL_DUCKED = 0.05
 const MAX_ATTEMPTS = 3
 
@@ -301,7 +301,6 @@ function CubeDeluxeInner() {
     }
     mr.start()
     setRecording(true)
-    fadeMusic(MUSIC_VOL_DUCKED, 200)
   }
 
   const stopRecording = () => {
@@ -359,7 +358,6 @@ function CubeDeluxeInner() {
         }
 
         setWhisperLoading(false)
-        fadeMusic(MUSIC_VOL_NORMAL, 300)
 
         if (isCorrect) {
           setFeedbackType('correct')
@@ -383,14 +381,10 @@ function CubeDeluxeInner() {
         }
       } catch {
         setWhisperLoading(false)
-        fadeMusic(MUSIC_VOL_NORMAL, 300)
       }
     })
 
-    // Auto-stop after timeout
-    autoStopTimeoutRef.current = setTimeout(() => {
-      if (isActiveRef.current && recording) stopRecording()
-    }, maxRecMs)
+    // No auto-stop — child taps button to stop manually (matches /listening UX)
   }
 
   const startGame = async () => {
@@ -432,6 +426,10 @@ function CubeDeluxeInner() {
     setAttempts(0)
     setFeedbackType('')
     setOwlSays('')
+    // Voice modes: duck music immediately and keep it ducked through whole cycle
+    if (mode === 'read' || mode === 'listen') {
+      fadeMusic(MUSIC_VOL_DUCKED, 250)
+    }
     // Listen mode: auto-play TTS after a short delay so modal animation finishes
     if (mode === 'listen' && items[i]) {
       setTimeout(() => {
@@ -445,6 +443,10 @@ function CubeDeluxeInner() {
     const idx = activeIdx
     const points = awardPoints ? items[idx].points : 0
     vibrate(awardPoints ? 40 : 15)
+    // End of voice cycle — restore music to normal
+    if (mode === 'read' || mode === 'listen') {
+      fadeMusic(MUSIC_VOL_NORMAL, 400)
+    }
     setRevealFlash(true)
     setTimeout(() => setRevealFlash(false), 300)
     setGridShake(true)
