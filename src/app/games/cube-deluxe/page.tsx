@@ -56,6 +56,7 @@ function CubeDeluxeInner() {
   const [authChecked, setAuthChecked] = useState(false)
   const [profile, setProfile] = useState<Profile | null>(null)
   const [acornsAwarded, setAcornsAwarded] = useState<number | null>(null)
+  const [showAcornBurst, setShowAcornBurst] = useState(false)
   const [phase, setPhase] = useState<'intro' | 'playing' | 'done'>('intro')
   const [items, setItems] = useState<CubeItem[]>([])
   const [revealed, setRevealed] = useState<boolean[]>(Array(9).fill(false))
@@ -405,6 +406,7 @@ function CubeDeluxeInner() {
       setTileColors(shuffle(TILE_COLORS))
       setRevealed(Array(9).fill(false))
       setAcornsAwarded(null)
+      setShowAcornBurst(false)
       setScore(0); setTimeLeft(150); setActiveIdx(null)
       setFlyingAcorns([])
       lastBeepSecRef.current = -1
@@ -521,10 +523,10 @@ function CubeDeluxeInner() {
         </h1>
         <p style={{ fontFamily: 'Nunito', color: '#92400E', marginBottom: 24, fontSize: '1.05rem' }}>
           {mode === 'read'
-            ? <>Прочети на глас и спечели точки!<br/>📖 90 секунди ⚡</>
+            ? <>Прочети на глас и спечели точки!<br/>📖 150 секунди ⚡</>
             : mode === 'listen'
-            ? <>Слушай и повтори след г-жа Лисица!<br/>👂 90 секунди ⚡</>
-            : <>Истински 3D кубчета<br/>90 секунди magic ⚡</>}
+            ? <>Слушай и повтори след г-жа Лисица!<br/>👂 150 секунди ⚡</>
+            : <>Истински 3D кубчета<br/>150 секунди magic ⚡</>}
         </p>
         <motion.button
           whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}
@@ -553,29 +555,15 @@ function CubeDeluxeInner() {
             style={{ fontFamily: 'Nunito', fontWeight: 900, fontSize: '2.4rem', color: '#78350F', marginTop: 16 }}>
             {allRevealed ? '🎉 Браво!' : '⏰ Краят!'}
           </motion.h1>
-          <motion.p initial={{ scale: 0, rotate: -180 }} animate={{ scale: 1, rotate: 0 }}
-            transition={{ type: 'spring', delay: 0.2 }}
-            style={{ fontFamily: 'Nunito', fontSize: '5rem', fontWeight: 900, color: '#EAB308' }}>
-            {score}
-          </motion.p>
-          <p style={{ color: '#92400E', fontFamily: 'Nunito', marginBottom: 16 }}>точки</p>
-          {acornsAwarded !== null && acornsAwarded > 0 && (
-            <motion.div
-              initial={{ opacity: 0, scale: 0.5, y: 20 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              transition={{ type: 'spring', delay: 0.8, stiffness: 200 }}
-              style={{
-                display: 'inline-flex', alignItems: 'center', gap: 8,
-                background: 'linear-gradient(135deg, #FEF3C7, #FDE68A)',
-                border: '2px solid #FBBF24', borderRadius: 99,
-                padding: '10px 20px', marginBottom: 24,
-                fontFamily: 'Nunito', fontWeight: 900, fontSize: '1.3rem',
-                color: '#78350F'
-              }}>
-              <span style={{ fontSize: '1.6rem' }}>🌰</span>
-              <span>+{acornsAwarded}</span>
-            </motion.div>
-          )}
+          <ScoreToAcornsTransition
+            score={score}
+            acornsAwarded={acornsAwarded}
+            showBurst={showAcornBurst}
+            onScoreAppeared={() => {
+              // 1.2 sec after score appears: trigger burst
+              setTimeout(() => setShowAcornBurst(true), 1200)
+            }}
+          />
           <motion.button whileTap={{ scale: 0.95 }} onClick={startGame} style={{
             width: '100%', background: 'linear-gradient(135deg, #FACC15, #EAB308)',
             color: '#78350F', border: 'none', borderRadius: 20, padding: '1.2rem',
@@ -875,6 +863,110 @@ function AnimatedGradientBg() {
           50% { background-position: 100% 50%; }
         }
       `}</style>
+    </div>
+  )
+}
+
+function ScoreToAcornsTransition({
+  score, acornsAwarded, showBurst, onScoreAppeared
+}: {
+  score: number
+  acornsAwarded: number | null
+  showBurst: boolean
+  onScoreAppeared: () => void
+}) {
+  // Generate burst particle positions (8 acorns flying outward)
+  const burstParticles = Array.from({ length: 10 }, (_, i) => {
+    const angle = (i / 10) * Math.PI * 2
+    const distance = 80 + Math.random() * 60
+    return {
+      x: Math.cos(angle) * distance,
+      y: Math.sin(angle) * distance - 30, // bias upward
+      delay: i * 0.04,
+    }
+  })
+
+  return (
+    <div style={{ position: 'relative', display: 'inline-block' }}>
+      {/* Score number — appears first, pulses, then fades when acorns burst */}
+      <motion.div
+        initial={{ scale: 0, rotate: -180, opacity: 1 }}
+        animate={
+          showBurst
+            ? { scale: [1, 1.4, 0.6], rotate: 0, opacity: [1, 1, 0] }
+            : { scale: 1, rotate: 0, opacity: 1 }
+        }
+        transition={
+          showBurst
+            ? { duration: 0.6, times: [0, 0.4, 1] }
+            : { type: 'spring', delay: 0.2 }
+        }
+        onAnimationComplete={onScoreAppeared}
+        style={{
+          fontFamily: 'Nunito', fontSize: '5rem', fontWeight: 900,
+          color: '#EAB308', lineHeight: 1, position: 'relative', zIndex: 2,
+        }}
+      >
+        {score}
+      </motion.div>
+      <p style={{ color: '#92400E', fontFamily: 'Nunito', marginBottom: 16, opacity: showBurst ? 0 : 1, transition: 'opacity 0.3s' }}>
+        точки
+      </p>
+
+      {/* Acorn burst particles */}
+      <AnimatePresence>
+        {showBurst && burstParticles.map((p, i) => (
+          <motion.div
+            key={i}
+            initial={{ x: 0, y: 0, scale: 0, opacity: 0 }}
+            animate={{
+              x: [0, p.x * 0.5, p.x],
+              y: [0, p.y * 0.5, p.y + 100],
+              scale: [0, 1.4, 0.8],
+              opacity: [0, 1, 0],
+              rotate: [0, 360],
+            }}
+            transition={{ duration: 1.2, delay: p.delay, ease: 'easeOut' }}
+            style={{
+              position: 'absolute', top: '40%', left: '50%',
+              fontSize: '2rem', pointerEvents: 'none', zIndex: 3,
+              filter: 'drop-shadow(0 4px 8px rgba(0,0,0,0.3))',
+            }}
+          >
+            🌰
+          </motion.div>
+        ))}
+      </AnimatePresence>
+
+      {/* Final acorns badge — appears AFTER burst completes */}
+      <AnimatePresence>
+        {showBurst && acornsAwarded !== null && acornsAwarded > 0 && (
+          <motion.div
+            initial={{ opacity: 0, scale: 0, y: 20 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            transition={{ type: 'spring', delay: 1.4, stiffness: 250, damping: 12 }}
+            style={{
+              display: 'inline-flex', alignItems: 'center', gap: 10,
+              background: 'linear-gradient(135deg, #FEF3C7, #FBBF24)',
+              border: '3px solid #F59E0B', borderRadius: 99,
+              padding: '14px 28px', marginBottom: 24,
+              fontFamily: 'Nunito', fontWeight: 900, fontSize: '1.8rem',
+              color: '#78350F',
+              boxShadow: '0 12px 32px rgba(245, 158, 11, 0.4)',
+              position: 'relative', zIndex: 4,
+            }}
+          >
+            <motion.span
+              animate={{ rotate: [0, -15, 15, -10, 10, 0] }}
+              transition={{ duration: 0.8, delay: 1.5 }}
+              style={{ fontSize: '2.2rem', display: 'inline-block' }}
+            >
+              🌰
+            </motion.span>
+            <span>+{acornsAwarded}</span>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   )
 }
