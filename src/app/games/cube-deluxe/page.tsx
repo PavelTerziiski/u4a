@@ -7,6 +7,8 @@ import confetti from 'canvas-confetti'
 import dynamic from 'next/dynamic'
 import AnimatedFox from '@/components/AnimatedFox'
 import { matchWord, matchSentence } from '@/lib/whisperMatch'
+import { awardAcorns, SCORE_TO_ACORNS_MULTIPLIER } from '@/lib/acorns'
+import type { Profile } from '@/lib/types'
 import '../../dashboard/dashboard.css'
 
 const CubeScene = dynamic(() => import('./CubeScene'), { ssr: false })
@@ -52,6 +54,8 @@ function CubeDeluxeInner() {
   const mode: GameMode = (searchParams.get('mode') as GameMode) || 'classic'
 
   const [authChecked, setAuthChecked] = useState(false)
+  const [profile, setProfile] = useState<Profile | null>(null)
+  const [acornsAwarded, setAcornsAwarded] = useState<number | null>(null)
   const [phase, setPhase] = useState<'intro' | 'playing' | 'done'>('intro')
   const [items, setItems] = useState<CubeItem[]>([])
   const [revealed, setRevealed] = useState<boolean[]>(Array(9).fill(false))
@@ -99,12 +103,13 @@ function CubeDeluxeInner() {
   useEffect(() => {
     const username = localStorage.getItem('u4a_username')
     if (!username) { router.push('/login'); return }
-    supabase.from('profiles').select('email').eq('username', username).single()
+    supabase.from('profiles').select('*').eq('username', username).single()
       .then(({ data }) => {
         if (!data || data.email !== 'pavel.impro@gmail.com') {
           router.push('/pronunciation')
           return
         }
+        setProfile(data as Profile)
         setAuthChecked(true)
       })
   }, [])
@@ -116,6 +121,11 @@ function CubeDeluxeInner() {
         if (t <= 1) {
           if (timerRef.current) clearInterval(timerRef.current)
           stopMusic()
+          // Award acorns based on score
+          if (score > 0 && profile) {
+            const amount = score * SCORE_TO_ACORNS_MULTIPLIER
+            awardAcorns(profile, amount).then(() => setAcornsAwarded(amount))
+          }
           setPhase('done')
           return 0
         }
@@ -137,6 +147,11 @@ function CubeDeluxeInner() {
     if (phase === 'playing' && revealed.every(r => r)) {
       if (timerRef.current) clearInterval(timerRef.current)
       confetti({ particleCount: 200, spread: 100, origin: { y: 0.5 } })
+      // Award acorns based on score
+      if (score > 0 && profile) {
+        const amount = score * SCORE_TO_ACORNS_MULTIPLIER
+        awardAcorns(profile, amount).then(() => setAcornsAwarded(amount))
+      }
       setTimeout(() => { stopMusic(); setPhase('done') }, 1500)
     }
   }, [revealed, phase])
@@ -389,6 +404,7 @@ function CubeDeluxeInner() {
       setItems(data.items)
       setTileColors(shuffle(TILE_COLORS))
       setRevealed(Array(9).fill(false))
+      setAcornsAwarded(null)
       setScore(0); setTimeLeft(150); setActiveIdx(null)
       setFlyingAcorns([])
       lastBeepSecRef.current = -1
@@ -542,7 +558,24 @@ function CubeDeluxeInner() {
             style={{ fontFamily: 'Nunito', fontSize: '5rem', fontWeight: 900, color: '#EAB308' }}>
             {score}
           </motion.p>
-          <p style={{ color: '#92400E', fontFamily: 'Nunito', marginBottom: 24 }}>точки</p>
+          <p style={{ color: '#92400E', fontFamily: 'Nunito', marginBottom: 16 }}>точки</p>
+          {acornsAwarded !== null && acornsAwarded > 0 && (
+            <motion.div
+              initial={{ opacity: 0, scale: 0.5, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              transition={{ type: 'spring', delay: 0.8, stiffness: 200 }}
+              style={{
+                display: 'inline-flex', alignItems: 'center', gap: 8,
+                background: 'linear-gradient(135deg, #FEF3C7, #FDE68A)',
+                border: '2px solid #FBBF24', borderRadius: 99,
+                padding: '10px 20px', marginBottom: 24,
+                fontFamily: 'Nunito', fontWeight: 900, fontSize: '1.3rem',
+                color: '#78350F'
+              }}>
+              <span style={{ fontSize: '1.6rem' }}>🌰</span>
+              <span>+{acornsAwarded}</span>
+            </motion.div>
+          )}
           <motion.button whileTap={{ scale: 0.95 }} onClick={startGame} style={{
             width: '100%', background: 'linear-gradient(135deg, #FACC15, #EAB308)',
             color: '#78350F', border: 'none', borderRadius: 20, padding: '1.2rem',
