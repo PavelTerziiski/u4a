@@ -328,8 +328,6 @@ function CubeDeluxeInner() {
 
     const idx = activeIdx
     const targetText = items[idx].text
-    const wordCount = targetText.split(/\s+/).length
-    const maxRecMs = Math.min(Math.max(wordCount * 700 + 2500, 3500), 8000)
 
     await startRecording(async (blob, mimeType) => {
       if (!isActiveRef.current) return
