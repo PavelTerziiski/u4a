@@ -9,6 +9,7 @@ import { playSound, playSoundViaContext } from '@/lib/sounds'
 import { updateStreak } from '@/lib/streak'
 import ScanTextModal from '@/components/ScanTextModal'
 import { Dictation, Profile } from '@/lib/types'
+import { matchWord, matchSentence } from '@/lib/whisperMatch'
 import '../../app/dashboard/dashboard.css'
 
 type Mode = 'alphabet' | 'easy' | 'medium' | 'hard'
@@ -267,10 +268,9 @@ const handleScanResult = (sentences: string[]) => {
       const res = await fetch('/api/whisper', { method: 'POST', body: fd })
       if (!isActiveRef.current) return
       const data = await res.json()
-      const transcript = (data.text || '').toLowerCase().trim()
-      const target = alpha[idx].word.toLowerCase()
-      const targetRoot = target.substring(0, Math.max(3, Math.floor(target.length * 0.6)))
-      const isCorrect = transcript.length > 1 && (transcript.includes(target) || transcript.includes(targetRoot) || target.includes(transcript.replace(/[^a-zа-яё]/gi, '').substring(0, 3)))
+      const transcript = (data.text || '').trim()
+      const target = alpha[idx].word
+      const isCorrect = matchWord(transcript, target)
       setLoading(false); if (!isActiveRef.current) return
       if (isCorrect) {
         setFeedbackType('correct'); setOwlSays('Браво!'); setScore(s => s + 1); playSound('correct'); setLastMood('excited')
@@ -320,12 +320,9 @@ const handleScanResult = (sentences: string[]) => {
       const res = await fetch('/api/whisper', { method: 'POST', body: fd })
       if (!isActiveRef.current) return
       const data = await res.json()
-      const transcript = (data.text || '').toLowerCase().trim()
-      const original = dictation.sentences[idx].text.toLowerCase()
-      const originalWords = original.replace(/[.,!?;:]/g, '').split(' ')
-      const transcriptWords = transcript.replace(/[.,!?;:]/g, '').split(' ')
-      const matchCount = originalWords.filter((w: string) => transcriptWords.includes(w)).length
-      const isCorrect = transcript.length > 2 && matchCount >= Math.ceil(originalWords.length * 0.3)
+      const transcript = (data.text || '').trim()
+      const original = dictation.sentences[idx].text
+      const isCorrect = matchSentence(transcript, original)
       setLoading(false); if (!isActiveRef.current) return
       if (isCorrect) {
         setFeedbackType('correct'); setOwlSays('Браво!'); setScore(s => s + 1); playSound('correct'); setLastMood('excited')

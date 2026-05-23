@@ -8,6 +8,7 @@ import { playSound, playSoundViaContext } from '@/lib/sounds'
 import { updateStreak } from '@/lib/streak'
 import type { Profile } from '@/lib/types'
 import { Dictation } from '@/lib/types'
+import { matchSentence } from '@/lib/whisperMatch'
 import '../dashboard/dashboard.css'
 
 type Level = 'easy' | 'medium' | 'hard'
@@ -234,13 +235,9 @@ const unlockAudio = async () => {
       fd.append('language', 'bg')
       const res = await fetch('/api/whisper', { method: 'POST', body: fd })
       const data = await res.json()
-      const transcript = (data.text || '').toLowerCase().trim()
-      const original = dictation.sentences[idx].text.toLowerCase()
-      const stopWords = new Set(['и','на','в','от','се','да','не','с','за','по','до','при','но','а','като','че','е','са','го','я','им','ги','ни','ви','му','й'])
-      const originalWords = original.replace(/[.,!?;:]/g, '').split(' ').filter((w: string) => !stopWords.has(w))
-      const transcriptWords = transcript.replace(/[.,!?;:]/g, '').split(' ')
-      const matchCount = originalWords.filter((w: string) => transcriptWords.some((t: string) => t.includes(w.slice(0,3)) || w.includes(t.slice(0,3)))).length
-      const isCorrect = transcript.length > 2 && matchCount >= Math.ceil(originalWords.length * 0.25)
+      const transcript = (data.text || '').trim()
+      const original = dictation.sentences[idx].text
+      const isCorrect = matchSentence(transcript, original)
       setLoading(false)
       if (isCorrect) {
         setFeedbackType('correct')

@@ -6,6 +6,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import confetti from 'canvas-confetti'
 import dynamic from 'next/dynamic'
 import AnimatedFox from '@/components/AnimatedFox'
+import { matchWord, matchSentence } from '@/lib/whisperMatch'
 import '../../dashboard/dashboard.css'
 
 const CubeScene = dynamic(() => import('./CubeScene'), { ssr: false })
@@ -339,21 +340,11 @@ function CubeDeluxeInner() {
         const res = await fetch('/api/whisper', { method: 'POST', body: fd })
         if (!isActiveRef.current) return
         const data = await res.json()
-        const transcript = (data.text || '').toLowerCase().trim()
-        const original = targetText.toLowerCase()
+        const transcript = (data.text || '').trim()
 
-        let isCorrect = false
-        if (items[idx].type === 'word') {
-          // Word match: transcript contains target OR target root
-          const root = original.substring(0, Math.max(3, Math.floor(original.length * 0.6)))
-          isCorrect = transcript.length > 1 && (transcript.includes(original) || transcript.includes(root))
-        } else {
-          // Sentence match: 30%+ word overlap (same logic as /listening)
-          const originalWords = original.replace(/[.,!?;:]/g, '').split(/\s+/).filter(Boolean)
-          const transcriptWords = transcript.replace(/[.,!?;:]/g, '').split(/\s+/).filter(Boolean)
-          const matchCount = originalWords.filter(w => transcriptWords.includes(w)).length
-          isCorrect = transcript.length > 2 && matchCount >= Math.ceil(originalWords.length * 0.3)
-        }
+        const isCorrect = items[idx].type === 'word'
+          ? matchWord(transcript, targetText)
+          : matchSentence(transcript, targetText)
 
         setWhisperLoading(false)
 
