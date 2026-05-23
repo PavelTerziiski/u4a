@@ -32,7 +32,7 @@ const MUSIC_TRACKS = [
 ]
 const MUSIC_PREF_KEY = 'u4a_cube_music_on'
 const MUSIC_VOL_NORMAL = 1.0
-const MUSIC_VOL_DUCKED = 0.05
+const MUSIC_VOL_DUCKED = 0.10
 const MAX_ATTEMPTS = 3
 
 function shuffle<T>(arr: T[]): T[] {
