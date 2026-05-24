@@ -75,7 +75,7 @@ export default function ListeningPage() {
   const [mode, setMode] = useState<Mode | null>(null)
   const [dictations, setDictations] = useState<Dictation[]>([])
   const [selected, setSelected] = useState<Dictation | null>(null)
-  const [phase, setPhase] = useState<'menu' | 'lang' | 'pick' | 'play' | 'done' | 'scan-ready'>('menu')
+  const [phase, setPhase] = useState<'menu' | 'lang' | 'pick' | 'play' | 'done' | 'scan-ready' | 'limit'>('menu')
   const [sentenceIndex, setSentenceIndex] = useState(0)
   const [alphaIndex, setAlphaIndex] = useState(0)
   const [allAlphaWords, setAllAlphaWords] = useState<PronunciationWord[]>([])
@@ -91,6 +91,9 @@ export default function ListeningPage() {
   const [strings, setStrings] = useState<Record<string, string>>({})
   const [foxName, setFoxName] = useState('Роки')
   const [profile, setProfile] = useState<Profile | null>(null)
+  const trialEndsAt = profile?.trial_ends_at ? new Date(profile.trial_ends_at) : null
+  const trialActive = trialEndsAt ? new Date() < trialEndsAt : false
+  const isFree = !profile?.is_premium && (trialEndsAt ? !trialActive : true)
   const [confettiActive, setConfettiActive] = useState(false)
 
   useEffect(() => {
@@ -367,6 +370,26 @@ const handleScanResult = (sentences: string[]) => {
   const cfg = mode && mode !== 'alphabet' ? LEVEL_CONFIG[mode as 'easy'|'medium'|'hard'] : null
   const currentAlpha = lang ? (getAlphabet(lang)[alphaIndex] || ALPHABET_FALLBACK[0]) : ALPHABET_FALLBACK[0]
 
+  if (phase === 'limit') return (
+    <main className="u4a-dash min-h-screen flex flex-col items-center justify-center p-6">
+      <div className="u4a-dash-overlay"></div>
+      <div className="w-full max-w-md text-center" style={{ position: 'relative', zIndex: 1 }}>
+        <Fox mood="sad" size={160} />
+        <h2 style={{ fontFamily: 'Nunito, sans-serif', fontWeight: 900, fontSize: '1.8rem', color: '#374151', marginTop: 24, marginBottom: 8 }}>Пробният период приключи 🦊</h2>
+        <p style={{ fontFamily: 'Nunito, sans-serif', color: '#6B7280', marginBottom: 32 }}>Надстрой до Premium за неограничен достъп до всички упражнения.</p>
+        <div style={{ background: '#FFF7ED', borderRadius: 24, padding: '1.5rem', marginBottom: 16 }}>
+          <p style={{ fontFamily: 'Nunito, sans-serif', fontWeight: 900, color: '#C2410C', fontSize: '1.2rem', marginBottom: 8 }}>⭐ Premium — 4.50€/месец</p>
+          <p style={{ fontFamily: 'Nunito, sans-serif', color: '#EA580C', fontSize: '0.9rem', marginBottom: 16 }}>Неограничени диктовки + слушане + четене + качествен глас</p>
+          <button onClick={() => { window.location.href = '/plans' }} style={{ width: '100%', background: 'linear-gradient(135deg, #F97316, #EA580C)', color: 'white', border: 'none', borderRadius: 16, padding: '1rem', fontFamily: 'Nunito, sans-serif', fontWeight: 900, fontSize: '1.1rem', cursor: 'pointer' }}>
+            ⭐ Стани Premium →
+          </button>
+        </div>
+        <button onClick={() => setPhase('menu')} style={{ width: '100%', background: 'white', color: '#F97316', border: '2px solid #FED7AA', borderRadius: 16, padding: '0.9rem', fontFamily: 'Nunito, sans-serif', fontWeight: 800, cursor: 'pointer' }}>
+          ← Назад
+        </button>
+      </div>
+    </main>
+  )
   if (phase === 'menu') return (
     <main className="u4a-dash min-h-screen flex flex-col items-center justify-center p-6">
       <div className="u4a-dash-overlay"></div>
@@ -376,7 +399,7 @@ const handleScanResult = (sentences: string[]) => {
         <h1 style={{ fontFamily: 'Nunito, sans-serif', fontWeight: 900, fontSize: '2rem', color: '#2563EB', marginTop: 12, marginBottom: 8 }}>🎧 Слушай и повтаряй</h1>
         <p style={{ fontFamily: 'Nunito, sans-serif', color: '#92400E', marginBottom: 28, fontSize: '1rem' }}>Избери език</p>
         {(['bg', 'en', 'de'] as Lang[]).map(l => (
-          <button key={l} onClick={() => { setLang(l); setPhase('lang') }} style={{ width: '100%', background: 'white', color: '#374151', border: '2px solid #E5E7EB', borderRadius: 20, padding: '1.2rem', fontFamily: 'Nunito, sans-serif', fontWeight: 900, fontSize: '1.4rem', cursor: 'pointer', boxShadow: '0 4px 12px rgba(0,0,0,0.08)', marginBottom: 12, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 12 }}>
+          <button key={l} onClick={() => { if (isFree) { setPhase('limit'); return }; setLang(l); setPhase('lang') }} style={{ width: '100%', background: 'white', color: '#374151', border: '2px solid #E5E7EB', borderRadius: 20, padding: '1.2rem', fontFamily: 'Nunito, sans-serif', fontWeight: 900, fontSize: '1.4rem', cursor: 'pointer', boxShadow: '0 4px 12px rgba(0,0,0,0.08)', marginBottom: 12, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 12 }}>
             <span style={{ fontSize: '2rem' }}>{LANG_CONFIG[l].flag}</span>
             <span>{LANG_CONFIG[l].label}</span>
           </button>
@@ -557,11 +580,16 @@ const handleScanResult = (sentences: string[]) => {
               <span style={{ fontFamily: 'Nunito, sans-serif', fontWeight: 800, color: feedbackType === 'correct' ? '#166534' : cfg.color, fontSize: '1.05rem', marginLeft: 8 }}>{owlSays}</span>
             </div>
           )}
-          <div style={{ background: cfg.colorLight, border: `2px solid ${cfg.colorBorder}`, borderRadius: 24, padding: '1.8rem', textAlign: 'center', boxShadow: '0 8px 32px rgba(0,0,0,0.06)', marginBottom: 16, minHeight: 100, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <div style={{ background: cfg.colorLight, border: `2px solid ${cfg.colorBorder}`, borderRadius: 24, padding: '1.8rem', textAlign: 'center', boxShadow: '0 8px 32px rgba(0,0,0,0.06)', marginBottom: sentence.bg ? 0 : 16, minHeight: 100, display: 'flex', alignItems: 'center', justifyContent: 'center', borderBottomLeftRadius: sentence.bg ? 0 : 24, borderBottomRightRadius: sentence.bg ? 0 : 24 }}>
             <p style={{ fontSize: '1.55rem', fontWeight: 800, color: '#1F2937', lineHeight: 1.45, fontFamily: 'Nunito, sans-serif', margin: 0 }}>
               {typedText}{typedText.length < sentence.text.length && <span style={{ opacity: 0.5 }}>|</span>}
             </p>
           </div>
+          {sentence.bg && (
+            <div style={{ background: '#F0FDF4', border: `2px solid ${cfg.colorBorder}`, borderTop: 'none', borderBottomLeftRadius: 24, borderBottomRightRadius: 24, padding: '0.8rem 1.8rem', textAlign: 'center', marginBottom: 16 }}>
+              <p style={{ fontSize: '1rem', fontWeight: 700, color: '#166534', fontFamily: 'Nunito, sans-serif', margin: 0, opacity: 0.85 }}>🇧🇬 {sentence.bg}</p>
+            </div>
+          )}
           <button onClick={() => playTTS(sentence.text, 'kalina', selected.id, lang ? LANG_CONFIG[lang].dictLang : undefined)}
             style={{ width: '100%', background: cfg.colorLight, color: cfg.color, border: `2px solid ${cfg.colorBorder}`, borderRadius: 16, padding: '0.9rem', fontFamily: 'Nunito, sans-serif', fontWeight: 800, fontSize: '1rem', cursor: 'pointer', marginBottom: 12 }}>
             🔊 Чуй пак

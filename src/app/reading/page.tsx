@@ -3,6 +3,7 @@ import { useEffect, useState, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
 import AnimatedFox from '@/components/AnimatedFox'
+import Fox from '@/components/fox/Fox'
 import Confetti from '@/components/Confetti'
 import { playSound, playSoundViaContext } from '@/lib/sounds'
 import { updateStreak } from '@/lib/streak'
@@ -60,7 +61,7 @@ export default function ReadingPage() {
   const [level, setLevel] = useState<Level | null>(null)
   const [dictations, setDictations] = useState<Dictation[]>([])
   const [selected, setSelected] = useState<Dictation | null>(null)
-  const [phase, setPhase] = useState<'pick' | 'play' | 'done'>('pick')
+  const [phase, setPhase] = useState<'pick' | 'play' | 'done' | 'limit'>('pick')
   const [sentenceIndex, setSentenceIndex] = useState(0)
   const [recording, setRecording] = useState(false)
   const [waitingForSpeech, setWaitingForSpeech] = useState(false)
@@ -73,6 +74,9 @@ export default function ReadingPage() {
   const [typedText, setTypedText] = useState('')
   const [foxName, setFoxName] = useState('Роки')
   const [profile, setProfile] = useState<Profile | null>(null)
+  const trialEndsAt = profile?.trial_ends_at ? new Date(profile.trial_ends_at) : null
+  const trialActive = trialEndsAt ? new Date() < trialEndsAt : false
+  const isFree = !profile?.is_premium && (trialEndsAt ? !trialActive : true)
   const [attempts, setAttempts] = useState(0)
 
   const mediaRecorderRef = useRef<MediaRecorder | null>(null)
@@ -306,6 +310,26 @@ const unlockAudio = async () => {
 
   const cfg = level ? LEVEL_CONFIG[level] : null
 
+  if (phase === 'limit') return (
+    <main className="u4a-dash min-h-screen flex flex-col items-center justify-center p-6">
+      <div className="u4a-dash-overlay"></div>
+      <div className="w-full max-w-md text-center" style={{ position: 'relative', zIndex: 1 }}>
+        <Fox mood="sad" size={160} />
+        <h2 style={{ fontFamily: 'Nunito, sans-serif', fontWeight: 900, fontSize: '1.8rem', color: '#374151', marginTop: 24, marginBottom: 8 }}>Пробният период приключи 🦊</h2>
+        <p style={{ fontFamily: 'Nunito, sans-serif', color: '#6B7280', marginBottom: 32 }}>Надстрой до Premium за неограничен достъп до всички упражнения.</p>
+        <div style={{ background: '#FFF7ED', borderRadius: 24, padding: '1.5rem', marginBottom: 16 }}>
+          <p style={{ fontFamily: 'Nunito, sans-serif', fontWeight: 900, color: '#C2410C', fontSize: '1.2rem', marginBottom: 8 }}>⭐ Premium — 4.50€/месец</p>
+          <p style={{ fontFamily: 'Nunito, sans-serif', color: '#EA580C', fontSize: '0.9rem', marginBottom: 16 }}>Неограничени диктовки + слушане + четене + качествен глас</p>
+          <button onClick={() => { window.location.href = '/plans' }} style={{ width: '100%', background: 'linear-gradient(135deg, #F97316, #EA580C)', color: 'white', border: 'none', borderRadius: 16, padding: '1rem', fontFamily: 'Nunito, sans-serif', fontWeight: 900, fontSize: '1.1rem', cursor: 'pointer' }}>
+            ⭐ Стани Premium →
+          </button>
+        </div>
+        <button onClick={() => setPhase('pick')} style={{ width: '100%', background: 'white', color: '#F97316', border: '2px solid #FED7AA', borderRadius: 16, padding: '0.9rem', fontFamily: 'Nunito, sans-serif', fontWeight: 800, cursor: 'pointer' }}>
+          ← Назад
+        </button>
+      </div>
+    </main>
+  )
   if (phase === 'pick') return (
     <main className="u4a-dash min-h-screen p-6">
       <div className="u4a-dash-overlay"></div>
@@ -388,7 +412,7 @@ const unlockAudio = async () => {
                 setFeedbackType('')
                 setOwlSays('')
                 setTypedText('')
-                setPhase('play')
+                if (isFree) { setPhase('limit'); return }; setPhase('play')
                 playSentence(d, 0)
               }} style={{
                 width: '100%', background: 'white', border: `2px solid ${cfg!.colorBorder}`,
@@ -453,8 +477,9 @@ const unlockAudio = async () => {
           <div style={{
             background: cfg.colorLight, border: `2px solid ${cfg.colorBorder}`,
             borderRadius: 24, padding: '1.8rem', textAlign: 'center',
-            boxShadow: '0 8px 32px rgba(0,0,0,0.06)', marginBottom: 20,
-            minHeight: 100, display: 'flex', alignItems: 'center', justifyContent: 'center'
+            boxShadow: '0 8px 32px rgba(0,0,0,0.06)', marginBottom: sentence.bg ? 0 : 20,
+            minHeight: 100, display: 'flex', alignItems: 'center', justifyContent: 'center',
+            borderBottomLeftRadius: sentence.bg ? 0 : 24, borderBottomRightRadius: sentence.bg ? 0 : 24
           }}>
             <p style={{
               fontSize: '1.55rem', fontWeight: 800, color: '#1F2937',
@@ -466,6 +491,11 @@ const unlockAudio = async () => {
               )}
             </p>
           </div>
+          {sentence.bg && (
+            <div style={{ background: '#F0FDF4', border: `2px solid ${cfg.colorBorder}`, borderTop: 'none', borderBottomLeftRadius: 24, borderBottomRightRadius: 24, padding: '0.8rem 1.8rem', textAlign: 'center', marginBottom: 20 }}>
+              <p style={{ fontSize: '1rem', fontWeight: 700, color: '#166534', fontFamily: 'Nunito, sans-serif', margin: 0, opacity: 0.85 }}>🇧🇬 {sentence.bg}</p>
+            </div>
+          )}
 
           {loading && (
             <div style={{

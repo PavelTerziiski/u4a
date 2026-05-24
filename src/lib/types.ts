@@ -29,7 +29,7 @@ export type Dictation = {
   title: string
   grade: 2 | 3 | 4 | 5
   words: string[]
-  sentences: { id: number; text: string }[]
+  sentences: { id: number; text: string; bg?: string }[]
   is_premium: boolean
   created_at: string
   category?: string
