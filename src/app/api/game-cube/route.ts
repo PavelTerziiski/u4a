@@ -58,13 +58,13 @@ export async function GET(request: Request) {
   }
 
   // За EN/DE — дърпаме думи от pronunciation_words
-  let pronunciationWords: string[] = []
+  const wordsForLang: string[] = []
   if (lang !== 'bg') {
     const { data: pwData } = await supabase
       .from('pronunciation_words')
       .select('word')
       .eq('language', lang)
-    pronunciationWords = (pwData || []).map((r: { word: string }) => r.word).filter(Boolean)
+    wordsForLang.push(...(pwData || []).map((r: { word: string }) => r.word).filter(Boolean))
   }
 
   // Gather all words (single words across all dictations)
