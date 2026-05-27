@@ -54,7 +54,8 @@ function CubeDeluxeInner() {
   const searchParams = useSearchParams()
   const mode: GameMode = (searchParams.get('mode') as GameMode) || 'classic'
   const lang = searchParams.get('lang') || 'bg'
-  const level = searchParams.get('level') || 'easy'
+  const rawLevel = searchParams.get('level') || 'easy'
+  const level = ['easy','medium','hard'].includes(rawLevel) ? rawLevel : 'easy'
 
   const [authChecked, setAuthChecked] = useState(false)
   const [profile, setProfile] = useState<Profile | null>(null)
@@ -421,7 +422,8 @@ function CubeDeluxeInner() {
       setTimeout(() => startMusic(), 300)
       // Pre-acquire mic for voice modes (avoid permission dialog mid-game)
       if (mode === 'read' || mode === 'listen') acquireMic()
-    } catch {
+    } catch (err) {
+      console.error('Game load error:', err)
       alert('Грешка при зареждане.')
     }
     setLoading(false)
