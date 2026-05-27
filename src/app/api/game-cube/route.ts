@@ -39,12 +39,19 @@ function countWords(s: string): number {
   return s.trim().split(/\s+/).length
 }
 
-export async function GET() {
-  // Pull all accent-fixed original dictations
-  const { data: dictations, error } = await supabase
-    .from('dictations')
-    .select('words, sentences, grade')
-    .eq('category', 'original').eq('language', 'bg')
+export async function GET(request: Request) {
+  const { searchParams } = new URL(request.url)
+  const lang = searchParams.get('lang') || 'bg'
+  const level = searchParams.get('level')
+
+  let query = supabase.from('dictations').select('words, sentences, grade')
+  if (lang === 'bg') {
+    query = query.eq('category', 'original').eq('language', 'bg')
+  } else {
+    query = query.eq('language', lang)
+    if (level) query = query.eq('difficulty', level)
+  }
+  const { data: dictations, error } = await query
 
   if (error || !dictations) {
     return NextResponse.json({ error: error?.message || 'no data' }, { status: 500 })
@@ -95,7 +102,7 @@ export async function GET() {
     text: mysteryPick.text,
     points: mysteryPoints,
     emoji: '🎁'
-  } : { type: 'mystery', text: 'Изненада!', points: 0, emoji: '🎁' }
+  } : { type: 'mystery', text: lang === 'bg' ? 'Изненада!' : lang === 'en' ? 'Surprise!' : 'Überraschung!', points: 0, emoji: '🎁' }
 
   const all = shuffle([...easyItems, ...midItems, ...hardItems, mysteryItem])
 

@@ -376,7 +376,7 @@ const unlockAudio = async () => {
 
             {/* 🎮 Игра: Кубчета — beta, само за Pavel засега */}
             {profile?.email === 'pavel.impro@gmail.com' && (
-              <button onClick={() => router.push('/games/cube-deluxe?mode=read')} style={{
+              <button onClick={() => router.push(`/games/cube-deluxe?mode=read&lang=bg&level=${level || 'easy'}`)} style={{
                 width: '100%',
                 background: 'linear-gradient(135deg, #A78BFA, #7C3AED)',
                 color: 'white', border: 'none', borderRadius: 20,

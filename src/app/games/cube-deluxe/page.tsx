@@ -53,6 +53,8 @@ function CubeDeluxeInner() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const mode: GameMode = (searchParams.get('mode') as GameMode) || 'classic'
+  const lang = searchParams.get('lang') || 'bg'
+  const level = searchParams.get('level') || 'easy'
 
   const [authChecked, setAuthChecked] = useState(false)
   const [profile, setProfile] = useState<Profile | null>(null)
@@ -266,7 +268,7 @@ function CubeDeluxeInner() {
       const res = await fetch('/api/tts-azure', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ text, voice, speed: 0.9, lang: 'bg' })
+        body: JSON.stringify({ text, voice, speed: 0.9, lang })
       })
       if (!isActiveRef.current) return
       const blob = await res.blob()
@@ -353,7 +355,7 @@ function CubeDeluxeInner() {
         const fd = new FormData()
         const ext = mimeType.includes('mp4') ? 'mp4' : 'webm'
         fd.append('file', blob, `audio.${ext}`)
-        fd.append('language', 'bg')
+        fd.append('language', lang)
         const res = await fetch('/api/whisper', { method: 'POST', body: fd })
         if (!isActiveRef.current) return
         const data = await res.json()
@@ -398,7 +400,9 @@ function CubeDeluxeInner() {
     setLoading(true)
     try {
       // Reading mode: prefer sentences (more challenging for reading practice)
-      const url = mode === 'read' ? '/api/game-cube?bias=sentences' : '/api/game-cube'
+      const url = mode === 'read'
+        ? `/api/game-cube?bias=sentences&lang=${lang}&level=${level}`
+        : `/api/game-cube?lang=${lang}&level=${level}`
       const res = await fetch(url)
       const data = await res.json()
       if (!data.items || data.items.length < 9) {
