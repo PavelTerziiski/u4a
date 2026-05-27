@@ -54,7 +54,7 @@ function CubeDeluxeInner() {
   const searchParams = useSearchParams()
   const mode: GameMode = (searchParams.get('mode') as GameMode) || 'classic'
   const lang = searchParams.get('lang') || 'bg'
-  const rawLevel = searchParams.get('level') || 'easy'
+  const rawLevel = searchParams.get('level') || ''
   const level = ['easy','medium','hard'].includes(rawLevel) ? rawLevel : 'easy'
 
   const [authChecked, setAuthChecked] = useState(false)
@@ -157,7 +157,7 @@ function CubeDeluxeInner() {
         const amount = score * SCORE_TO_ACORNS_MULTIPLIER
         awardAcorns(profile, amount).then(() => setAcornsAwarded(amount))
       }
-      setTimeout(() => { stopMusic(); setPhase('done') }, 1500)
+      setTimeout(() => { stopMusic(); playSoundViaContext(beepCtxRef.current, 'finish'); setPhase('done') }, 1500)
     }
   }, [revealed, phase])
 
@@ -709,7 +709,7 @@ function CubeDeluxeInner() {
               ) : (
                 <div style={{
                   fontFamily: 'Nunito', fontWeight: 900,
-                  fontSize: items[activeIdx].type === 'word' ? '2.5rem' : '1.4rem',
+                  fontSize: items[activeIdx].type === 'word' ? (items[activeIdx].text.length > 10 ? '1.8rem' : '2.5rem') : '1.2rem',
                   color: '#78350F', lineHeight: 1.3, marginBottom: 16
                 }}>{items[activeIdx].text}</div>
               )}

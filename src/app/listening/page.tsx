@@ -433,7 +433,7 @@ const handleScanResult = (sentences: string[]) => {
 
           {/* 🎮 Игра: Кубчета — beta, само за Pavel */}
           {profile?.email === 'pavel.impro@gmail.com' && (lang === 'bg' || lang === 'en' || lang === 'de') && (
-            <button onClick={() => router.push(`/games/cube-deluxe?mode=listen&lang=${lang}&level=${mode}`)} style={{
+            <button onClick={() => router.push(`/games/cube-deluxe?mode=listen&lang=${lang}${(mode && mode !== "alphabet") ? "&level=" + mode : ""}`)} style={{
               width: '100%',
               background: 'linear-gradient(135deg, #A78BFA, #7C3AED)',
               color: 'white', border: 'none', borderRadius: 20,
