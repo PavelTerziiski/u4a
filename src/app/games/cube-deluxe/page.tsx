@@ -1,5 +1,5 @@
 'use client'
-import { playSound, playSoundViaContext } from '@/lib/sounds'
+import { playSoundViaContext } from '@/lib/sounds'
 import { useEffect, useRef, useState, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
