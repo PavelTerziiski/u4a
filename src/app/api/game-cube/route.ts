@@ -89,9 +89,14 @@ export async function GET(request: Request) {
   const easySentences = allSentences.filter(s => s.wordCount < 6)
   const hardSentences = allSentences.filter(s => s.wordCount >= 6)
 
-  // Pick: 3 words, 3 easy sentences, 2 hard sentences, 1 mystery
-  const easyItems: CubeItem[] = pickRandom(allWords, 3).map(w => ({
+  const wordsForGame = lang === 'bg' ? allWords : wordsForLang
+
+  // Pick: 3 думи + 3 лесни + 2 трудни + 1 mystery
+  const wordItems: CubeItem[] = pickRandom(wordsForGame, 3).map(w => ({
     type: 'word' as const, text: w, points: 1, emoji: '🍎'
+  }))
+  const easyItems: CubeItem[] = wordItems.length >= 3 ? wordItems : pickRandom(easySentences, 3).map(s => ({
+    type: 'sentence_easy' as const, text: s.text, points: 2, emoji: '🌟'
   }))
   const midItems: CubeItem[] = pickRandom(easySentences, 3).map(s => ({
     type: 'sentence_easy' as const, text: s.text, points: 2, emoji: '🌟'
@@ -100,9 +105,9 @@ export async function GET(request: Request) {
     type: 'sentence_hard' as const, text: s.text, points: 3, emoji: '🚀'
   }))
 
-  // Mystery: random item with random points 0-5
+  // Mystery
   const mysteryPool: { text: string; type: CubeItem['type'] }[] = [
-    ...pickRandom(allWords, 5).map(w => ({ text: w, type: 'word' as const })),
+    ...pickRandom(wordsForGame, 5).map(w => ({ text: w, type: 'word' as const })),
     ...pickRandom(allSentences, 5).map(s => ({ text: s.text, type: 'sentence_easy' as const })),
   ]
   const mysteryPick = pickRandom(mysteryPool, 1)[0]
