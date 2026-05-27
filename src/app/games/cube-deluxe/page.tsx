@@ -425,7 +425,7 @@ function CubeDeluxeInner() {
   const handleTileClick = (i: number) => {
     if (revealed[i] || activeIdx !== null) return
     vibrate(15)
-    playSound('cube-break')
+    playSound('cube-open')
     const neighbors = [i - 1, i + 1, i - 3, i + 3].filter(n => n >= 0 && n < 9)
     neighbors.forEach((n, idx) => {
       setTimeout(() => setShakingIdx(n), idx * 30)
@@ -456,6 +456,7 @@ function CubeDeluxeInner() {
     if (mode === 'read' || mode === 'listen') {
       fadeMusic(MUSIC_VOL_NORMAL, 400)
     }
+    playSound('cube-break')
     setRevealFlash(true)
     setTimeout(() => setRevealFlash(false), 300)
     setGridShake(true)

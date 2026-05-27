@@ -10,6 +10,7 @@ export const SOUNDS = {
   tickle3: { src: '/sounds/tickle3.mp3', volume: 0.5 },
   tickle4: { src: '/sounds/tickle4.mp3', volume: 0.5 },
   'cube-break':    { src: '/sounds/cube-break.mp3',    volume: 0.5 },
+  'cube-open':     { src: '/sounds/cube-open.mp3',     volume: 0.5 },
   'coin-collect':  { src: '/sounds/coin-collect.mp3',  volume: 0.55 },
 } as const
 
