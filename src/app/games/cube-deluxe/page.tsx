@@ -1,4 +1,5 @@
 'use client'
+import { playSound } from '@/lib/sounds'
 import { useEffect, useRef, useState, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
@@ -424,6 +425,7 @@ function CubeDeluxeInner() {
   const handleTileClick = (i: number) => {
     if (revealed[i] || activeIdx !== null) return
     vibrate(15)
+    playSound('cube-break')
     const neighbors = [i - 1, i + 1, i - 3, i + 3].filter(n => n >= 0 && n < 9)
     neighbors.forEach((n, idx) => {
       setTimeout(() => setShakingIdx(n), idx * 30)
@@ -488,6 +490,7 @@ function CubeDeluxeInner() {
         colors: ['#FACC15', '#F97316', '#EAB308']
       })
       setTimeout(() => {
+        playSound('coin-collect')
         setScore(s => s + points)
         setScoreBoom(true)
         setTimeout(() => setScoreBoom(false), 500)

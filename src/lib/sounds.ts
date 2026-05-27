@@ -9,6 +9,8 @@ export const SOUNDS = {
   tickle2: { src: '/sounds/tickle2.mp3', volume: 0.5 },
   tickle3: { src: '/sounds/tickle3.mp3', volume: 0.5 },
   tickle4: { src: '/sounds/tickle4.mp3', volume: 0.5 },
+  'cube-break':    { src: '/sounds/cube-break.mp3',    volume: 0.5 },
+  'coin-collect':  { src: '/sounds/coin-collect.mp3',  volume: 0.55 },
 } as const
 
 export type SoundName = keyof typeof SOUNDS
