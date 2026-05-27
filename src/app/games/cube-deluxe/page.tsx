@@ -34,7 +34,7 @@ const MUSIC_TRACKS = [
   '/sounds/cube-music-3.mp3', '/sounds/cube-music-4.mp3',
 ]
 const MUSIC_PREF_KEY = 'u4a_cube_music_on'
-const MUSIC_VOL_NORMAL = 1.0
+const MUSIC_VOL_NORMAL = 0.75
 const MUSIC_VOL_DUCKED = 0.15
 const MAX_ATTEMPTS = 3
 
