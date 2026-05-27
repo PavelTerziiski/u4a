@@ -377,6 +377,7 @@ function CubeDeluxeInner() {
           setAttempts(nextAttempt)
           setFeedbackType('wrong')
           setOwlSays('Опитай пак!')
+          playSoundViaContext(beepCtxRef.current, 'wrong')
           await playTTS('Опитай пак!', 'borisslav')
           if (!isActiveRef.current) return
           if (nextAttempt >= MAX_ATTEMPTS) {
