@@ -57,6 +57,16 @@ export async function GET(request: Request) {
     return NextResponse.json({ error: error?.message || 'no data' }, { status: 500 })
   }
 
+  // За EN/DE — дърпаме думи от pronunciation_words
+  let pronunciationWords: string[] = []
+  if (lang !== 'bg') {
+    const { data: pwData } = await supabase
+      .from('pronunciation_words')
+      .select('word')
+      .eq('language', lang)
+    pronunciationWords = (pwData || []).map((r: { word: string }) => r.word).filter(Boolean)
+  }
+
   // Gather all words (single words across all dictations)
   const allWords: string[] = []
   // Gather sentences with length info
