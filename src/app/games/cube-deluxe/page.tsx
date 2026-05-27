@@ -34,8 +34,8 @@ const MUSIC_TRACKS = [
   '/sounds/cube-music-3.mp3', '/sounds/cube-music-4.mp3',
 ]
 const MUSIC_PREF_KEY = 'u4a_cube_music_on'
-const MUSIC_VOL_NORMAL = 0.75
-const MUSIC_VOL_DUCKED = 0.15
+const MUSIC_VOL_NORMAL = 0.70
+const MUSIC_VOL_DUCKED = 0.10
 const MAX_ATTEMPTS = 3
 
 function shuffle<T>(arr: T[]): T[] {
@@ -263,13 +263,13 @@ function CubeDeluxeInner() {
     return ttsCtxRef.current
   }
 
-  const playTTS = async (text: string, voice = 'borisslav'): Promise<void> => {
+  const playTTS = async (text: string, voice = 'borisslav', langOverride?: string): Promise<void> => {
     if (!isActiveRef.current) return
     try {
       const res = await fetch('/api/tts-azure', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ text, voice, speed: 0.9, lang })
+        body: JSON.stringify({ text, voice, speed: 0.9, lang: langOverride ?? lang })
       })
       if (!isActiveRef.current) return
       const blob = await res.blob()
@@ -371,7 +371,7 @@ function CubeDeluxeInner() {
         if (isCorrect) {
           setFeedbackType('correct')
           setOwlSays('Браво!')
-          await playTTS('Браво!', 'borisslav')
+          await playTTS('Браво!', 'borisslav', 'bg')
           if (!isActiveRef.current) return
           // Claim with full points
           handleClaim(true)
@@ -381,7 +381,7 @@ function CubeDeluxeInner() {
           setFeedbackType('wrong')
           setOwlSays('Опитай пак!')
           playSoundViaContext(beepCtxRef.current, 'wrong')
-          await playTTS('Опитай пак!', 'borisslav')
+          await playTTS('Опитай пак!', 'borisslav', 'bg')
           if (!isActiveRef.current) return
           if (nextAttempt >= MAX_ATTEMPTS) {
             // Out of attempts — reveal cube but give 0 points
