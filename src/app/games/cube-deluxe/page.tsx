@@ -518,15 +518,15 @@ function CubeDeluxeInner() {
       <div className="u4a-dash-overlay"></div>
       <AnimatedGradientBg />
       <div className="w-full max-w-md text-center" style={{ position: 'relative', zIndex: 1 }}>
-        <button onClick={() => router.back()} style={{
-          background: 'none', border: 'none', fontSize: '1.1rem', cursor: 'pointer',
-          position: 'absolute', top: -40, left: 0, color: '#F97316',
-          fontFamily: 'Nunito, sans-serif', fontWeight: 800
-        }}>← Назад</button>
-        <button onClick={toggleMusic} style={{
-          background: 'none', border: 'none', fontSize: '1.4rem', cursor: 'pointer',
-          position: 'absolute', top: -40, right: 0
-        }}>{musicOn ? '🔊' : '🔇'}</button>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
+          <button onClick={() => router.back()} style={{
+            background: 'none', border: 'none', fontSize: '1.1rem', cursor: 'pointer',
+            color: '#F97316', fontFamily: 'Nunito, sans-serif', fontWeight: 800
+          }}>← Назад</button>
+          <button onClick={toggleMusic} style={{
+            background: 'none', border: 'none', fontSize: '1.4rem', cursor: 'pointer'
+          }}>{musicOn ? '🔊' : '🔇'}</button>
+        </div>
 
         <AnimatedFox mood="excited" size={170} />
         <h1 style={{ fontFamily: 'Nunito', fontWeight: 900, fontSize: '2.2rem', color: '#78350F', marginTop: 16 }}>
