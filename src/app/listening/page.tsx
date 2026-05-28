@@ -416,7 +416,7 @@ const handleScanResult = (sentences: string[]) => {
         <div className="w-full max-w-md text-center" style={{ position: 'relative', zIndex: 1 }}>
           <button onClick={() => goBack('menu')} style={{ background: 'none', border: 'none', fontSize: '1.1rem', cursor: 'pointer', position: 'absolute', top: -40, left: 0, color: '#F97316', fontFamily: 'Nunito, sans-serif', fontWeight: 800 }}>← Назад</button>
           <Fox mood="happy" size={120} />
-          <h1 style={{ fontFamily: 'Nunito, sans-serif', fontWeight: 900, fontSize: '1.8rem', color: '#1D4ED8', marginTop: 12, marginBottom: 24 }}>{lc.flag} {lc.label}</h1>
+          <h1 style={{ fontFamily: 'Nunito, sans-serif', fontWeight: 900, fontSize: '1.8rem', color: '#1E3A8A', marginTop: 12, marginBottom: 24 }}>{lc.flag} {lc.label}</h1>
           {lc.hasAlphabet && (
             <button onClick={async () => { await acquireMic(); await unlockAudio(); startAlphabet(lang) }}
               style={{ width: '100%', background: 'white', color: '#2563EB', border: '2px solid #BFDBFE', borderRadius: 20, padding: '1.2rem', fontFamily: 'Nunito, sans-serif', fontWeight: 900, fontSize: '1.2rem', cursor: 'pointer', boxShadow: '0 4px 12px rgba(37,99,235,0.15)', marginBottom: 12 }}>🔤 Азбука и звуци</button>
