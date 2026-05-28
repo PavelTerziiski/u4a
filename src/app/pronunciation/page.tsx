@@ -228,10 +228,10 @@ export default function PronunciationPage() {
         fontFamily: 'Nunito, sans-serif', fontWeight: 800
       }}>← Назад</button>
       <Fox mood="happy" size={150} />
-      <h1 style={{ fontFamily: 'Nunito, sans-serif', fontWeight: 900, fontSize: '2.2rem', color: '#2563EB', marginTop: 16, marginBottom: 8 }}>🗣️ Правоговор</h1>
+      <h1 style={{ fontFamily: 'Nunito, sans-serif', fontWeight: 900, fontSize: '2.2rem', color: '#1E40AF', marginTop: 16, marginBottom: 8 }}>🗣️ Правоговор</h1>
 
       <button onClick={() => router.push('/listening')} style={{
-        width: '100%', background: 'linear-gradient(135deg, #2563EB, #1D4ED8)',
+        width: '100%', background: 'linear-gradient(135deg, #1E40AF, #1E3A8A)',
         color: 'white', border: 'none', borderRadius: 20, padding: '1.3rem',
         fontFamily: 'Nunito, sans-serif', fontWeight: 900, fontSize: '1.3rem',
         cursor: 'pointer', boxShadow: '0 8px 24px rgba(37,99,235,0.4)', marginBottom: 14
@@ -267,12 +267,12 @@ export default function PronunciationPage() {
           setRecording(false)
           setPhase('menu')
         }} style={{ background: 'none', border: 'none', fontSize: '1.5rem', cursor: 'pointer' }}>←</button>
-          <span style={{ fontFamily: 'Nunito, sans-serif', fontWeight: 800, color: '#2563EB' }}>{index + 1} / {alphabet.length}</span>
+          <span style={{ fontFamily: 'Nunito, sans-serif', fontWeight: 800, color: '#1E40AF' }}>{index + 1} / {alphabet.length}</span>
           <span style={{ fontFamily: 'Nunito, sans-serif', fontWeight: 800, color: '#F97316' }}>⭐ {score}</span>
         </div>
 
         <div style={{ width: '100%', background: '#DBEAFE', borderRadius: 99, height: 10, marginBottom: 24 }}>
-          <div style={{ width: `${((index) / alphabet.length) * 100}%`, background: 'linear-gradient(90deg, #2563EB, #A78BFA)', height: 10, borderRadius: 99, transition: 'width 0.5s' }} />
+          <div style={{ width: `${((index) / alphabet.length) * 100}%`, background: 'linear-gradient(90deg, #1E40AF, #0891B2)', height: 10, borderRadius: 99, transition: 'width 0.5s' }} />
         </div>
 
         <div style={{ textAlign: 'center', marginBottom: 16, position: 'relative' }}>
@@ -298,12 +298,12 @@ export default function PronunciationPage() {
           textAlign: 'center', boxShadow: '0 8px 32px rgba(0,0,0,0.08)', marginBottom: 24
         }}>
           <div style={{ fontSize: '5rem', marginBottom: 8 }}>{current.emoji}</div>
-          <div style={{ fontFamily: 'Nunito, sans-serif', fontWeight: 900, fontSize: '4rem', color: '#2563EB', lineHeight: 1 }}>{current.letter}</div>
+          <div style={{ fontFamily: 'Nunito, sans-serif', fontWeight: 900, fontSize: '4rem', color: '#1E40AF', lineHeight: 1 }}>{current.letter}</div>
           <div style={{ fontFamily: 'Nunito, sans-serif', fontWeight: 800, fontSize: '1.8rem', color: '#92400E', marginTop: 8 }}>{current.word}</div>
         </div>
 
         <button onClick={() => playCurrentWord(index)} style={{
-          width: '100%', background: '#F3F0FF', color: '#2563EB',
+          width: '100%', background: '#F3F0FF', color: '#1E40AF',
           border: '2px solid #BFDBFE', borderRadius: 16, padding: '0.9rem',
           fontFamily: 'Nunito, sans-serif', fontWeight: 800, fontSize: '1rem',
           cursor: 'pointer', marginBottom: 12
@@ -313,10 +313,10 @@ export default function PronunciationPage() {
 
         <button onClick={handleRecord} disabled={loading || recording} style={{
           width: '100%',
-          background: recording ? '#EF4444' : loading ? '#9CA3AF' : 'linear-gradient(135deg, #2563EB, #1D4ED8)',
+          background: recording ? '#EF4444' : loading ? '#9CA3AF' : 'linear-gradient(135deg, #1E40AF, #1E3A8A)',
           color: 'white', border: 'none', borderRadius: 16, padding: '1.2rem',
           fontFamily: 'Nunito, sans-serif', fontWeight: 900, fontSize: '1.3rem',
-          cursor: 'pointer', boxShadow: recording ? '0 0 0 8px rgba(239,68,68,0.2)' : 'none',
+          cursor: 'pointer', boxShadow: recording ? '0 0 0 8px rgba(220,38,38,0.2)' : 'none',
           animation: recording ? 'pulse 1s infinite' : 'none'
         }}>
           {loading ? '🦉 Бухалът слуша...' : recording ? '🎤 Слушам...' : '🎤 Повтори!'}
@@ -325,7 +325,7 @@ export default function PronunciationPage() {
         {feedbackType === 'wrong' && !recording && !loading && (
           <button onClick={() => nextWord()} style={{
             width: '100%', background: 'none', border: '2px solid #BFDBFE',
-            color: '#2563EB', borderRadius: 16, padding: '0.9rem', marginTop: 12,
+            color: '#1E40AF', borderRadius: 16, padding: '0.9rem', marginTop: 12,
             fontFamily: 'Nunito, sans-serif', fontWeight: 800, fontSize: '1rem', cursor: 'pointer'
           }}>
             Пропусни →
@@ -340,7 +340,7 @@ export default function PronunciationPage() {
       <div className="u4a-dash-overlay"></div>
       <div className="w-full max-w-md text-center">
         <Fox mood="excited" size={180} />
-        <h1 style={{ fontFamily: 'Nunito, sans-serif', fontWeight: 900, fontSize: '2.5rem', color: '#2563EB', marginTop: 16 }}>🎉 Браво!</h1>
+        <h1 style={{ fontFamily: 'Nunito, sans-serif', fontWeight: 900, fontSize: '2.5rem', color: '#1E40AF', marginTop: 16 }}>🎉 Браво!</h1>
         <p style={{ fontFamily: 'Nunito, sans-serif', fontSize: '4rem', fontWeight: 900, color: '#F97316' }}>{score}/{alphabet.length}</p>
         <p style={{ color: '#92400E', fontFamily: 'Nunito, sans-serif', marginBottom: 32 }}>верни думи</p>
         <button onClick={() => router.push('/dashboard')} style={{

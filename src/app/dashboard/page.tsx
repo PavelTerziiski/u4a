@@ -149,7 +149,7 @@ export default function Dashboard() {
           <button className="main-btn" onClick={() => router.push('/dictation')}>
             ✏️ Правопис
           </button>
-          <button className="main-btn" onClick={() => router.push('/pronunciation')} style={{ background: 'linear-gradient(135deg, #3B82F6, #2563EB)' }}>
+          <button className="main-btn" onClick={() => router.push('/pronunciation')} style={{ background: 'linear-gradient(135deg, #1E40AF, #1E3A8A)' }}>
             🗣️ Правоговор
           </button>
         </div>

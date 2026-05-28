@@ -27,11 +27,11 @@ const LEVEL_CONFIG: Record<Level, {
   easy: {
     label: 'Лесно',
     grades: [1, 2],
-    color: '#16A34A',
+    color: '#047857',
     colorLight: '#EFF6FF',
     colorBorder: '#BBF7D0',
-    gradient: 'linear-gradient(135deg, #22C55E, #16A34A)',
-    shadow: 'rgba(34,197,94,0.35)',
+    gradient: 'linear-gradient(135deg, #059669, #047857)',
+    shadow: 'rgba(5,150,105,0.35)',
     progressBg: '#DCFCE7',
   },
   medium: {
@@ -40,7 +40,7 @@ const LEVEL_CONFIG: Record<Level, {
     color: '#D97706',
     colorLight: '#FFF7ED',
     colorBorder: '#FDE68A',
-    gradient: 'linear-gradient(135deg, #F59E0B, #D97706)',
+    gradient: 'linear-gradient(135deg, #D97706, #B45309)',
     shadow: 'rgba(245,158,11,0.35)',
     progressBg: '#FEF3C7',
   },
@@ -50,8 +50,8 @@ const LEVEL_CONFIG: Record<Level, {
     color: '#DC2626',
     colorLight: '#FEF2F2',
     colorBorder: '#FECACA',
-    gradient: 'linear-gradient(135deg, #EF4444, #DC2626)',
-    shadow: 'rgba(239,68,68,0.35)',
+    gradient: 'linear-gradient(135deg, #DC2626, #B91C1C)',
+    shadow: 'rgba(220,38,38,0.35)',
     progressBg: '#EDE9FE',
   },
 }
@@ -376,7 +376,7 @@ const unlockAudio = async () => {
 
             <button onClick={() => router.push(`/games/cube-deluxe?mode=read&lang=bg&level=${level || 'easy'}`)} style={{
                 width: '100%',
-                background: 'linear-gradient(135deg, #F59E0B, #D97706)',
+                background: 'linear-gradient(135deg, #D97706, #B45309)',
                 color: 'white', border: 'none', borderRadius: 20,
                 padding: '1.3rem 1.5rem',
                 fontFamily: 'Nunito, sans-serif', fontWeight: 900, fontSize: '1.3rem',
@@ -502,7 +502,7 @@ const unlockAudio = async () => {
 
           {waitingForSpeech && !recording && !loading && (
             <button onClick={() => { setWaitingForSpeech(false); beginRecording(selected!, sentenceIndex) }}
-              style={{ width: '100%', background: 'linear-gradient(135deg, #EF4444, #DC2626)', color: 'white', border: 'none', borderRadius: 24, padding: '1.8rem', fontFamily: 'Nunito, sans-serif', fontWeight: 900, fontSize: '2.2rem', cursor: 'pointer', boxShadow: '0 8px 32px rgba(239,68,68,0.5)', marginBottom: 12, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 16 }}>
+              style={{ width: '100%', background: 'linear-gradient(135deg, #DC2626, #B91C1C)', color: 'white', border: 'none', borderRadius: 24, padding: '1.8rem', fontFamily: 'Nunito, sans-serif', fontWeight: 900, fontSize: '2.2rem', cursor: 'pointer', boxShadow: '0 8px 32px rgba(220,38,38,0.5)', marginBottom: 12, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 16 }}>
               🎙️ <span style={{ fontSize: '1.4rem' }}>Натисни и говори</span>
             </button>
           )}
