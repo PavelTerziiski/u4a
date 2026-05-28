@@ -433,12 +433,12 @@ const handleScanResult = (sentences: string[]) => {
           {(lang === 'bg' || lang === 'en' || lang === 'de') && (
             <button onClick={() => router.push(`/games/cube-deluxe?mode=listen&lang=${lang}${(mode && mode !== "alphabet") ? "&level=" + mode : ""}`)} style={{
               width: '100%',
-              background: 'linear-gradient(135deg, #F59E0B, #D97706)',
+              background: 'linear-gradient(135deg, #0891B2, #0E7490)',
               color: 'white', border: 'none', borderRadius: 20,
               padding: '1.2rem',
               fontFamily: 'Nunito, sans-serif', fontWeight: 900, fontSize: '1.2rem',
               cursor: 'pointer',
-              boxShadow: '0 8px 24px rgba(245,158,11,0.4)',
+              boxShadow: '0 8px 24px rgba(8,145,178,0.4)',
               marginBottom: 12,
               textAlign: 'center'
             }}>🎮 Игра: Кубчета</button>
