@@ -46,7 +46,7 @@ export async function GET(request: Request) {
 
   let query = supabase.from('dictations').select('words, sentences, grade')
   if (lang === 'bg') {
-    query = query.eq('category', 'original').eq('language', 'bg')
+    query = query.eq('category', 'original').eq('language', 'bg').lte('grade', 4)
   } else {
     query = query.eq('language', lang)
     if (level) query = query.eq('difficulty', level)
