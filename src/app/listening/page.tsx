@@ -58,9 +58,9 @@ const ALPHABET_FALLBACK: PronunciationWord[] = [
 ]
 
 const LEVEL_CONFIG = {
-  easy:   { label: 'Лесно',  grades: [1,2], color: '#16A34A', colorLight: '#F0FDF4', colorBorder: '#BBF7D0', gradient: 'linear-gradient(135deg, #22C55E, #16A34A)', shadow: 'rgba(34,197,94,0.35)',   progressBg: '#DCFCE7' },
-  medium: { label: 'Средно', grades: [3],   color: '#D97706', colorLight: '#FFFBEB', colorBorder: '#FDE68A', gradient: 'linear-gradient(135deg, #F59E0B, #D97706)', shadow: 'rgba(245,158,11,0.35)', progressBg: '#FEF3C7' },
-  hard:   { label: 'Трудно', grades: [4],   color: '#DC2626', colorLight: '#FEF2F2', colorBorder: '#FECACA', gradient: 'linear-gradient(135deg, #EF4444, #DC2626)', shadow: 'rgba(239,68,68,0.35)',   progressBg: '#FEF2F2' },
+  easy:   { label: 'Лесно',  grades: [1,2], color: '#047857', colorLight: '#ECFDF5', colorBorder: '#6EE7B7', gradient: 'linear-gradient(135deg, #059669, #047857)', shadow: 'rgba(5,150,105,0.35)',   progressBg: '#D1FAE5' },
+  medium: { label: 'Средно', grades: [3],   color: '#B45309', colorLight: '#FFFBEB', colorBorder: '#FCD34D', gradient: 'linear-gradient(135deg, #D97706, #B45309)', shadow: 'rgba(217,119,6,0.35)',  progressBg: '#FEF3C7' },
+  hard:   { label: 'Трудно', grades: [4],   color: '#B91C1C', colorLight: '#FEF2F2', colorBorder: '#FCA5A5', gradient: 'linear-gradient(135deg, #DC2626, #B91C1C)', shadow: 'rgba(220,38,38,0.35)',   progressBg: '#FEF2F2' },
 }
 
 const LANG_CONFIG: Record<Lang, { flag: string; label: string; hasAlphabet: boolean; dictLang: string; whisperLang: string }> = {
@@ -416,7 +416,7 @@ const handleScanResult = (sentences: string[]) => {
         <div className="w-full max-w-md text-center" style={{ position: 'relative', zIndex: 1 }}>
           <button onClick={() => goBack('menu')} style={{ background: 'none', border: 'none', fontSize: '1.1rem', cursor: 'pointer', position: 'absolute', top: -40, left: 0, color: '#F97316', fontFamily: 'Nunito, sans-serif', fontWeight: 800 }}>← Назад</button>
           <Fox mood="happy" size={120} />
-          <h1 style={{ fontFamily: 'Nunito, sans-serif', fontWeight: 900, fontSize: '1.8rem', color: '#2563EB', marginTop: 12, marginBottom: 24 }}>{lc.flag} {lc.label}</h1>
+          <h1 style={{ fontFamily: 'Nunito, sans-serif', fontWeight: 900, fontSize: '1.8rem', color: '#1D4ED8', marginTop: 12, marginBottom: 24 }}>{lc.flag} {lc.label}</h1>
           {lc.hasAlphabet && (
             <button onClick={async () => { await acquireMic(); await unlockAudio(); startAlphabet(lang) }}
               style={{ width: '100%', background: 'white', color: '#2563EB', border: '2px solid #BFDBFE', borderRadius: 20, padding: '1.2rem', fontFamily: 'Nunito, sans-serif', fontWeight: 900, fontSize: '1.2rem', cursor: 'pointer', boxShadow: '0 4px 12px rgba(37,99,235,0.15)', marginBottom: 12 }}>🔤 Азбука и звуци</button>
