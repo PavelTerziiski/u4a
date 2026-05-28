@@ -421,8 +421,6 @@ const handleScanResult = (sentences: string[]) => {
             <button onClick={async () => { await acquireMic(); await unlockAudio(); startAlphabet(lang) }}
               style={{ width: '100%', background: 'white', color: '#2563EB', border: '2px solid #BFDBFE', borderRadius: 20, padding: '1.2rem', fontFamily: 'Nunito, sans-serif', fontWeight: 900, fontSize: '1.2rem', cursor: 'pointer', boxShadow: '0 4px 12px rgba(37,99,235,0.15)', marginBottom: 12 }}>🔤 Азбука и звуци</button>
           )}
-          <button onClick={() => setScanOpen(true)} style={{ width: '100%', background: 'white', border: '2px dashed #F97316', borderRadius: 20, padding: '1rem', marginBottom: 12, cursor: 'pointer', fontFamily: 'Nunito, sans-serif', fontWeight: 800, color: '#F97316', fontSize: '1rem' }}>📷 Снимай текст от книга</button>
-          <ScanTextModal open={scanOpen} onClose={() => setScanOpen(false)} onResult={handleScanResult} accentColor="#2563EB" title="Снимай текст за слушане" />
           {(['easy', 'medium', 'hard'] as const).map(lvl => {
             const c = LEVEL_CONFIG[lvl]
             return (
@@ -430,25 +428,20 @@ const handleScanResult = (sentences: string[]) => {
                 style={{ width: '100%', background: c.gradient, color: 'white', border: 'none', borderRadius: 20, padding: '1.2rem', fontFamily: 'Nunito, sans-serif', fontWeight: 900, fontSize: '1.2rem', cursor: 'pointer', boxShadow: `0 8px 24px ${c.shadow}`, marginBottom: 12 }}>📖 {c.label}</button>
             )
           })}
-
-          {/* 🎮 Игра: Кубчета — beta, само за Pavel */}
-          {profile?.email === 'pavel.impro@gmail.com' && (lang === 'bg' || lang === 'en' || lang === 'de') && (
+          <button onClick={() => setScanOpen(true)} style={{ width: '100%', background: 'white', border: '2px dashed #F97316', borderRadius: 20, padding: '1rem', marginBottom: 12, cursor: 'pointer', fontFamily: 'Nunito, sans-serif', fontWeight: 800, color: '#F97316', fontSize: '1rem' }}>📷 Снимай текст от книга</button>
+          <ScanTextModal open={scanOpen} onClose={() => setScanOpen(false)} onResult={handleScanResult} accentColor="#2563EB" title="Снимай текст за слушане" />
+          {(lang === 'bg' || lang === 'en' || lang === 'de') && (
             <button onClick={() => router.push(`/games/cube-deluxe?mode=listen&lang=${lang}${(mode && mode !== "alphabet") ? "&level=" + mode : ""}`)} style={{
               width: '100%',
-              background: 'linear-gradient(135deg, #A78BFA, #7C3AED)',
+              background: 'linear-gradient(135deg, #F59E0B, #D97706)',
               color: 'white', border: 'none', borderRadius: 20,
               padding: '1.2rem',
               fontFamily: 'Nunito, sans-serif', fontWeight: 900, fontSize: '1.2rem',
               cursor: 'pointer',
-              boxShadow: '0 8px 24px rgba(124,58,237,0.4)',
+              boxShadow: '0 8px 24px rgba(245,158,11,0.4)',
               marginBottom: 12,
-              display: 'flex', justifyContent: 'space-between', alignItems: 'center'
-            }}>
-              <span>🎮 Игра: Кубчета</span>
-              <span style={{ opacity: 0.85, fontSize: '0.8rem', fontWeight: 700, background: 'rgba(255,255,255,0.2)', padding: '4px 10px', borderRadius: 99 }}>
-                beta ✨
-              </span>
-            </button>
+              textAlign: 'center'
+            }}>🎮 Игра: Кубчета</button>
           )}
         </div>
       </main>
