@@ -396,7 +396,7 @@ const handleScanResult = (sentences: string[]) => {
       <div className="w-full max-w-md text-center" style={{ position: 'relative', zIndex: 1 }}>
         <button onClick={() => goBack('pronunciation')} style={{ background: 'none', border: 'none', fontSize: '1.1rem', cursor: 'pointer', position: 'absolute', top: -40, left: 0, color: '#F97316', fontFamily: 'Nunito, sans-serif', fontWeight: 800 }}>← Назад</button>
         <Fox mood="happy" size={140} />
-        <h1 style={{ fontFamily: 'Nunito, sans-serif', fontWeight: 900, fontSize: '2rem', color: '#2563EB', marginTop: 12, marginBottom: 8 }}>🎧 Слушай и повтаряй</h1>
+        <h1 style={{ fontFamily: 'Nunito, sans-serif', fontWeight: 900, fontSize: '2rem', color: '#1E40AF', marginTop: 12, marginBottom: 8 }}>🎧 Слушай и повтаряй</h1>
         <p style={{ fontFamily: 'Nunito, sans-serif', color: '#92400E', marginBottom: 28, fontSize: '1rem' }}>Избери език</p>
         {(['bg', 'en', 'de'] as Lang[]).map(l => (
           <button key={l} onClick={() => { if (isFree) { setPhase('limit'); return }; setLang(l); setPhase('lang') }} style={{ width: '100%', background: 'white', color: '#374151', border: '2px solid #E5E7EB', borderRadius: 20, padding: '1.2rem', fontFamily: 'Nunito, sans-serif', fontWeight: 900, fontSize: '1.4rem', cursor: 'pointer', boxShadow: '0 4px 12px rgba(0,0,0,0.08)', marginBottom: 12, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 12 }}>
@@ -419,7 +419,7 @@ const handleScanResult = (sentences: string[]) => {
           <h1 style={{ fontFamily: 'Nunito, sans-serif', fontWeight: 900, fontSize: '1.8rem', color: '#1E3A8A', marginTop: 12, marginBottom: 24 }}>{lc.flag} {lc.label}</h1>
           {lc.hasAlphabet && (
             <button onClick={async () => { await acquireMic(); await unlockAudio(); startAlphabet(lang) }}
-              style={{ width: '100%', background: 'white', color: '#2563EB', border: '2px solid #BFDBFE', borderRadius: 20, padding: '1.2rem', fontFamily: 'Nunito, sans-serif', fontWeight: 900, fontSize: '1.2rem', cursor: 'pointer', boxShadow: '0 4px 12px rgba(37,99,235,0.15)', marginBottom: 12 }}>🔤 Азбука и звуци</button>
+              style={{ width: '100%', background: 'white', color: '#1E40AF', border: '2px solid #BAE6FD', borderRadius: 20, padding: '1.2rem', fontFamily: 'Nunito, sans-serif', fontWeight: 900, fontSize: '1.2rem', cursor: 'pointer', boxShadow: '0 4px 12px rgba(30,64,175,0.15)', marginBottom: 12 }}>🔤 Азбука и звуци</button>
           )}
           {(['easy', 'medium', 'hard'] as const).map(lvl => {
             const c = LEVEL_CONFIG[lvl]
@@ -429,7 +429,7 @@ const handleScanResult = (sentences: string[]) => {
             )
           })}
           <button onClick={() => setScanOpen(true)} style={{ width: '100%', background: 'white', border: '2px dashed #F97316', borderRadius: 20, padding: '1rem', marginBottom: 12, cursor: 'pointer', fontFamily: 'Nunito, sans-serif', fontWeight: 800, color: '#F97316', fontSize: '1rem' }}>📷 Снимай текст от книга</button>
-          <ScanTextModal open={scanOpen} onClose={() => setScanOpen(false)} onResult={handleScanResult} accentColor="#2563EB" title="Снимай текст за слушане" />
+          <ScanTextModal open={scanOpen} onClose={() => setScanOpen(false)} onResult={handleScanResult} accentColor="#1E40AF" title="Снимай текст за слушане" />
           {(lang === 'bg' || lang === 'en' || lang === 'de') && (
             <button onClick={() => router.push(`/games/cube-deluxe?mode=listen&lang=${lang}${(mode && mode !== "alphabet") ? "&level=" + mode : ""}`)} style={{
               width: '100%',
@@ -474,7 +474,7 @@ const handleScanResult = (sentences: string[]) => {
       <div className="u4a-dash-overlay"></div>
       <div className="w-full max-w-md text-center" style={{ position: 'relative', zIndex: 1 }}>
         <Fox mood="excited" size={140} />
-        <h1 style={{ fontFamily: 'Nunito, sans-serif', fontWeight: 900, fontSize: '1.8rem', color: '#2563EB', marginTop: 16, marginBottom: 8 }}>Готово!</h1>
+        <h1 style={{ fontFamily: 'Nunito, sans-serif', fontWeight: 900, fontSize: '1.8rem', color: '#1E40AF', marginTop: 16, marginBottom: 8 }}>Готово!</h1>
         <p style={{ color: '#6B7280', fontFamily: 'Nunito, sans-serif', marginBottom: 16 }}>Разпознах {selected.sentences.length} изречения. Слушай и повтаряй след мен!</p>
         <div style={{ background: 'white', borderRadius: 16, padding: 16, boxShadow: '0 4px 12px rgba(0,0,0,0.05)', marginBottom: 16, textAlign: 'left' }}>
           {selected.sentences.map((sent, i) => (
@@ -485,10 +485,10 @@ const handleScanResult = (sentences: string[]) => {
           await acquireMic(); await unlockAudio()
           isActiveRef.current = true
           setPhase('play'); playSentence(selected, 0)
-        }} style={{ width: '100%', background: 'linear-gradient(135deg, #3B82F6, #2563EB)', color: 'white', border: 'none', borderRadius: 20, padding: '1.2rem', fontFamily: 'Nunito, sans-serif', fontWeight: 900, fontSize: '1.2rem', cursor: 'pointer', boxShadow: '0 8px 24px rgba(37,99,235,0.35)', marginBottom: 12 }}>
+        }} style={{ width: '100%', background: 'linear-gradient(135deg, #1E40AF, #1E40AF)', color: 'white', border: 'none', borderRadius: 20, padding: '1.2rem', fontFamily: 'Nunito, sans-serif', fontWeight: 900, fontSize: '1.2rem', cursor: 'pointer', boxShadow: '0 8px 24px rgba(30,64,175,0.35)', marginBottom: 12 }}>
           Готов съм! 🎙️
         </button>
-        <button onClick={() => { setPhase('menu'); setScanOpen(true) }} style={{ background: 'none', border: 'none', color: '#2563EB', fontFamily: 'Nunito, sans-serif', fontWeight: 700, cursor: 'pointer' }}>
+        <button onClick={() => { setPhase('menu'); setScanOpen(true) }} style={{ background: 'none', border: 'none', color: '#1E40AF', fontFamily: 'Nunito, sans-serif', fontWeight: 700, cursor: 'pointer' }}>
           ← Снимай отново
         </button>
       </div>
@@ -499,12 +499,12 @@ const handleScanResult = (sentences: string[]) => {
       <div className="u4a-dash-overlay"></div>
       <div className="w-full max-w-md" style={{ position: 'relative', zIndex: 1 }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
-          <button onClick={() => goBack('lang')} style={{ background: 'none', border: 'none', fontSize: '1.5rem', cursor: 'pointer', color: '#2563EB' }}>←</button>
-          <span style={{ fontFamily: 'Nunito, sans-serif', fontWeight: 800, color: '#2563EB' }}>{alphaIndex + 1} / {getAlphabet(lang).length}</span>
+          <button onClick={() => goBack('lang')} style={{ background: 'none', border: 'none', fontSize: '1.5rem', cursor: 'pointer', color: '#1E40AF' }}>←</button>
+          <span style={{ fontFamily: 'Nunito, sans-serif', fontWeight: 800, color: '#1E40AF' }}>{alphaIndex + 1} / {getAlphabet(lang).length}</span>
           <span style={{ fontFamily: 'Nunito, sans-serif', fontWeight: 800, color: '#F97316' }}>⭐ {score}</span>
         </div>
         <div style={{ width: '100%', background: '#DBEAFE', borderRadius: 99, height: 10, marginBottom: 24 }}>
-          <div style={{ width: `${(alphaIndex / getAlphabet(lang).length) * 100}%`, background: 'linear-gradient(90deg, #2563EB, #60A5FA)', height: 10, borderRadius: 99, transition: 'width 0.5s' }} />
+          <div style={{ width: `${(alphaIndex / getAlphabet(lang).length) * 100}%`, background: 'linear-gradient(90deg, #1E40AF, #0891B2)', height: 10, borderRadius: 99, transition: 'width 0.5s' }} />
         </div>
         <div style={{ textAlign: 'center', marginBottom: 12 }}>
           <AnimatedFox mood={recording ? 'wink' : feedbackType === 'correct' ? 'excited' : feedbackType === 'wrong' ? 'tryagain' : lastMood ?? 'happy'} size={150} />
@@ -517,11 +517,11 @@ const handleScanResult = (sentences: string[]) => {
         )}
         <div style={{ background: 'white', borderRadius: 24, padding: '2rem', textAlign: 'center', boxShadow: '0 8px 32px rgba(0,0,0,0.08)', marginBottom: 20 }}>
           <div style={{ fontSize: '5rem', marginBottom: 8 }}>{currentAlpha.emoji}</div>
-          <div style={{ fontFamily: 'Nunito, sans-serif', fontWeight: 900, fontSize: '4rem', color: '#2563EB', lineHeight: 1 }}>{currentAlpha.letter}</div>
+          <div style={{ fontFamily: 'Nunito, sans-serif', fontWeight: 900, fontSize: '4rem', color: '#1E40AF', lineHeight: 1 }}>{currentAlpha.letter}</div>
           <div style={{ fontFamily: 'Nunito, sans-serif', fontWeight: 800, fontSize: '1.8rem', color: '#92400E', marginTop: 8 }}>{currentAlpha.word}</div>
         </div>
         <button onClick={() => playTTS(currentAlpha.tts_text || currentAlpha.word, 'kalina', undefined, LANG_CONFIG[lang].dictLang)}
-          style={{ width: '100%', background: '#EFF6FF', color: '#2563EB', border: '2px solid #BFDBFE', borderRadius: 16, padding: '0.9rem', fontFamily: 'Nunito, sans-serif', fontWeight: 800, fontSize: '1rem', cursor: 'pointer', marginBottom: 12 }}>
+          style={{ width: '100%', background: '#EFF6FF', color: '#1E40AF', border: '2px solid #BAE6FD', borderRadius: 16, padding: '0.9rem', fontFamily: 'Nunito, sans-serif', fontWeight: 800, fontSize: '1rem', cursor: 'pointer', marginBottom: 12 }}>
           🔊 Чуй пак
         </button>
         {waitingForSpeech && !recording && !loading && (
@@ -536,13 +536,13 @@ const handleScanResult = (sentences: string[]) => {
           </div>
         )}
         {loading && (
-          <div style={{ background: '#EFF6FF', border: '2px solid #BFDBFE', borderRadius: 16, padding: '12px', marginBottom: 12, textAlign: 'center' }}>
-            <p style={{ fontFamily: 'Nunito, sans-serif', color: '#2563EB', fontWeight: 700, margin: 0 }}>{`🦊 ${foxName} слуша...`}</p>
+          <div style={{ background: '#EFF6FF', border: '2px solid #BAE6FD', borderRadius: 16, padding: '12px', marginBottom: 12, textAlign: 'center' }}>
+            <p style={{ fontFamily: 'Nunito, sans-serif', color: '#1E40AF', fontWeight: 700, margin: 0 }}>{`🦊 ${foxName} слуша...`}</p>
           </div>
         )}
         {feedbackType === 'wrong' && !recording && !loading && !waitingForSpeech && (
           <button onClick={() => skipAlpha(alphaIndex, lang)}
-            style={{ width: '100%', background: 'none', border: '2px solid #BFDBFE', color: '#2563EB', borderRadius: 16, padding: '0.9rem', fontFamily: 'Nunito, sans-serif', fontWeight: 800, fontSize: '1rem', cursor: 'pointer' }}>
+            style={{ width: '100%', background: 'none', border: '2px solid #BAE6FD', color: '#1E40AF', borderRadius: 16, padding: '0.9rem', fontFamily: 'Nunito, sans-serif', fontWeight: 800, fontSize: '1rem', cursor: 'pointer' }}>
             Пропусни →
           </button>
         )}
@@ -617,7 +617,7 @@ const handleScanResult = (sentences: string[]) => {
   if (phase === 'done') {
     const alpha = lang ? getAlphabet(lang) : ALPHABET_FALLBACK
     const total = mode === 'alphabet' ? alpha.length : selected?.sentences.length || 0
-    const c = cfg || { color: '#2563EB', gradient: 'linear-gradient(135deg, #2563EB, #1D4ED8)', shadow: 'rgba(37,99,235,0.35)' }
+    const c = cfg || { color: '#1E40AF', gradient: 'linear-gradient(135deg, #1E40AF, #1D4ED8)', shadow: 'rgba(30,64,175,0.35)' }
     return (
       <>
       <Confetti active={confettiActive} />
@@ -647,7 +647,7 @@ const handleScanResult = (sentences: string[]) => {
       open={scanOpen}
       onClose={() => setScanOpen(false)}
       onResult={handleScanResult}
-      accentColor="#2563EB"
+      accentColor="#1E40AF"
       title="Снимай текст за слушане"
     />
   )
