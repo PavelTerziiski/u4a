@@ -214,55 +214,60 @@ export default function FoxRunPage() {
       const neededChar = g.targetWord[g.collected.length]
       if (!neededChar) return
 
-      // 60% chance it's the needed letter, 40% distractor
-      const isNeeded = Math.random() < 0.6
-      const char = isNeeded ? neededChar : 'АБВГДЕЖЗИЙКЛМНОПРСТУФХЦЧШ'[Math.floor(Math.random() * 25)]
-      const lane = [-1, 0, 1][Math.floor(Math.random() * 3)]
+      const distractors = 'АБВГДЕЖЗИЙКЛМНОПРСТУФХЦЧ'.split('').filter(c => c !== neededChar)
+      const correctLane = [-1, 0, 1][Math.floor(Math.random() * 3)]
+      const orbColors = [0xff4444, 0xaa44ff, 0xff8800, 0x44bbff, 0x44dd88, 0xff44aa, 0xffdd00]
 
-      const orbGeo = new THREE.SphereGeometry(0.42, 16, 16)
-      const orbMat = new THREE.MeshLambertMaterial({
-        color: isNeeded ? 0xFFD700 : 0x4488ff,
-        emissive: isNeeded ? 0xaa7700 : 0x112244,
-        emissiveIntensity: 0.4,
-        transparent: true,
-        opacity: 0.9
+      ;[-1, 0, 1].forEach((lane, idx) => {
+        const isCorrect = lane === correctLane
+        const char = isCorrect ? neededChar : distractors[Math.floor(Math.random() * distractors.length)]
+        const color = orbColors[Math.floor(Math.random() * orbColors.length)]
+
+        const orbGeo = new THREE.SphereGeometry(0.55, 16, 16)
+        const orbMat = new THREE.MeshLambertMaterial({
+          color,
+          emissive: color,
+          emissiveIntensity: 0.3,
+        })
+        const orb = new THREE.Mesh(orbGeo, orbMat)
+        orb.position.set(lane * LANE_WIDTH, 1.3, zPos)
+        scene.add(orb)
+
+        // Glow ring
+        const glowGeo = new THREE.TorusGeometry(0.68, 0.07, 8, 24)
+        const glowMat = new THREE.MeshBasicMaterial({
+          color, transparent: true, opacity: 0.6
+        })
+        const glow = new THREE.Mesh(glowGeo, glowMat)
+        glow.position.copy(orb.position)
+        scene.add(glow)
+
+        // Голяма четлива буква
+        const canvas = document.createElement('canvas')
+        canvas.width = 256; canvas.height = 256
+        const ctx2d = canvas.getContext('2d')!
+        ctx2d.clearRect(0, 0, 256, 256)
+        ctx2d.shadowColor = 'rgba(0,0,0,0.9)'
+        ctx2d.shadowBlur = 16
+        ctx2d.fillStyle = '#ffffff'
+        ctx2d.font = 'bold 170px Georgia, serif'
+        ctx2d.textAlign = 'center'
+        ctx2d.textBaseline = 'middle'
+        ctx2d.fillText(char, 128, 145)
+        const tex = new THREE.CanvasTexture(canvas)
+        const sprite = new THREE.Sprite(new THREE.SpriteMaterial({
+          map: tex, transparent: true, depthTest: false
+        }))
+        sprite.scale.set(1.1, 1.1, 1)
+        sprite.position.set(0, 0, 0.56)
+        orb.add(sprite)
+
+        letterOrbs.push({ mesh: orb, glow, char, lane, collected: false })
       })
-      const orb = new THREE.Mesh(orbGeo, orbMat)
-      orb.position.set(lane * LANE_WIDTH, 1.1, zPos)
-      orb.castShadow = false
-      scene.add(orb)
-
-      // Glow ring
-      const glowGeo = new THREE.TorusGeometry(0.52, 0.06, 8, 24)
-      const glowMat = new THREE.MeshBasicMaterial({
-        color: isNeeded ? 0xFFD700 : 0x4488ff,
-        transparent: true, opacity: 0.5
-      })
-      const glow = new THREE.Mesh(glowGeo, glowMat)
-      glow.position.copy(orb.position)
-      scene.add(glow)
-
-      // Letter sprite using canvas texture
-      const canvas = document.createElement('canvas')
-      canvas.width = 128; canvas.height = 128
-      const ctx2d = canvas.getContext('2d')!
-      ctx2d.clearRect(0, 0, 128, 128)
-      ctx2d.fillStyle = isNeeded ? '#1a0a00' : '#ffffff'
-      ctx2d.font = 'bold 72px Arial'
-      ctx2d.textAlign = 'center'
-      ctx2d.textBaseline = 'middle'
-      ctx2d.fillText(char, 64, 68)
-      const tex = new THREE.CanvasTexture(canvas)
-      const sprite = new THREE.Sprite(new THREE.SpriteMaterial({ map: tex, transparent: true }))
-      sprite.scale.set(0.7, 0.7, 1)
-      sprite.position.set(0, 0, 0.01)
-      orb.add(sprite)
-
-      letterOrbs.push({ mesh: orb, glow, char, lane, collected: false })
     }
 
     // Spawn initial letters
-    for (let i = 0; i < 8; i++) spawnLetter(-20 - i * 18)
+    for (let i = 0; i < 5; i++) spawnLetter(-12 - i * 14)
 
     // --- OBSTACLES ---
     interface Obstacle { mesh: THREE.Mesh; lane: number; type: 'rock' | 'log' }
@@ -551,10 +556,11 @@ export default function FoxRunPage() {
       })
 
       // Spawn new letters
-      const lastOrb = letterOrbs.filter(o => !o.collected).sort((a,b) => a.mesh.position.z - b.mesh.position.z)[0]
-      if (!lastOrb || lastOrb.mesh.position.z > -25) {
+      const activeOrbs = letterOrbs.filter(o => !o.collected)
+      const frontOrb = activeOrbs.sort((a,b) => a.mesh.position.z - b.mesh.position.z)[0]
+      if (!frontOrb || frontOrb.mesh.position.z > -18) {
         spawnLetter(state.letterSpawnZ)
-        state.letterSpawnZ -= 16 + Math.random() * 8
+        state.letterSpawnZ -= 12 + Math.random() * 6
       }
 
       // Obstacles
