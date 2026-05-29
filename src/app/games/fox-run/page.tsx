@@ -430,9 +430,23 @@ export default function FoxRunPage() {
     container.addEventListener('touchstart', onTouchStart)
     container.addEventListener('touchend', onTouchEnd)
 
-    function playMoveSfx(src: string) {
-      try { const a = new Audio(src); a.volume = 0.3; a.play().catch(() => {}) } catch {}
+    function playMoveSfx(src: string, volume = 0.4) {
+      try { const a = new Audio(src); a.volume = volume; a.play().catch(() => {}) } catch {}
     }
+
+    // Run loop звук
+    const runSound = new Audio('/sounds/fox-run-loop.mp3')
+    runSound.loop = true
+    runSound.volume = 0.35
+    const startRunSound = () => {
+      runSound.play().catch(() => {})
+      window.removeEventListener('keydown', startRunSound)
+      window.removeEventListener('click', startRunSound)
+      container.removeEventListener('touchstart', startRunSound)
+    }
+    window.addEventListener('keydown', startRunSound)
+    window.addEventListener('click', startRunSound)
+    container.addEventListener('touchstart', startRunSound)
 
     function moveLane(dir: number) {
       if (laneChangeCooldown > 0) return
@@ -440,19 +454,19 @@ export default function FoxRunPage() {
       if (n !== state.currentLane) {
         state.currentLane = n; state.targetX = n * LANE_WIDTH
         laneChangeCooldown = 0.22
-        playMoveSfx('/sounds/click.mp3')
+        playMoveSfx(dir > 0 ? '/sounds/fox-right.mp3' : '/sounds/fox-left.mp3')
       }
     }
     function jump() {
       if (!state.isJumping && !state.isSliding) {
         state.isJumping = true; state.jumpVelocity = JUMP_FORCE
-        playMoveSfx('/sounds/cube-open.mp3')
+        playMoveSfx('/sounds/fox-jump.mp3', 0.5)
       }
     }
     function slide() {
       if (!state.isJumping && !state.isSliding) {
         state.isSliding = true; state.slideTimer = SLIDE_DURATION
-        playMoveSfx('/sounds/cube-break.mp3')
+        playMoveSfx('/sounds/fox-jump.mp3', 0.3)
       }
     }
 
@@ -470,6 +484,7 @@ export default function FoxRunPage() {
       state.runTime += dt
       if (mixer) mixer.update(dt)
       state.speed = 12 + state.runTime * 0.25
+      runSound.playbackRate = Math.min(1 + state.runTime * 0.008, 1.6)
       if (laneChangeCooldown > 0) laneChangeCooldown -= dt
       if (state.invincible > 0) state.invincible -= dt
 
@@ -577,7 +592,7 @@ export default function FoxRunPage() {
             g.score = newScore
             setScore(newScore)
             if (indices.size === g.targetWord.length) {
-              try { const s = new Audio('/sounds/finish.mp3'); s.volume = 0.4; s.play().catch(() => {}) } catch {}
+              try { const s = new Audio('/sounds/fox-run-win.mp3'); s.volume = 0.5; s.play().catch(() => {}) } catch {}
               // Word complete!
               setTimeout(() => {
                 const nextWord = WORDS[Math.floor(Math.random() * WORDS.length)]
@@ -678,6 +693,8 @@ export default function FoxRunPage() {
       container.removeEventListener('touchend', onTouchEnd)
       music.pause()
       music.src = ''
+      runSound.pause()
+      runSound.src = ''
       renderer.dispose()
       if (container.contains(renderer.domElement)) container.removeChild(renderer.domElement)
     }
