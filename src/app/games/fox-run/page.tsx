@@ -54,8 +54,8 @@ export default function FoxRunPage() {
     const camera = new THREE.PerspectiveCamera(
       75, container.clientWidth / container.clientHeight, 0.1, 200
     )
-    camera.position.set(0, 3.5, 8)
-    camera.lookAt(0, 1.5, -2)
+    camera.position.set(0, 4.5, 9)
+    camera.lookAt(0, 2, -2)
 
     // --- LIGHTS ---
     scene.add(new THREE.AmbientLight(0x223322, 2.0))
@@ -175,7 +175,7 @@ export default function FoxRunPage() {
     const loader = new GLTFLoader()
     loader.load('/models/Fox.gltf', (gltf) => {
       const model = gltf.scene
-      model.scale.set(0.018, 0.018, 0.018)
+      model.scale.set(0.8, 0.8, 0.8)
       model.rotation.y = Math.PI
       model.position.set(0, 0, 0)
       model.traverse((child) => {
