@@ -1,4 +1,6 @@
 import type { Metadata } from "next";
+import { Nunito } from "next/font/google";
+const nunito = Nunito({ subsets: ["latin", "cyrillic"], weight: ["400","600","700","800"], display: "swap" })
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -51,7 +53,7 @@ export default function RootLayout({
         ` }} />
         <noscript dangerouslySetInnerHTML={{ __html: `<img height="1" width="1" style="display:none" src="https://www.facebook.com/tr?id=1122224713405510&ev=PageView&noscript=1"/>` }} />
       </head>
-      <body style={{ margin: 0, padding: 0 }}>
+      <body style={{ margin: 0, padding: 0 }} className={`${nunito.className}`}>
         {children}
       </body>
     </html>
