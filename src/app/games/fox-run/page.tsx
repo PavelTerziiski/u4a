@@ -335,7 +335,7 @@ export default function FoxRunPage() {
     }
 
     // Spawn initial letters
-    for (let i = 0; i < 8; i++) spawnLetter(-12 - i * 7)
+    spawnLetter(-20)
 
     // --- OBSTACLES ---
     interface Obstacle { mesh: THREE.Mesh; lane: number; type: 'rock' | 'log' }
@@ -429,7 +429,7 @@ export default function FoxRunPage() {
       slideTimer: 0,
       runTime: 0,
       invincible: 0,
-      letterSpawnZ: -20 - 8 * 18,
+      letterSpawnTimer: 1.5,
       obstacleSpawnZ: -35 - 6 * 22,
     }
 
@@ -666,12 +666,11 @@ export default function FoxRunPage() {
         }
       })
 
-      // Spawn new letters
-      const activeOrbs = letterOrbs.filter(o => !o.collected)
-      const frontOrb = activeOrbs.sort((a,b) => a.mesh.position.z - b.mesh.position.z)[0]
-      if (state.runTime > 2 && (!frontOrb || frontOrb.mesh.position.z > -8)) {
-        spawnLetter(state.letterSpawnZ)
-        state.letterSpawnZ -= 6 + Math.random() * 3
+      // Spawn new letters — timer-based, ~3-4s interval
+      state.letterSpawnTimer -= dt
+      if (state.letterSpawnTimer <= 0) {
+        spawnLetter(-(state.speed * 3.5))
+        state.letterSpawnTimer = 3 + Math.random() * 1
       }
 
       // Obstacles
