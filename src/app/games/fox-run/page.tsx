@@ -64,7 +64,7 @@ export default function FoxRunPage() {
     camera.lookAt(0, 1.5, -4)
 
     // --- LIGHTS ---
-    scene.add(new THREE.AmbientLight(0xffffff, 4.0))
+    scene.add(new THREE.AmbientLight(0xffeedd, 2.2))
     const sun = new THREE.DirectionalLight(0xfffbe0, 6.0)
     sun.position.set(8, 18, 8)
     sun.castShadow = true
@@ -436,7 +436,7 @@ export default function FoxRunPage() {
       lastTime = now
       state.runTime += dt
       if (mixer) mixer.update(dt)
-      state.speed = 11 + state.runTime * 0.35
+      state.speed = 8 + state.runTime * 0.2
       if (laneChangeCooldown > 0) laneChangeCooldown -= dt
       if (state.invincible > 0) state.invincible -= dt
 
