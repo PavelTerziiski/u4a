@@ -351,12 +351,12 @@ export default function FoxRunPage() {
     // --- INPUT ---
     const keys: Record<string, boolean> = {}
     let laneChangeCooldown = 0
-    let lastKeyDown = ''
+    
 
     function handleKeyDown(e: KeyboardEvent) {
       if (keys[e.code]) return
       keys[e.code] = true
-      lastKeyDown = e.code
+      // lastKeyDown = e.code
       if (e.code === 'ArrowLeft') moveLane(-1)
       if (e.code === 'ArrowRight') moveLane(1)
       if (e.code === 'ArrowUp' || e.code === 'Space') { e.preventDefault(); jump() }
