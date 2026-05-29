@@ -44,6 +44,13 @@ export default function FoxRunPage() {
     renderer.shadowMap.type = THREE.PCFSoftShadowMap
     renderer.toneMapping = THREE.ACESFilmicToneMapping
     renderer.toneMappingExposure = 1.3
+    // --- МУЗИКА ---
+    const musicTracks = ['/sounds/fox-run-music-1.mp3', '/sounds/fox-run-music-2.mp3']
+    const music = new Audio(musicTracks[Math.floor(Math.random() * musicTracks.length)])
+    music.loop = true
+    music.volume = 0.35
+    music.play().catch(() => {})
+
     renderer.domElement.setAttribute('tabindex', '0')
     renderer.domElement.style.outline = 'none'
     renderer.domElement.setAttribute('tabindex', '0')
@@ -655,6 +662,8 @@ export default function FoxRunPage() {
       window.removeEventListener('resize', onResize)
       container.removeEventListener('touchstart', onTouchStart)
       container.removeEventListener('touchend', onTouchEnd)
+      music.pause()
+      music.src = ''
       renderer.dispose()
       if (container.contains(renderer.domElement)) container.removeChild(renderer.domElement)
     }
