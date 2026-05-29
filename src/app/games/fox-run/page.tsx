@@ -255,13 +255,18 @@ export default function FoxRunPage() {
         canvas.width = 256; canvas.height = 256
         const ctx2d = canvas.getContext('2d')!
         ctx2d.clearRect(0, 0, 256, 256)
-        ctx2d.shadowColor = 'rgba(0,0,0,0.9)'
-        ctx2d.shadowBlur = 16
+        // Тъмен полупрозрачен кръг зад буквата
+        ctx2d.beginPath()
+        ctx2d.arc(128, 128, 110, 0, Math.PI * 2)
+        ctx2d.fillStyle = 'rgba(0,0,0,0.45)'
+        ctx2d.fill()
+        ctx2d.shadowColor = 'rgba(0,0,0,0.95)'
+        ctx2d.shadowBlur = 8
         ctx2d.fillStyle = '#ffffff'
-        ctx2d.font = 'bold 170px Georgia, serif'
+        ctx2d.font = 'bold 155px Arial, sans-serif'
         ctx2d.textAlign = 'center'
         ctx2d.textBaseline = 'middle'
-        ctx2d.fillText(char, 128, 145)
+        ctx2d.fillText(char, 128, 148)
         const tex = new THREE.CanvasTexture(canvas)
         const sprite = new THREE.Sprite(new THREE.SpriteMaterial({ map: tex, transparent: true, depthTest: false }))
         sprite.scale.set(0.75, 0.75, 1)
@@ -536,9 +541,23 @@ export default function FoxRunPage() {
           if (isNeeded) {
             playCollect()
             spawnBurst(orb.mesh.position.clone(), 0xFFD700)
-            const newCollected = [...g.collected, orb.char]
-            g.collected = newCollected
-            setCollected([...newCollected])
+            // Слагаме буквата на правилното и място в думата
+            const newCollected = wordArr.map((letter, i) => {
+              const countInWord = wordArr.slice(0, i + 1).filter(c => c === letter).length
+              const countCollected = alreadyCollected.filter(c => c === letter).length
+              if (letter === orb.char && countCollected < countInWord && countCollected === countInWord - 1) return letter
+              return alreadyCollected[i] || null
+            }).filter((_, i) => {
+              // rebuild: за всяка позиция дали вече е събрана
+              const letter = wordArr[i]
+              const neededCount = wordArr.slice(0, i + 1).filter(c => c === letter).length
+              const collectedCount = [...alreadyCollected, orb.char].filter(c => c === letter).length
+              return collectedCount >= neededCount
+            })
+            // По-прост подход: просто добавяме буквата
+            const simpleNew = [...alreadyCollected, orb.char]
+            g.collected = simpleNew
+            setCollected([...simpleNew])
             const newScore = g.score + 10
             g.score = newScore
             setScore(newScore)
