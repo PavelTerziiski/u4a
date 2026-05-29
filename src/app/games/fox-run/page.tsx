@@ -43,7 +43,13 @@ export default function FoxRunPage() {
     renderer.shadowMap.type = THREE.PCFSoftShadowMap
     renderer.toneMapping = THREE.ACESFilmicToneMapping
     renderer.toneMappingExposure = 1.3
+    renderer.domElement.setAttribute('tabindex', '0')
+    renderer.domElement.style.outline = 'none'
+    renderer.domElement.setAttribute('tabindex', '0')
+    renderer.domElement.style.outline = 'none'
     container.appendChild(renderer.domElement)
+    renderer.domElement.focus()
+    renderer.domElement.focus()
 
     // --- SCENE ---
     const scene = new THREE.Scene()
