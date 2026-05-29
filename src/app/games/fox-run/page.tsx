@@ -216,7 +216,8 @@ export default function FoxRunPage() {
 
       // Всички букви от думата които още не са събрани
       const wordLetters = g.targetWord.split('')
-      const remaining = wordLetters.filter(l => !g.collected.includes(l))
+      const indices = (g.collectedIndices || new Set()) as Set<number>
+      const remaining = wordLetters.filter((_, i) => !indices.has(i))
       if (remaining.length === 0) return
 
       const distractors = 'АБВГДЕЖЗИЙКЛМНОПРСТУФХЦЧ'.split('').filter(c => !wordLetters.includes(c))
