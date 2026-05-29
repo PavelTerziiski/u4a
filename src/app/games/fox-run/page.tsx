@@ -211,38 +211,46 @@ export default function FoxRunPage() {
 
     function spawnLetter(zPos: number) {
       const g = gameRef.current
-      const neededChar = g.targetWord[g.collected.length]
-      if (!neededChar) return
+      if (!g.targetWord) return
 
-      const distractors = 'АБВГДЕЖЗИЙКЛМНОПРСТУФХЦЧ'.split('').filter(c => c !== neededChar)
-      const correctLane = [-1, 0, 1][Math.floor(Math.random() * 3)]
-      const orbColors = [0xff4444, 0xaa44ff, 0xff8800, 0x44bbff, 0x44dd88, 0xff44aa, 0xffdd00]
+      // Всички букви от думата които още не са събрани
+      const wordLetters = g.targetWord.split('')
+      const remaining = wordLetters.filter(l => !g.collected.includes(l))
+      if (remaining.length === 0) return
 
-      ;[-1, 0, 1].forEach((lane) => {
-        const isCorrect = lane === correctLane
-        const char = isCorrect ? neededChar : distractors[Math.floor(Math.random() * distractors.length)]
+      const distractors = 'АБВГДЕЖЗИЙКЛМНОПРСТУФХЦЧ'.split('').filter(c => !wordLetters.includes(c))
+      const orbColors = [0xff4444, 0xaa44ff, 0xff8800, 0x44bbff, 0x44dd88, 0xff44aa, 0xffdd00, 0xff6688]
+
+      // 1-3 ленти случайно (не винаги 3)
+      const laneCount = Math.random() < 0.4 ? 1 : Math.random() < 0.6 ? 2 : 3
+      const shuffledLanes = [-1, 0, 1].sort(() => Math.random() - 0.5).slice(0, laneCount)
+
+      // Колко от тях са правилни букви (поне 1)
+      const correctCount = Math.min(Math.ceil(laneCount * 0.5), remaining.length)
+      const correctLanes = shuffledLanes.slice(0, correctCount)
+
+      shuffledLanes.forEach(lane => {
+        const isCorrect = correctLanes.includes(lane)
+        // Случайна буква от оставащите или distractor
+        const char = isCorrect
+          ? remaining[Math.floor(Math.random() * remaining.length)]
+          : distractors[Math.floor(Math.random() * distractors.length)]
         const color = orbColors[Math.floor(Math.random() * orbColors.length)]
 
         const orbGeo = new THREE.SphereGeometry(0.38, 16, 16)
         const orbMat = new THREE.MeshLambertMaterial({
-          color,
-          emissive: color,
-          emissiveIntensity: 0.3,
+          color, emissive: color, emissiveIntensity: 0.3,
         })
         const orb = new THREE.Mesh(orbGeo, orbMat)
         orb.position.set(lane * LANE_WIDTH, 1.3, zPos)
         scene.add(orb)
 
-        // Glow ring
         const glowGeo = new THREE.TorusGeometry(0.48, 0.05, 8, 24)
-        const glowMat = new THREE.MeshBasicMaterial({
-          color, transparent: true, opacity: 0.6
-        })
+        const glowMat = new THREE.MeshBasicMaterial({ color, transparent: true, opacity: 0.6 })
         const glow = new THREE.Mesh(glowGeo, glowMat)
         glow.position.copy(orb.position)
         scene.add(glow)
 
-        // Голяма четлива буква
         const canvas = document.createElement('canvas')
         canvas.width = 256; canvas.height = 256
         const ctx2d = canvas.getContext('2d')!
@@ -255,9 +263,7 @@ export default function FoxRunPage() {
         ctx2d.textBaseline = 'middle'
         ctx2d.fillText(char, 128, 145)
         const tex = new THREE.CanvasTexture(canvas)
-        const sprite = new THREE.Sprite(new THREE.SpriteMaterial({
-          map: tex, transparent: true, depthTest: false
-        }))
+        const sprite = new THREE.Sprite(new THREE.SpriteMaterial({ map: tex, transparent: true, depthTest: false }))
         sprite.scale.set(0.75, 0.75, 1)
         sprite.position.set(0, 0, 0.56)
         orb.add(sprite)
@@ -524,7 +530,10 @@ export default function FoxRunPage() {
           orb.collected = true
           scene.remove(orb.mesh); scene.remove(orb.glow)
           const g = gameRef.current
-          if (orb.char === g.targetWord[g.collected.length]) {
+          const wordArr = g.targetWord.split('')
+          const alreadyCollected = [...g.collected]
+          const isNeeded = wordArr.includes(orb.char) && alreadyCollected.filter(c => c === orb.char).length < wordArr.filter(c => c === orb.char).length
+          if (isNeeded) {
             playCollect()
             spawnBurst(orb.mesh.position.clone(), 0xFFD700)
             const newCollected = [...g.collected, orb.char]
