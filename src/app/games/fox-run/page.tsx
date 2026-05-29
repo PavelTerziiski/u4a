@@ -218,7 +218,7 @@ export default function FoxRunPage() {
       const correctLane = [-1, 0, 1][Math.floor(Math.random() * 3)]
       const orbColors = [0xff4444, 0xaa44ff, 0xff8800, 0x44bbff, 0x44dd88, 0xff44aa, 0xffdd00]
 
-      ;[-1, 0, 1].forEach((lane, idx) => {
+      ;[-1, 0, 1].forEach((lane) => {
         const isCorrect = lane === correctLane
         const char = isCorrect ? neededChar : distractors[Math.floor(Math.random() * distractors.length)]
         const color = orbColors[Math.floor(Math.random() * orbColors.length)]
