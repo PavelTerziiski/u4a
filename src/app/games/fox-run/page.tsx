@@ -517,9 +517,10 @@ export default function FoxRunPage() {
 
         // Collision with fox
         const dx = foxGroup.position.x - orb.mesh.position.x
+        const foxHeight = state.foxY
         const dz = orb.mesh.position.z - 0
         const dy = foxGroup.position.y - orb.mesh.position.y
-        if (Math.abs(dx) < 1.1 && dz > -1.5 && dz < 2.5 && Math.abs(dy) < 1.2 && !state.isSliding) {
+        if (Math.abs(dx) < 1.0 && dz > -1.2 && dz < 2.0 && foxHeight < 0.8 && !state.isSliding) {
           orb.collected = true
           scene.remove(orb.mesh); scene.remove(orb.glow)
           const g = gameRef.current
