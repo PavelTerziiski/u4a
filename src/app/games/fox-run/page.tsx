@@ -239,13 +239,11 @@ export default function FoxRunPage() {
       const distractors = 'АБВГДЕЖЗИЙКЛМНОПРСТУФХЦЧ'.split('').filter(c => !wordLetters.includes(c))
       const orbColors = [0xff4444, 0xaa44ff, 0xff8800, 0x44bbff, 0x44dd88, 0xff44aa, 0xffdd00, 0xff6688]
 
-      // 1-3 ленти случайно (не винаги 3)
-      const laneCount = Math.random() < 0.4 ? 1 : Math.random() < 0.6 ? 2 : 3
+      // Винаги 3 ленти, само 1 правилна за повече екшън
+      const laneCount = Math.random() < 0.3 ? 2 : 3
       const shuffledLanes = [-1, 0, 1].sort(() => Math.random() - 0.5).slice(0, laneCount)
-
-      // Колко от тях са правилни букви (поне 1)
-      const correctCount = Math.min(Math.ceil(laneCount * 0.5), remaining.length)
-      const correctLanes = shuffledLanes.slice(0, correctCount)
+      const correctCount = 1
+      const correctLanes = [shuffledLanes[0]]
 
       shuffledLanes.forEach(lane => {
         const isCorrect = correctLanes.includes(lane)
@@ -433,22 +431,29 @@ export default function FoxRunPage() {
     container.addEventListener('touchstart', onTouchStart)
     container.addEventListener('touchend', onTouchEnd)
 
+    function playMoveSfx(src: string) {
+      try { const a = new Audio(src); a.volume = 0.3; a.play().catch(() => {}) } catch {}
+    }
+
     function moveLane(dir: number) {
       if (laneChangeCooldown > 0) return
       const n = Math.max(-1, Math.min(1, state.currentLane + dir))
       if (n !== state.currentLane) {
         state.currentLane = n; state.targetX = n * LANE_WIDTH
         laneChangeCooldown = 0.22
+        playMoveSfx('/sounds/click.mp3')
       }
     }
     function jump() {
       if (!state.isJumping && !state.isSliding) {
         state.isJumping = true; state.jumpVelocity = JUMP_FORCE
+        playMoveSfx('/sounds/cube-open.mp3')
       }
     }
     function slide() {
       if (!state.isJumping && !state.isSliding) {
         state.isSliding = true; state.slideTimer = SLIDE_DURATION
+        playMoveSfx('/sounds/cube-break.mp3')
       }
     }
 
@@ -598,7 +603,7 @@ export default function FoxRunPage() {
       // Spawn new letters
       const activeOrbs = letterOrbs.filter(o => !o.collected)
       const frontOrb = activeOrbs.sort((a,b) => a.mesh.position.z - b.mesh.position.z)[0]
-      if (!frontOrb || frontOrb.mesh.position.z > -10) {
+      if (state.runTime > 3 && (!frontOrb || frontOrb.mesh.position.z > -12)) {
         spawnLetter(state.letterSpawnZ)
         state.letterSpawnZ -= 12 + Math.random() * 6
       }
