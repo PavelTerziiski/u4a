@@ -13,7 +13,7 @@ export default function FoxRunPage() {
   const mountRef = useRef<HTMLDivElement>(null)
   const router = useRouter()
   const [targetWord, setTargetWord] = useState('')
-  const [collected, setCollected] = useState<string[]>([])
+  const [collected, setCollected] = useState<(string|null)[]>([])
   const [score, setScore] = useState(0)
   const [gameOver, setGameOver] = useState(false)
   const [lives, setLives] = useState(3)
@@ -21,6 +21,7 @@ export default function FoxRunPage() {
   const gameRef = useRef<{
     targetWord: string
     collected: string[]
+    collectedIndices?: Set<number>
     score: number
     lives: number
     dead: boolean
@@ -536,36 +537,29 @@ export default function FoxRunPage() {
           scene.remove(orb.mesh); scene.remove(orb.glow)
           const g = gameRef.current
           const wordArr = g.targetWord.split('')
-          const alreadyCollected = [...g.collected]
-          const isNeeded = wordArr.includes(orb.char) && alreadyCollected.filter(c => c === orb.char).length < wordArr.filter(c => c === orb.char).length
+          // collectedIndices е Set<number> - кои позиции са събрани
+          if (!g.collectedIndices) g.collectedIndices = new Set<number>()
+          const indices = g.collectedIndices as Set<number>
+          // Намери първата несъбрана позиция с тази буква
+          const targetIdx = wordArr.findIndex((l, i) => l === orb.char && !indices.has(i))
+          const isNeeded = targetIdx !== -1
           if (isNeeded) {
             playCollect()
             spawnBurst(orb.mesh.position.clone(), 0xFFD700)
-            // Слагаме буквата на правилното и място в думата
-            const newCollected = wordArr.map((letter, i) => {
-              const countInWord = wordArr.slice(0, i + 1).filter(c => c === letter).length
-              const countCollected = alreadyCollected.filter(c => c === letter).length
-              if (letter === orb.char && countCollected < countInWord && countCollected === countInWord - 1) return letter
-              return alreadyCollected[i] || null
-            }).filter((_, i) => {
-              // rebuild: за всяка позиция дали вече е събрана
-              const letter = wordArr[i]
-              const neededCount = wordArr.slice(0, i + 1).filter(c => c === letter).length
-              const collectedCount = [...alreadyCollected, orb.char].filter(c => c === letter).length
-              return collectedCount >= neededCount
-            })
-            // По-прост подход: просто добавяме буквата
-            const simpleNew = [...alreadyCollected, orb.char]
-            g.collected = simpleNew
-            setCollected([...simpleNew])
+            indices.add(targetIdx)
+            // Rebuild display array
+            const display = wordArr.map((l, i) => indices.has(i) ? l : null)
+            const newCollected = display.filter(Boolean) as string[]
+            g.collected = newCollected
+            setCollected(display)
             const newScore = g.score + 10
             g.score = newScore
             setScore(newScore)
-            if (newCollected.length === g.targetWord.length) {
+            if (indices.size === g.targetWord.length) {
               // Word complete!
               setTimeout(() => {
                 const nextWord = WORDS[Math.floor(Math.random() * WORDS.length)]
-                g.targetWord = nextWord; g.collected = []
+                g.targetWord = nextWord; g.collected = []; g.collectedIndices = new Set()
                 setTargetWord(nextWord); setCollected([])
                 const bonus = g.score + 50
                 g.score = bonus; setScore(bonus)
@@ -679,11 +673,11 @@ export default function FoxRunPage() {
         <div className="flex gap-2">
           {targetWord.split('').map((letter, i) => (
             <div key={i} className={`w-10 h-10 rounded-xl flex items-center justify-center text-lg font-bold border-2 transition-all duration-300 ${
-              i < collected.length
+              collected[i] !== null && collected[i] !== undefined
                 ? 'bg-yellow-400 border-yellow-300 text-yellow-900 scale-110'
                 : 'bg-black/40 border-white/20 text-white/40'
             }`}>
-              {i < collected.length ? collected[i] : letter}
+              {collected[i] || '_'}
             </div>
           ))}
         </div>
