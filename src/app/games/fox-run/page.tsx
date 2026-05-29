@@ -308,6 +308,7 @@ export default function FoxRunPage() {
         scene.add(glow)
 
         const canvas = document.createElement('canvas')
+        canvas.setAttribute('lang', 'bg')
         canvas.width = 256; canvas.height = 256
         const ctx2d = canvas.getContext('2d')!
         ctx2d.clearRect(0, 0, 256, 256)
@@ -334,7 +335,7 @@ export default function FoxRunPage() {
     }
 
     // Spawn initial letters
-    for (let i = 0; i < 5; i++) spawnLetter(-12 - i * 14)
+    for (let i = 0; i < 8; i++) spawnLetter(-12 - i * 7)
 
     // --- OBSTACLES ---
     interface Obstacle { mesh: THREE.Mesh; lane: number; type: 'rock' | 'log' }
@@ -670,7 +671,7 @@ export default function FoxRunPage() {
       const frontOrb = activeOrbs.sort((a,b) => a.mesh.position.z - b.mesh.position.z)[0]
       if (state.runTime > 2 && (!frontOrb || frontOrb.mesh.position.z > -8)) {
         spawnLetter(state.letterSpawnZ)
-        state.letterSpawnZ -= 12 + Math.random() * 6
+        state.letterSpawnZ -= 6 + Math.random() * 3
       }
 
       // Obstacles
