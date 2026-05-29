@@ -595,10 +595,10 @@ export default function FoxRunPage() {
 
       // Camera — smooth follow
       const camTargetX = foxGroup.position.x * 0.35
-      const camTargetY = state.isJumping ? 3.4 + foxGroup.position.y * 0.3 : 2.8
+      const camTargetY = state.isJumping ? 7.5 + foxGroup.position.y * 0.3 : 6.5
       camera.position.x += (camTargetX - camera.position.x) * dt * 6
       camera.position.y += (camTargetY - camera.position.y) * dt * 4
-      camera.lookAt(foxGroup.position.x * 0.4, 0.8 + foxGroup.position.y * 0.2, -3)
+      camera.lookAt(foxGroup.position.x * 0.4, 1.5 + foxGroup.position.y * 0.2, -5)
 
       renderer.render(scene, camera)
     }
