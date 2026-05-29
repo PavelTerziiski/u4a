@@ -436,7 +436,7 @@ export default function FoxRunPage() {
       lastTime = now
       state.runTime += dt
       if (mixer) mixer.update(dt)
-      state.speed = 8 + state.runTime * 0.2
+      state.speed = 12 + state.runTime * 0.25
       if (laneChangeCooldown > 0) laneChangeCooldown -= dt
       if (state.invincible > 0) state.invincible -= dt
 
