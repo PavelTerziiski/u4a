@@ -430,8 +430,13 @@ export default function FoxRunPage() {
     container.addEventListener('touchstart', onTouchStart)
     container.addEventListener('touchend', onTouchEnd)
 
-    function playMoveSfx(src: string, volume = 0.4) {
-      try { const a = new Audio(src); a.volume = volume; a.play().catch(() => {}) } catch {}
+    // Pre-load звуци за да не секат
+    const sfxLeft = new Audio('/sounds/fox-left.mp3'); sfxLeft.volume = 0.4
+    const sfxRight = new Audio('/sounds/fox-right.mp3'); sfxRight.volume = 0.4
+    const sfxJump = new Audio('/sounds/fox-jump.mp3'); sfxJump.volume = 0.5
+
+    function playSfx(audio: HTMLAudioElement) {
+      try { audio.currentTime = 0; audio.play().catch(() => {}) } catch {}
     }
 
     // Run loop звук
@@ -454,19 +459,19 @@ export default function FoxRunPage() {
       if (n !== state.currentLane) {
         state.currentLane = n; state.targetX = n * LANE_WIDTH
         laneChangeCooldown = 0.22
-        playMoveSfx(dir > 0 ? '/sounds/fox-right.mp3' : '/sounds/fox-left.mp3')
+        playSfx(dir > 0 ? sfxRight : sfxLeft)
       }
     }
     function jump() {
       if (!state.isJumping && !state.isSliding) {
         state.isJumping = true; state.jumpVelocity = JUMP_FORCE
-        playMoveSfx('/sounds/fox-jump.mp3', 0.5)
+        playSfx(sfxJump)
       }
     }
     function slide() {
       if (!state.isJumping && !state.isSliding) {
         state.isSliding = true; state.slideTimer = SLIDE_DURATION
-        playMoveSfx('/sounds/fox-jump.mp3', 0.3)
+        playSfx(sfxJump)
       }
     }
 
