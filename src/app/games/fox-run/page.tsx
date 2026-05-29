@@ -49,7 +49,16 @@ export default function FoxRunPage() {
     const music = new Audio(musicTracks[Math.floor(Math.random() * musicTracks.length)])
     music.loop = true
     music.volume = 0.35
-    music.play().catch(() => {})
+    // Autoplay при първи user gesture
+    const startMusic = () => {
+      music.play().catch(() => {})
+      window.removeEventListener('keydown', startMusic)
+      window.removeEventListener('click', startMusic)
+      container.removeEventListener('touchstart', startMusic)
+    }
+    window.addEventListener('keydown', startMusic)
+    window.addEventListener('click', startMusic)
+    container.addEventListener('touchstart', startMusic)
 
     renderer.domElement.setAttribute('tabindex', '0')
     renderer.domElement.style.outline = 'none'
