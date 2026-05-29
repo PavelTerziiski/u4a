@@ -54,8 +54,8 @@ export default function FoxRunPage() {
     const camera = new THREE.PerspectiveCamera(
       75, container.clientWidth / container.clientHeight, 0.1, 200
     )
-    camera.position.set(0, 4.5, 9)
-    camera.lookAt(0, 2, -2)
+    camera.position.set(0, 6.5, 9)
+    camera.lookAt(0, 1.5, -4)
 
     // --- LIGHTS ---
     scene.add(new THREE.AmbientLight(0x223322, 2.0))
