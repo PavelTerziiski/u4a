@@ -671,13 +671,13 @@ export default function FoxRunPage() {
       <div className="absolute top-4 left-1/2 -translate-x-1/2 z-10 flex flex-col items-center gap-2">
         <div className="text-white/50 text-xs uppercase tracking-widest">Събери думата</div>
         <div className="flex gap-2">
-          {targetWord.split('').map((letter, i) => (
+          {(targetWord || '').split('').map((letter, i) => (
             <div key={i} className={`w-10 h-10 rounded-xl flex items-center justify-center text-lg font-bold border-2 transition-all duration-300 ${
-              collected[i] !== null && collected[i] !== undefined
+              collected[i]
                 ? 'bg-yellow-400 border-yellow-300 text-yellow-900 scale-110'
                 : 'bg-black/40 border-white/20 text-white/40'
             }`}>
-              {collected[i] || '_'}
+              {collected[i] ?? letter}
             </div>
           ))}
         </div>
