@@ -597,7 +597,7 @@ export default function FoxRunPage() {
             g.score = newScore
             setScore(newScore)
             if (indices.size === g.targetWord.length) {
-              try { const s = new Audio('/sounds/fox-run-win.mp3'); s.volume = 0.5; s.play().catch(() => {}) } catch {}
+              try { const s = new Audio('/sounds/fox-run-win.mp3'); s.volume = 0.32; s.play().catch(() => {}) } catch {}
               // Word complete!
               setTimeout(() => {
                 const nextWord = WORDS[Math.floor(Math.random() * WORDS.length)]
@@ -623,7 +623,7 @@ export default function FoxRunPage() {
       // Spawn new letters
       const activeOrbs = letterOrbs.filter(o => !o.collected)
       const frontOrb = activeOrbs.sort((a,b) => a.mesh.position.z - b.mesh.position.z)[0]
-      if (state.runTime > 3 && (!frontOrb || frontOrb.mesh.position.z > -12)) {
+      if (state.runTime > 2 && (!frontOrb || frontOrb.mesh.position.z > -8)) {
         spawnLetter(state.letterSpawnZ)
         state.letterSpawnZ -= 12 + Math.random() * 6
       }
