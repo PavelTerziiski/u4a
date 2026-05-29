@@ -146,6 +146,26 @@ export default function FoxRunPage() {
       scene.add(eR)
     }
 
+    // --- GRASS ---
+    const grassMat = new THREE.MeshLambertMaterial({ color: 0x3a8c3a })
+    const grassSegments: THREE.Mesh[] = []
+    const grassWidth = 6
+    for (let i = 0; i < NUM_SEGMENTS; i++) {
+      const geoG = new THREE.PlaneGeometry(grassWidth, SEGMENT_LENGTH)
+      const gL = new THREE.Mesh(geoG, grassMat)
+      gL.rotation.x = -Math.PI / 2
+      gL.position.set(-(PATH_WIDTH / 2 + 0.15 + grassWidth / 2), 0, -i * SEGMENT_LENGTH)
+      gL.receiveShadow = true
+      scene.add(gL)
+      grassSegments.push(gL)
+      const gR = new THREE.Mesh(geoG, grassMat)
+      gR.rotation.x = -Math.PI / 2
+      gR.position.set(PATH_WIDTH / 2 + 0.15 + grassWidth / 2, 0, -i * SEGMENT_LENGTH)
+      gR.receiveShadow = true
+      scene.add(gR)
+      grassSegments.push(gR)
+    }
+
     // Dashed lane lines
     const dashMat = new THREE.MeshBasicMaterial({ color: 0x6a4a2a, transparent: true, opacity: 0.6 })
     for (let lane = -1; lane <= 1; lane++) {
@@ -553,6 +573,10 @@ export default function FoxRunPage() {
       const moveZ = state.speed * dt
 
       segments.forEach(seg => {
+        seg.position.z += moveZ
+        if (seg.position.z > SEGMENT_LENGTH * 1.5) seg.position.z -= NUM_SEGMENTS * SEGMENT_LENGTH
+      })
+      grassSegments.forEach(seg => {
         seg.position.z += moveZ
         if (seg.position.z > SEGMENT_LENGTH * 1.5) seg.position.z -= NUM_SEGMENTS * SEGMENT_LENGTH
       })
