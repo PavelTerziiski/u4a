@@ -223,7 +223,7 @@ export default function FoxRunPage() {
         const char = isCorrect ? neededChar : distractors[Math.floor(Math.random() * distractors.length)]
         const color = orbColors[Math.floor(Math.random() * orbColors.length)]
 
-        const orbGeo = new THREE.SphereGeometry(0.55, 16, 16)
+        const orbGeo = new THREE.SphereGeometry(0.38, 16, 16)
         const orbMat = new THREE.MeshLambertMaterial({
           color,
           emissive: color,
@@ -234,7 +234,7 @@ export default function FoxRunPage() {
         scene.add(orb)
 
         // Glow ring
-        const glowGeo = new THREE.TorusGeometry(0.68, 0.07, 8, 24)
+        const glowGeo = new THREE.TorusGeometry(0.48, 0.05, 8, 24)
         const glowMat = new THREE.MeshBasicMaterial({
           color, transparent: true, opacity: 0.6
         })
@@ -258,7 +258,7 @@ export default function FoxRunPage() {
         const sprite = new THREE.Sprite(new THREE.SpriteMaterial({
           map: tex, transparent: true, depthTest: false
         }))
-        sprite.scale.set(1.1, 1.1, 1)
+        sprite.scale.set(0.75, 0.75, 1)
         sprite.position.set(0, 0, 0.56)
         orb.add(sprite)
 
