@@ -320,7 +320,7 @@ export default function FoxRunPage() {
         ctx2d.shadowColor = 'rgba(0,0,0,0.95)'
         ctx2d.shadowBlur = 8
         ctx2d.fillStyle = '#ffffff'
-        ctx2d.font = 'bold 155px "Nunito", "Noto Sans", Arial, sans-serif'
+        ctx2d.font = 'bold 155px NunitoBG, "Nunito", Arial, sans-serif'
         ctx2d.textAlign = 'center'
         ctx2d.textBaseline = 'middle'
         ctx2d.fillText(char, 128, 148)
@@ -333,9 +333,6 @@ export default function FoxRunPage() {
         letterOrbs.push({ mesh: orb, glow, char, lane, collected: false })
       })
     }
-
-    // Spawn initial letters
-    spawnLetter(-20)
 
     // --- OBSTACLES ---
     interface Obstacle { mesh: THREE.Mesh; lane: number; type: 'rock' | 'log' }
@@ -726,6 +723,45 @@ export default function FoxRunPage() {
     }
 
     animate()
+
+    // Load Nunito Cyrillic via FontFace API with Bulgarian locl feature,
+    // then spawn the first letter only after document.fonts.ready
+    ;(async () => {
+      let cyrillicSrc = ''
+      try {
+        for (const sheet of Array.from(document.styleSheets)) {
+          try {
+            for (const rule of Array.from(sheet.cssRules)) {
+              if (!(rule instanceof CSSFontFaceRule)) continue
+              const family = (rule.style.fontFamily ?? '').replace(/['"]/g, '')
+              const weight = rule.style.fontWeight ?? ''
+              const range = rule.style.getPropertyValue('unicode-range') ?? ''
+              const src = rule.style.getPropertyValue('src') ?? ''
+              if (family.includes('Nunito') && weight.includes('700') && range.includes('0400')) {
+                const m = src.match(/url\(["']?([^"')]+\.woff2)["']?\)/)
+                if (m) { cyrillicSrc = m[1]; break }
+              }
+            }
+          } catch {}
+          if (cyrillicSrc) break
+        }
+      } catch {}
+
+      if (cyrillicSrc) {
+        try {
+          const f = new FontFace('NunitoBG', `url(${cyrillicSrc})`, {
+            weight: '700',
+            style: 'normal',
+            featureSettings: '"locl" 1',
+          })
+          document.fonts.add(f)
+          await f.load()
+        } catch {}
+      }
+
+      await document.fonts.ready
+      spawnLetter(-20)
+    })()
 
     function onResize() {
       camera.aspect = container.clientWidth / container.clientHeight
