@@ -589,7 +589,7 @@ export default function FoxRunPage() {
         }
 
         // Recycle off-screen
-        if (orb.mesh.position.z > 12) {
+        if (orb.mesh.position.z > 3) {
           scene.remove(orb.mesh); scene.remove(orb.glow)
           orb.collected = true
         }
@@ -598,7 +598,7 @@ export default function FoxRunPage() {
       // Spawn new letters
       const activeOrbs = letterOrbs.filter(o => !o.collected)
       const frontOrb = activeOrbs.sort((a,b) => a.mesh.position.z - b.mesh.position.z)[0]
-      if (!frontOrb || frontOrb.mesh.position.z > -18) {
+      if (!frontOrb || frontOrb.mesh.position.z > -10) {
         spawnLetter(state.letterSpawnZ)
         state.letterSpawnZ -= 12 + Math.random() * 6
       }
