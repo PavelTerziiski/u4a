@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import * as THREE from 'three'
+import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js'
 
 const WORDS = ['КОН','КОТ','МЕЧ','РАК','ВОЛ','ЛЪВ','КАЛ','ДЯД','БОР','МАК',
                'КУЧЕ','КОЗА','МЕЧО','РИБА','ПИЛЕ','ЗАЕК','МИШО','СЛОН',
@@ -152,36 +153,44 @@ export default function FoxRunPage() {
 
     // --- FOX ---
     const foxGroup = new THREE.Group()
-    const foxOrange = new THREE.MeshLambertMaterial({ color: 0xee5a0e })
-    const foxDark = new THREE.MeshLambertMaterial({ color: 0xcc3a08 })
-    const foxWhite = new THREE.MeshLambertMaterial({ color: 0xf5ede0 })
-
-    const body = new THREE.Mesh(new THREE.CapsuleGeometry(0.38, 0.8, 8, 16), foxOrange)
-    body.position.y = 0.75; body.castShadow = true; foxGroup.add(body)
-
-    const head = new THREE.Mesh(new THREE.SphereGeometry(0.3, 14, 14), foxOrange)
-    head.position.set(0, 1.65, 0.22); head.castShadow = true; foxGroup.add(head)
-
-    const snout = new THREE.Mesh(new THREE.SphereGeometry(0.15, 8, 8), foxWhite)
-    snout.scale.set(1, 0.7, 1.1); snout.position.set(0, 1.55, 0.42); foxGroup.add(snout)
-
-    const earGeo = new THREE.ConeGeometry(0.11, 0.28, 4)
-    const earL = new THREE.Mesh(earGeo, foxDark)
-    earL.position.set(-0.17, 1.95, 0.1); earL.rotation.z = -0.35; foxGroup.add(earL)
-    const earR = earL.clone(); earR.position.set(0.17, 1.95, 0.1); earR.rotation.z = 0.35; foxGroup.add(earR)
-
-    const tail = new THREE.Mesh(new THREE.CapsuleGeometry(0.14, 0.6, 6, 8), foxWhite)
-    tail.position.set(0, 0.55, -0.6); tail.rotation.x = 0.9; foxGroup.add(tail)
-
-    // Legs
-    const legGeo = new THREE.CapsuleGeometry(0.09, 0.35, 4, 8)
-    const legFL = new THREE.Mesh(legGeo, foxOrange)
-    legFL.position.set(-0.2, 0.18, 0.25); foxGroup.add(legFL)
-    const legFR = legFL.clone(); legFR.position.set(0.2, 0.18, 0.25); foxGroup.add(legFR)
-    const legBL = legFL.clone(); legBL.position.set(-0.2, 0.18, -0.25); foxGroup.add(legBL)
-    const legBR = legFL.clone(); legBR.position.set(0.2, 0.18, -0.25); foxGroup.add(legBR)
-
     scene.add(foxGroup)
+
+    // Mixer + animations
+    let mixer: THREE.AnimationMixer | null = null
+    const actions: Record<string, THREE.AnimationAction> = {}
+    let currentAction = ''
+
+    function playAnim(name: string, loop = true) {
+      if (currentAction === name) return
+      const action = actions[name]
+      if (!action) return
+      const prev = actions[currentAction]
+      if (prev) { prev.fadeOut(0.2) }
+      action.reset().fadeIn(0.2).play()
+      action.setLoop(loop ? THREE.LoopRepeat : THREE.LoopOnce, Infinity)
+      if (!loop) action.clampWhenFinished = true
+      currentAction = name
+    }
+
+    const loader = new GLTFLoader()
+    loader.load('/models/Fox.gltf', (gltf) => {
+      const model = gltf.scene
+      model.scale.set(0.012, 0.012, 0.012)
+      model.rotation.y = Math.PI
+      model.traverse((child) => {
+        if ((child as THREE.Mesh).isMesh) {
+          child.castShadow = true
+        }
+      })
+      foxGroup.add(model)
+
+      mixer = new THREE.AnimationMixer(model)
+      gltf.animations.forEach((clip) => {
+        actions[clip.name] = mixer!.clipAction(clip)
+      })
+      playAnim('Gallop')
+    })
+
 
     // --- LETTER ORBS ---
     interface LetterOrb {
@@ -414,6 +423,7 @@ export default function FoxRunPage() {
       const dt = Math.min((now - lastTime) / 1000, 0.05)
       lastTime = now
       state.runTime += dt
+      if (mixer) mixer.update(dt)
       state.speed = 11 + state.runTime * 0.35
       if (laneChangeCooldown > 0) laneChangeCooldown -= dt
       if (state.invincible > 0) state.invincible -= dt
@@ -438,33 +448,20 @@ export default function FoxRunPage() {
       const bob = state.isJumping || state.isSliding ? 0 : Math.sin(state.runTime * 13) * 0.055
       foxGroup.position.y = state.foxY + bob
 
-      // Slide: squat body
-      if (state.isSliding) {
-        body.scale.y = 0.5; body.position.y = 0.35
-        head.position.y = 0.95
-        foxGroup.rotation.x = 0.3
-      } else {
-        body.scale.y = 1; body.position.y = 0.75
-        head.position.y = 1.65
-        foxGroup.rotation.x = 0
-      }
+      // Animation state
+      if (state.isSliding) playAnim('Idle_2_HeadLow', true)
+      else if (state.isJumping) playAnim('Gallop_Jump', false)
+      else playAnim('Gallop', true)
+
+      // Slide tilt
+      foxGroup.rotation.x = state.isSliding ? 0.25 : 0
 
       // Tilt on lane change
       const tilt = (state.targetX - foxGroup.position.x) * 0.25
       foxGroup.rotation.z = -tilt * 0.5
       foxGroup.rotation.y = tilt * 0.25
 
-      // Leg animation (run)
-      if (!state.isSliding && !state.isJumping) {
-        const legSwing = Math.sin(state.runTime * 14) * 0.4
-        foxGroup.children[5].rotation.x = legSwing    // legFL
-        foxGroup.children[6].rotation.x = -legSwing   // legFR
-        foxGroup.children[7].rotation.x = -legSwing   // legBL
-        foxGroup.children[8].rotation.x = legSwing    // legBR
-      }
 
-      // Tail wag
-      tail.rotation.z = Math.sin(state.runTime * 9) * 0.35
 
       // Move world
       const moveZ = state.speed * dt
