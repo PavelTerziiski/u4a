@@ -53,8 +53,8 @@ export default function FoxRunPage() {
 
     // --- SCENE ---
     const scene = new THREE.Scene()
-    scene.background = new THREE.Color(0x060f06)
-    scene.fog = new THREE.FogExp2(0x060f06, 0.028)
+    scene.background = new THREE.Color(0x87CEEB)
+    scene.fog = new THREE.Fog(0x87CEEB, 40, 120)
 
     // --- CAMERA ---
     const camera = new THREE.PerspectiveCamera(
@@ -64,8 +64,8 @@ export default function FoxRunPage() {
     camera.lookAt(0, 1.5, -4)
 
     // --- LIGHTS ---
-    scene.add(new THREE.AmbientLight(0x223322, 2.0))
-    const sun = new THREE.DirectionalLight(0xffcc66, 3.0)
+    scene.add(new THREE.AmbientLight(0xffffff, 4.0))
+    const sun = new THREE.DirectionalLight(0xfffbe0, 6.0)
     sun.position.set(8, 18, 8)
     sun.castShadow = true
     sun.shadow.mapSize.set(2048, 2048)
@@ -74,7 +74,7 @@ export default function FoxRunPage() {
     sun.shadow.camera.top = 25
     sun.shadow.camera.bottom = -25
     scene.add(sun)
-    const rim = new THREE.DirectionalLight(0x3355ff, 1.2)
+    const rim = new THREE.DirectionalLight(0xaaccff, 2.5)
     rim.position.set(-12, 6, -8)
     scene.add(rim)
     const fill = new THREE.PointLight(0x44ff88, 1.5, 30)
