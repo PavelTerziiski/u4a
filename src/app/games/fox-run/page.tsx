@@ -242,7 +242,6 @@ export default function FoxRunPage() {
       // Винаги 3 ленти, само 1 правилна за повече екшън
       const laneCount = Math.random() < 0.3 ? 2 : 3
       const shuffledLanes = [-1, 0, 1].sort(() => Math.random() - 0.5).slice(0, laneCount)
-      const correctCount = 1
       const correctLanes = [shuffledLanes[0]]
 
       shuffledLanes.forEach(lane => {
@@ -578,6 +577,7 @@ export default function FoxRunPage() {
             g.score = newScore
             setScore(newScore)
             if (indices.size === g.targetWord.length) {
+              try { const s = new Audio('/sounds/finish.mp3'); s.volume = 0.4; s.play().catch(() => {}) } catch {}
               // Word complete!
               setTimeout(() => {
                 const nextWord = WORDS[Math.floor(Math.random() * WORDS.length)]
