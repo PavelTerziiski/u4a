@@ -344,6 +344,23 @@ export default function FoxRunPage() {
       hR.receiveShadow = true; scene.add(hR); hillSegments.push(hR)
     }
 
+    // --- MOUNTAINS (static backdrop) ---
+    const mountainMat = new THREE.MeshStandardMaterial({ color: 0x6b8e6b, roughness: 1, metalness: 0 })
+    const mountainDefs = [
+      { x: -28, z: -40, h: 14, r: 7 }, { x: -38, z: -10, h: 18, r: 9 }, { x: -25, z: -80, h: 10, r: 5 },
+      { x: -42, z: -55, h: 20, r: 10 }, { x: -30, z: -120, h: 12, r: 6 }, { x: -45, z: -95, h: 16, r: 8 },
+      { x: -27, z: -160, h: 8,  r: 4 }, { x: -40, z: -140, h: 15, r: 7 },
+      { x:  28, z: -40, h: 16, r: 8 }, { x:  35, z: -15, h: 12, r: 6 }, { x:  26, z: -75, h: 20, r: 10 },
+      { x:  44, z: -55, h: 10, r: 5 }, { x:  32, z: -110, h: 18, r: 9 }, { x:  41, z: -90, h: 13, r: 7 },
+      { x:  29, z: -150, h: 8,  r: 4 }, { x:  38, z: -135, h: 15, r: 8 },
+    ]
+    mountainDefs.forEach(({ x, z, h, r }) => {
+      const m = new THREE.Mesh(new THREE.ConeGeometry(r, h, 7), mountainMat)
+      m.position.set(x, h / 2 - 0.5, z)
+      m.castShadow = false
+      scene.add(m)
+    })
+
     // --- FOX ---
     const foxGroup = new THREE.Group()
     scene.add(foxGroup)
