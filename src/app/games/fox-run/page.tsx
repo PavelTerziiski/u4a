@@ -613,7 +613,6 @@ export default function FoxRunPage() {
     // --- ANIMATION LOOP ---
     let lastTime = performance.now()
     let animId: number
-    let composer: EffectComposer
 
     function animate() {
       animId = requestAnimationFrame(animate)
@@ -838,7 +837,7 @@ export default function FoxRunPage() {
     }
 
     // --- POSTPROCESSING ---
-    composer = new EffectComposer(renderer)
+    const composer = new EffectComposer(renderer)
     composer.addPass(new RenderPass(scene, camera))
     composer.addPass(new UnrealBloomPass(
       new THREE.Vector2(container.clientWidth, container.clientHeight),
