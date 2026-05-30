@@ -64,8 +64,30 @@ export default function FoxRunPage() {
     if (!mountRef.current) return
     const container = mountRef.current
 
+    // Shuffled word deck — no repeats until all words used
+    const wordDeck = [...WORDS]
+    let wordDeckIndex = 0
+    function getNextWord() {
+      if (wordDeckIndex >= wordDeck.length) {
+        for (let i = wordDeck.length - 1; i > 0; i--) {
+          const j = Math.floor(Math.random() * (i + 1))
+          ;[wordDeck[i], wordDeck[j]] = [wordDeck[j], wordDeck[i]]
+        }
+        wordDeckIndex = 0
+      }
+      return wordDeck[wordDeckIndex++]
+    }
+
+    const WORLDS = [
+      { sky: 0x87CEEB, fog: 0x87CEEB },
+      { sky: 0xd0eeff, fog: 0xc0e8ff },
+      { sky: 0xf4a460, fog: 0xe8956a },
+      { sky: 0x4a90d9, fog: 0x3a7fc9 },
+      { sky: 0x1a1a2e, fog: 0x16213e },
+    ]
+
     // Pick first word
-    const firstWord = WORDS[Math.floor(Math.random() * WORDS.length)]
+    const firstWord = getNextWord()
     gameRef.current.targetWord = firstWord
     setTargetWord(firstWord)
 
@@ -828,14 +850,19 @@ export default function FoxRunPage() {
                   setTimeout(() => {
                     g.level++; g.wordsCompletedInLevel = 0
                     setLevel(g.level); setWordsCompletedInLevel(0); setLevelComplete(false)
-                    const nextWord = WORDS[Math.floor(Math.random() * WORDS.length)]
+                    state.runTime = 0
+                    g.lives = 3; setLives(3)
+                    const world = WORLDS[(g.level - 1) % WORLDS.length]
+                    scene.background = new THREE.Color(world.sky)
+                    ;(scene.fog as THREE.Fog).color.set(world.fog)
+                    const nextWord = getNextWord()
                     g.targetWord = nextWord; g.collected = []; g.collectedIndices = new Set()
                     setTargetWord(nextWord); setCollected([])
                     const lvlBonus = g.score + 100; g.score = lvlBonus; setScore(lvlBonus)
                   }, 2000)
                 } else {
                   setWordsCompletedInLevel(g.wordsCompletedInLevel)
-                  const nextWord = WORDS[Math.floor(Math.random() * WORDS.length)]
+                  const nextWord = getNextWord()
                   g.targetWord = nextWord; g.collected = []; g.collectedIndices = new Set()
                   setTargetWord(nextWord); setCollected([])
                 }
