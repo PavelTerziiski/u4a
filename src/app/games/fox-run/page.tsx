@@ -184,109 +184,64 @@ export default function FoxRunPage() {
       }
     }
 
-    // --- TREES ---
-    function makePineTree(x: number, z: number, scale = 1) {
-      const g = new THREE.Group()
-      const trunkH = (1.8 + Math.random() * 1.2) * scale
-      const trunk = new THREE.Mesh(
-        new THREE.CylinderGeometry(0.12 * scale, 0.2 * scale, trunkH, 6),
-        new THREE.MeshStandardMaterial({ color: 0x2d1508, roughness: 0.85, metalness: 0 })
-      )
-      trunk.position.y = trunkH / 2; trunk.castShadow = true; g.add(trunk)
-      const greens = [0x0d3a08, 0x124a0c, 0x1a5c12, 0x0f4510]
-      const leafMat = new THREE.MeshStandardMaterial({ color: greens[Math.floor(Math.random() * greens.length)], roughness: 0.85, metalness: 0 })
-      const layers = 3 + Math.floor(Math.random() * 2)
-      for (let l = 0; l < layers; l++) {
-        const cone = new THREE.Mesh(new THREE.ConeGeometry((1.4 - l * 0.22) * scale, 1.8 * scale, 7), leafMat)
-        cone.position.y = trunkH + l * 1.2 * scale; cone.castShadow = true; g.add(cone)
-      }
-      g.position.set(x, 0, z); scene.add(g); return g
-    }
-
-    function makeBroadleafTree(x: number, z: number, scale = 1) {
-      const g = new THREE.Group()
-      const trunkH = (1.5 + Math.random() * 1.0) * scale
-      const trunk = new THREE.Mesh(
-        new THREE.CylinderGeometry(0.14 * scale, 0.22 * scale, trunkH, 7),
-        new THREE.MeshStandardMaterial({ color: 0x5c3317, roughness: 0.85, metalness: 0 })
-      )
-      trunk.position.y = trunkH / 2; trunk.castShadow = true; g.add(trunk)
-      const crownR = (1.3 + Math.random() * 0.5) * scale
-      const crown = new THREE.Mesh(
-        new THREE.SphereGeometry(crownR, 8, 6),
-        new THREE.MeshStandardMaterial({ color: 0x27ae60, roughness: 0.85, metalness: 0 })
-      )
-      crown.position.y = trunkH + crownR * 0.8; crown.castShadow = true; g.add(crown)
-      g.position.set(x, 0, z); scene.add(g); return g
-    }
-
-    function makeFruitTree(x: number, z: number, scale = 1) {
-      const g = new THREE.Group()
-      const trunkH = (1.2 + Math.random() * 0.8) * scale
-      const trunk = new THREE.Mesh(
-        new THREE.CylinderGeometry(0.1 * scale, 0.18 * scale, trunkH, 6),
-        new THREE.MeshStandardMaterial({ color: 0x4a2506, roughness: 0.85, metalness: 0 })
-      )
-      trunk.position.y = trunkH / 2; trunk.castShadow = true; g.add(trunk)
-      const crownR = (1.0 + Math.random() * 0.4) * scale
-      const crown = new THREE.Mesh(
-        new THREE.SphereGeometry(crownR, 8, 6),
-        new THREE.MeshStandardMaterial({ color: 0x2ecc71, roughness: 0.85, metalness: 0 })
-      )
-      crown.position.y = trunkH + crownR * 0.85; crown.castShadow = true; g.add(crown)
-      const fruitMat = new THREE.MeshStandardMaterial({ color: 0xe74c3c, roughness: 0.7, metalness: 0 })
-      const fruitCount = 5 + Math.floor(Math.random() * 4)
-      for (let f = 0; f < fruitCount; f++) {
-        const theta = Math.random() * Math.PI * 2
-        const phi = Math.random() * Math.PI
-        const fr = crownR * (0.7 + Math.random() * 0.3)
-        const fruit = new THREE.Mesh(new THREE.SphereGeometry(0.1 * scale, 5, 5), fruitMat)
-        fruit.position.set(
-          Math.sin(phi) * Math.cos(theta) * fr,
-          crown.position.y + Math.cos(phi) * fr * 0.5,
-          Math.sin(phi) * Math.sin(theta) * fr
-        )
-        g.add(fruit)
-      }
-      g.position.set(x, 0, z); scene.add(g); return g
-    }
-
-    function makeRandomTree(x: number, z: number, scale = 1) {
-      const t = Math.floor(Math.random() * 3)
-      if (t === 0) return makePineTree(x, z, scale)
-      if (t === 1) return makeBroadleafTree(x, z, scale)
-      return makeFruitTree(x, z, scale)
-    }
-
+    // --- TREES & FLOWERS (Kenney GLTF) ---
     const trees: THREE.Group[] = []
-    for (let i = 0; i < NUM_SEGMENTS; i++) {
-      const z = -i * SEGMENT_LENGTH - 4
-      const spread = 3 + Math.random() * 4
-      trees.push(makeRandomTree(-(PATH_WIDTH / 2 + 1.2 + spread), z, 0.7 + Math.random() * 0.7))
-      trees.push(makeRandomTree(PATH_WIDTH / 2 + 1.2 + spread, z, 0.7 + Math.random() * 0.7))
-      if (Math.random() > 0.4) {
-        trees.push(makeRandomTree(-(PATH_WIDTH / 2 + 4 + Math.random() * 5), z - 5, 0.7 + Math.random() * 0.7))
-        trees.push(makeRandomTree(PATH_WIDTH / 2 + 4 + Math.random() * 5, z - 5, 0.7 + Math.random() * 0.7))
-      }
-    }
-
-    // --- FLOWERS ---
-    const flowerColors = [0xf1c40f, 0x9b59b6, 0xe74c3c]
-    const stemMat = new THREE.MeshStandardMaterial({ color: 0x2ecc71, roughness: 0.8, metalness: 0 })
     const flowers: THREE.Group[] = []
-    for (let i = 0; i < NUM_SEGMENTS * 4; i++) {
-      const side = Math.random() > 0.5 ? 1 : -1
-      const x = side * (PATH_WIDTH / 2 + 0.6 + Math.random() * 7)
-      const z = -Math.random() * NUM_SEGMENTS * SEGMENT_LENGTH
-      const color = flowerColors[Math.floor(Math.random() * flowerColors.length)]
-      const stemH = 0.22 + Math.random() * 0.2
-      const fg = new THREE.Group()
-      const stem = new THREE.Mesh(new THREE.CylinderGeometry(0.02, 0.02, stemH, 5), stemMat)
-      stem.position.y = stemH / 2; fg.add(stem)
-      const head = new THREE.Mesh(new THREE.SphereGeometry(0.1, 6, 6), new THREE.MeshStandardMaterial({ color, roughness: 0.8, metalness: 0 }))
-      head.position.y = stemH + 0.1; fg.add(head)
-      fg.position.set(x, 0, z); scene.add(fg); flowers.push(fg)
-    }
+
+    ;(async () => {
+      const natureLoader = new GLTFLoader()
+      function loadGLTF(url: string): Promise<THREE.Group> {
+        return new Promise((resolve, reject) =>
+          natureLoader.load(url, gltf => {
+            gltf.scene.traverse(child => {
+              const m = child as THREE.Mesh
+              if (m.isMesh) { m.castShadow = true; m.receiveShadow = true }
+            })
+            resolve(gltf.scene)
+          }, undefined, reject)
+        )
+      }
+      try {
+        const [pine, oak, def, shroom, flower, stump] = await Promise.all([
+          loadGLTF('/models/tree_pine.glb'),
+          loadGLTF('/models/tree_oak.glb'),
+          loadGLTF('/models/tree_default.glb'),
+          loadGLTF('/models/mushroom_red.glb'),
+          loadGLTF('/models/flower_purpleA.glb'),
+          loadGLTF('/models/stump.glb'),
+        ])
+        const treeSrcs = [pine, oak, def]
+
+        const placeTree = (x: number, z: number, scale: number) => {
+          const g = treeSrcs[Math.floor(Math.random() * treeSrcs.length)].clone()
+          g.scale.setScalar(scale)
+          g.position.set(x, 0, z)
+          scene.add(g); trees.push(g)
+        }
+
+        for (let i = 0; i < NUM_SEGMENTS; i++) {
+          const z = -i * SEGMENT_LENGTH - 4
+          const spread = 3 + Math.random() * 4
+          placeTree(-(PATH_WIDTH / 2 + 1.2 + spread), z, 1.5 + Math.random() * 0.8)
+          placeTree(PATH_WIDTH / 2 + 1.2 + spread, z, 1.5 + Math.random() * 0.8)
+          if (Math.random() > 0.4) {
+            placeTree(-(PATH_WIDTH / 2 + 4 + Math.random() * 5), z - 5, 1.2 + Math.random() * 0.8)
+            placeTree(PATH_WIDTH / 2 + 4 + Math.random() * 5, z - 5, 1.2 + Math.random() * 0.8)
+          }
+        }
+
+        const smallSrcs = [shroom, flower, stump]
+        for (let i = 0; i < NUM_SEGMENTS * 4; i++) {
+          const side = Math.random() > 0.5 ? 1 : -1
+          const x = side * (PATH_WIDTH / 2 + 0.6 + Math.random() * 7)
+          const z = -Math.random() * NUM_SEGMENTS * SEGMENT_LENGTH
+          const fg = smallSrcs[Math.floor(Math.random() * smallSrcs.length)].clone()
+          fg.scale.setScalar(0.5 + Math.random() * 0.5)
+          fg.position.set(x, 0, z)
+          scene.add(fg); flowers.push(fg)
+        }
+      } catch {}
+    })()
 
     // --- HILLS ---
     const hillMat = new THREE.MeshStandardMaterial({ color: 0x5d4037, roughness: 0.9, metalness: 0, side: THREE.DoubleSide })
