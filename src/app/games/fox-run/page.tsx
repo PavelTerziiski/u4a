@@ -1006,21 +1006,22 @@ export default function FoxRunPage() {
   }, [])
 
   const WORLD_META = [
-    { icon: '🌲', label: 'Гора' },
-    { icon: '❄️', label: 'Зима' },
-    { icon: '🏜️', label: 'Пустиня' },
-    { icon: '🌊', label: 'Море' },
-    { icon: '🌙', label: 'Нощ' },
+    { icon: '🌲', label: 'Гора',    card: 'bg-green-500 border-green-300',               text: 'text-white' },
+    { icon: '❄️', label: 'Зима',    card: 'bg-blue-200 border-blue-100',                 text: 'text-blue-900' },
+    { icon: '🏜️', label: 'Пустиня', card: 'bg-yellow-400 border-yellow-200',             text: 'text-white' },
+    { icon: '🌊', label: 'Море',    card: 'bg-cyan-400 border-cyan-200',                 text: 'text-white' },
+    { icon: '🌙', label: 'Нощ',     card: 'bg-purple-800 border-purple-400',             text: 'text-white' },
   ]
 
   if (selectedLevel === null) {
     return (
-      <div className="relative w-full h-screen bg-black overflow-hidden flex flex-col items-center justify-center gap-8">
+      <div className="relative w-full h-screen bg-gradient-to-b from-green-800 to-green-950 overflow-hidden flex flex-col items-center justify-center gap-6">
         <button onClick={() => router.push('/games')}
-          className="absolute top-4 left-4 z-10 bg-black/50 text-white px-4 py-2 rounded-full text-sm font-medium backdrop-blur-sm border border-white/20 hover:bg-black/70 transition-all">
+          className="absolute top-4 left-4 z-10 bg-black/40 text-white px-4 py-2 rounded-full text-sm font-medium backdrop-blur-sm border border-white/20 hover:bg-black/60 transition-all">
           ← Назад
         </button>
-        <h1 className="text-white text-4xl font-bold tracking-tight">Избери ниво</h1>
+        <h1 className="text-yellow-300 text-5xl font-bold tracking-tight drop-shadow-lg">🦊 Избери свят!</h1>
+        <p className="text-white/80 text-base font-medium">Събирай думи и отключвай нови светове!</p>
         <div className="grid grid-cols-3 gap-4 px-6 sm:grid-cols-5">
           {WORLD_META.map((w, i) => {
             const lvl = i + 1
@@ -1030,14 +1031,12 @@ export default function FoxRunPage() {
                 key={lvl}
                 disabled={!unlocked}
                 onClick={() => unlocked && setSelectedLevel(lvl)}
-                className={`flex flex-col items-center gap-2 p-5 rounded-2xl border-2 transition-all
-                  ${unlocked
-                    ? 'bg-white/10 border-white/30 hover:bg-white/20 hover:scale-105 cursor-pointer'
-                    : 'bg-white/5 border-white/10 opacity-50 cursor-not-allowed'}`}
+                className={`flex flex-col items-center gap-2 p-5 rounded-2xl border-2 transition-all ${w.card} ${w.text}
+                  ${unlocked ? 'hover:scale-110 cursor-pointer shadow-lg' : 'opacity-40 cursor-not-allowed'}`}
               >
-                <span className="text-4xl">{unlocked ? w.icon : '🔒'}</span>
-                <span className="text-white font-bold text-lg">{lvl}</span>
-                <span className="text-white/60 text-xs">{w.label}</span>
+                <span className="text-5xl">{unlocked ? w.icon : '🔒'}</span>
+                <span className="font-bold text-lg">{lvl}</span>
+                <span className="text-xs opacity-80">{w.label}</span>
               </button>
             )
           })}
