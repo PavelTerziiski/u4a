@@ -385,6 +385,11 @@ export default function FoxRunPage() {
     }
 
 
+    const bloomPass = new UnrealBloomPass(
+      new THREE.Vector2(container.clientWidth, container.clientHeight),
+      0.35, 0.4, 0.6
+    )
+
     function applyWorld(lv: number) {
       const worldIdx = (lv - 1) % WORLDS.length
       const world = WORLDS[worldIdx]
@@ -969,10 +974,6 @@ export default function FoxRunPage() {
     // --- POSTPROCESSING ---
     const composer = new EffectComposer(renderer)
     composer.addPass(new RenderPass(scene, camera))
-    const bloomPass = new UnrealBloomPass(
-      new THREE.Vector2(container.clientWidth, container.clientHeight),
-      0.35, 0.4, 0.6
-    )
     composer.addPass(bloomPass)
 
     animate()
