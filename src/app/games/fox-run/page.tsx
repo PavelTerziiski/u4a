@@ -45,6 +45,9 @@ export default function FoxRunPage() {
   const [score, setScore] = useState(0)
   const [gameOver, setGameOver] = useState(false)
   const [lives, setLives] = useState(3)
+  const [level, setLevel] = useState(1)
+  const [wordsCompletedInLevel, setWordsCompletedInLevel] = useState(0)
+  const [levelComplete, setLevelComplete] = useState(false)
 
   const gameRef = useRef<{
     targetWord: string
@@ -53,7 +56,9 @@ export default function FoxRunPage() {
     score: number
     lives: number
     dead: boolean
-  }>({ targetWord: '', collected: [], score: 0, lives: 3, dead: false })
+    level: number
+    wordsCompletedInLevel: number
+  }>({ targetWord: '', collected: [], score: 0, lives: 3, dead: false, level: 1, wordsCompletedInLevel: 0 })
 
   useEffect(() => {
     if (!mountRef.current) return
@@ -813,11 +818,27 @@ export default function FoxRunPage() {
               try { const s = new Audio('/sounds/fox-run-win.mp3'); s.volume = 0.32; s.play().catch(() => {}) } catch {}
               // Word complete!
               setTimeout(() => {
-                const nextWord = WORDS[Math.floor(Math.random() * WORDS.length)]
-                g.targetWord = nextWord; g.collected = []; g.collectedIndices = new Set()
-                setTargetWord(nextWord); setCollected([])
+                g.wordsCompletedInLevel++
+                const wordsNeeded = g.level + 4
                 const bonus = g.score + 50
                 g.score = bonus; setScore(bonus)
+                if (g.wordsCompletedInLevel >= wordsNeeded) {
+                  setWordsCompletedInLevel(g.wordsCompletedInLevel)
+                  setLevelComplete(true)
+                  setTimeout(() => {
+                    g.level++; g.wordsCompletedInLevel = 0
+                    setLevel(g.level); setWordsCompletedInLevel(0); setLevelComplete(false)
+                    const nextWord = WORDS[Math.floor(Math.random() * WORDS.length)]
+                    g.targetWord = nextWord; g.collected = []; g.collectedIndices = new Set()
+                    setTargetWord(nextWord); setCollected([])
+                    const lvlBonus = g.score + 100; g.score = lvlBonus; setScore(lvlBonus)
+                  }, 2000)
+                } else {
+                  setWordsCompletedInLevel(g.wordsCompletedInLevel)
+                  const nextWord = WORDS[Math.floor(Math.random() * WORDS.length)]
+                  g.targetWord = nextWord; g.collected = []; g.collectedIndices = new Set()
+                  setTargetWord(nextWord); setCollected([])
+                }
               }, 400)
             }
           } else {
@@ -950,7 +971,21 @@ export default function FoxRunPage() {
             </div>
           ))}
         </div>
+        <div className="text-white/60 text-xs font-medium">
+          Ниво {level} • {wordsCompletedInLevel}/{level + 4} думи
+        </div>
       </div>
+
+      {/* Level complete overlay */}
+      {levelComplete && (
+        <div className="absolute inset-0 z-20 flex items-center justify-center bg-black/60 backdrop-blur-sm">
+          <div className="text-center">
+            <div className="text-6xl mb-3">🎉</div>
+            <h2 className="text-white text-4xl font-bold mb-1">Ниво {level} завършено!</h2>
+            <p className="text-yellow-400 text-xl">Напред към ниво {level + 1}…</p>
+          </div>
+        </div>
+      )}
 
       {/* Score */}
       <div className="absolute top-4 right-4 z-10">
