@@ -329,7 +329,7 @@ export default function FoxRunPage() {
     })()
 
     // --- HILLS ---
-    const hillMat = new THREE.MeshStandardMaterial({ color: 0x5d4037, roughness: 0.9, metalness: 0, side: THREE.DoubleSide })
+    const hillMat = new THREE.MeshStandardMaterial({ color: 0x4a90d9, roughness: 0.9, metalness: 0.1, side: THREE.DoubleSide })
     const hillWidth = 10
     const hillSegments: THREE.Mesh[] = []
     for (let i = 0; i < NUM_SEGMENTS; i++) {
@@ -345,7 +345,8 @@ export default function FoxRunPage() {
     }
 
     // --- MOUNTAINS (static backdrop) ---
-    const mountainMat = new THREE.MeshStandardMaterial({ color: 0x6b8e6b, roughness: 1, metalness: 0 })
+    const matLow  = new THREE.MeshStandardMaterial({ color: 0x4a7c4e, roughness: 1, metalness: 0 })
+    const matHigh = new THREE.MeshStandardMaterial({ color: 0x8fa882, roughness: 1, metalness: 0 })
     const mountainDefs = [
       { x: -28, z: -40, h: 14, r: 7 }, { x: -38, z: -10, h: 18, r: 9 }, { x: -25, z: -80, h: 10, r: 5 },
       { x: -42, z: -55, h: 20, r: 10 }, { x: -30, z: -120, h: 12, r: 6 }, { x: -45, z: -95, h: 16, r: 8 },
@@ -355,10 +356,23 @@ export default function FoxRunPage() {
       { x:  29, z: -150, h: 8,  r: 4 }, { x:  38, z: -135, h: 15, r: 8 },
     ]
     mountainDefs.forEach(({ x, z, h, r }) => {
-      const m = new THREE.Mesh(new THREE.ConeGeometry(r, h, 7), mountainMat)
-      m.position.set(x, h / 2 - 0.5, z)
-      m.castShadow = false
-      scene.add(m)
+      const g = new THREE.Group()
+      // Base — wide & low, dark green
+      const base = new THREE.Mesh(new THREE.ConeGeometry(r * 1.25, h * 0.65, 7), matLow)
+      base.position.y = h * 0.65 / 2
+      g.add(base)
+      // Peak — narrow & tall, light grey-green
+      const peak = new THREE.Mesh(new THREE.ConeGeometry(r * 0.55, h * 0.75, 6), matHigh)
+      peak.position.y = h * 0.65 * 0.72 + h * 0.75 / 2
+      g.add(peak)
+      // Optional secondary ridge offset
+      if (Math.random() > 0.45) {
+        const ridge = new THREE.Mesh(new THREE.ConeGeometry(r * 0.35, h * 0.5, 5), matHigh)
+        ridge.position.set(r * 0.4 * (Math.random() > 0.5 ? 1 : -1), h * 0.65 * 0.5 + h * 0.5 / 2, r * 0.2)
+        g.add(ridge)
+      }
+      g.position.set(x, 0, z)
+      scene.add(g)
     })
 
     // --- FOX ---
