@@ -329,8 +329,8 @@ export default function FoxRunPage() {
     })()
 
     // --- HILLS ---
-    const hillMat = new THREE.MeshStandardMaterial({ color: 0x5d4037, roughness: 0.9, metalness: 0, side: THREE.DoubleSide })
-    const hillWidth = 10
+    const hillMat = new THREE.MeshStandardMaterial({ color: 0x4a7c3f, roughness: 0.9, metalness: 0, side: THREE.DoubleSide })
+    const hillWidth = 18
     const hillSegments: THREE.Mesh[] = []
     for (let i = 0; i < NUM_SEGMENTS; i++) {
       const geoH = new THREE.PlaneGeometry(hillWidth, SEGMENT_LENGTH)
@@ -344,35 +344,6 @@ export default function FoxRunPage() {
       hR.receiveShadow = true; scene.add(hR); hillSegments.push(hR)
     }
 
-    // --- MOUNTAINS (static backdrop) ---
-    const mountainMat = new THREE.MeshStandardMaterial({ color: 0x6b8e6b, roughness: 1, metalness: 0 })
-    const mountainDefs = [
-      { x: -28, z: -40, h: 14, r: 7 }, { x: -38, z: -10, h: 18, r: 9 }, { x: -25, z: -80, h: 10, r: 5 },
-      { x: -42, z: -55, h: 20, r: 10 }, { x: -30, z: -120, h: 12, r: 6 }, { x: -45, z: -95, h: 16, r: 8 },
-      { x: -27, z: -160, h: 8,  r: 4 }, { x: -40, z: -140, h: 15, r: 7 },
-      { x:  28, z: -40, h: 16, r: 8 }, { x:  35, z: -15, h: 12, r: 6 }, { x:  26, z: -75, h: 20, r: 10 },
-      { x:  44, z: -55, h: 10, r: 5 }, { x:  32, z: -110, h: 18, r: 9 }, { x:  41, z: -90, h: 13, r: 7 },
-      { x:  29, z: -150, h: 8,  r: 4 }, { x:  38, z: -135, h: 15, r: 8 },
-    ]
-    mountainDefs.forEach(({ x, z, h, r }) => {
-      const g = new THREE.Group()
-      const cone = new THREE.Mesh(new THREE.ConeGeometry(r, h, 8, 4), mountainMat)
-      cone.position.y = h / 2
-      g.add(cone)
-      g.scale.set(1 + Math.random() * 0.3, 1, 1 + Math.random() * 0.3)
-      g.position.set(x, 0, z)
-      scene.add(g)
-    })
-
-    // --- RIVER ---
-    const riverMat = new THREE.MeshStandardMaterial({ color: 0x4a90d9, roughness: 0.2, metalness: 0.3 })
-    const riverLength = NUM_SEGMENTS * SEGMENT_LENGTH
-    ;[-20, 20].forEach(rx => {
-      const river = new THREE.Mesh(new THREE.PlaneGeometry(12, riverLength), riverMat)
-      river.rotation.x = -Math.PI / 2
-      river.position.set(rx, -0.1, -riverLength / 2)
-      scene.add(river)
-    })
 
     // --- FOX ---
     const foxGroup = new THREE.Group()
