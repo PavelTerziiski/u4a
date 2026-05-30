@@ -135,7 +135,7 @@ export default function FoxRunPage() {
 
     // --- PATH ---
     const pathMat = new THREE.MeshStandardMaterial({ color: 0x2a1a0e, roughness: 0.9, metalness: 0 })
-    const edgeMat = new THREE.MeshStandardMaterial({ color: 0x1a0e06, roughness: 0.9, metalness: 0 })
+    const edgeMat = new THREE.MeshStandardMaterial({ color: 0x3a2010, roughness: 0.9, metalness: 0 })
     const segments: THREE.Mesh[] = []
 
     for (let i = 0; i < NUM_SEGMENTS; i++) {
@@ -896,10 +896,15 @@ export default function FoxRunPage() {
         </div>
       </div>
 
-      {/* Score + Lives */}
-      <div className="absolute top-4 right-4 z-10 flex flex-col items-end gap-1">
+      {/* Score */}
+      <div className="absolute top-4 right-4 z-10">
         <div className="text-yellow-400 font-bold text-lg">⭐ {score}</div>
-        <div className="text-red-400 text-lg">{'❤️'.repeat(Math.max(0, lives))}</div>
+      </div>
+      {/* Lives */}
+      <div className="absolute top-11 right-4 z-10 flex gap-1">
+        {Array.from({ length: Math.max(0, lives) }).map((_, i) => (
+          <span key={i} className="text-lg">❤️</span>
+        ))}
       </div>
 
       {/* Controls hint */}
