@@ -134,8 +134,12 @@ export default function FoxRunPage() {
     const NUM_SEGMENTS = 22
 
     // --- PATH ---
-    const pathMat = new THREE.MeshStandardMaterial({ color: 0x2a1a0e, roughness: 0.9, metalness: 0 })
-    const edgeMat = new THREE.MeshStandardMaterial({ color: 0x3a2010, roughness: 0.9, metalness: 0 })
+    const texLoader = new THREE.TextureLoader()
+    const groundTex = texLoader.load('/textures/ground.jpg')
+    groundTex.wrapS = groundTex.wrapT = THREE.RepeatWrapping
+    groundTex.repeat.set(4, 4)
+    const pathMat = new THREE.MeshStandardMaterial({ map: groundTex, roughness: 0.9, metalness: 0 })
+    const edgeMat = new THREE.MeshStandardMaterial({ map: groundTex, roughness: 0.9, metalness: 0 })
     const segments: THREE.Mesh[] = []
 
     for (let i = 0; i < NUM_SEGMENTS; i++) {
@@ -155,7 +159,10 @@ export default function FoxRunPage() {
     }
 
     // --- GRASS ---
-    const grassMat = new THREE.MeshStandardMaterial({ color: 0x3a8c3a, roughness: 0.8, metalness: 0 })
+    const grassTex = texLoader.load('/textures/grass.jpg')
+    grassTex.wrapS = grassTex.wrapT = THREE.RepeatWrapping
+    grassTex.repeat.set(8, 8)
+    const grassMat = new THREE.MeshStandardMaterial({ map: grassTex, roughness: 0.8, metalness: 0 })
     const grassSegments: THREE.Mesh[] = []
     const grassWidth = 6
     for (let i = 0; i < NUM_SEGMENTS; i++) {
