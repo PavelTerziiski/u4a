@@ -472,27 +472,35 @@ export default function FoxRunPage() {
     }
 
     // --- OBSTACLES ---
-    interface Obstacle { mesh: THREE.Mesh; lane: number; type: 'rock' | 'log' }
+    interface Obstacle { mesh: THREE.Mesh; lane: number; type: 'rock' | 'log' | 'bush' }
     const obstacles: Obstacle[] = []
 
     function spawnObstacle(zPos: number) {
       const lane = [-1, 0, 1][Math.floor(Math.random() * 3)]
-      const isLog = Math.random() > 0.5
+      const roll = Math.random()
       let geo: THREE.BufferGeometry
       let mat: THREE.MeshLambertMaterial
-      if (isLog) {
+      let type: 'rock' | 'log' | 'bush'
+      let posY: number
+      if (roll < 0.33) {
         geo = new THREE.CylinderGeometry(0.25, 0.25, LANE_WIDTH * 0.8, 8)
-        mat = new THREE.MeshLambertMaterial({ color: 0x4a2a10 })
-      } else {
+        mat = new THREE.MeshLambertMaterial({ color: 0x8B5E3C })
+        type = 'log'; posY = 0.25
+      } else if (roll < 0.66) {
         geo = new THREE.DodecahedronGeometry(0.45, 0)
         mat = new THREE.MeshLambertMaterial({ color: 0x667788 })
+        type = 'rock'; posY = 0.45
+      } else {
+        geo = new THREE.SphereGeometry(0.5, 8, 8)
+        mat = new THREE.MeshLambertMaterial({ color: 0x2d7a2d })
+        type = 'bush'; posY = 0.5
       }
       const mesh = new THREE.Mesh(geo, mat)
-      mesh.position.set(lane * LANE_WIDTH, isLog ? 0.25 : 0.45, zPos)
-      if (isLog) mesh.rotation.z = Math.PI / 2
+      mesh.position.set(lane * LANE_WIDTH, posY, zPos)
+      if (type === 'log') mesh.rotation.z = Math.PI / 2
       mesh.castShadow = true
       scene.add(mesh)
-      obstacles.push({ mesh, lane, type: isLog ? 'log' : 'rock' })
+      obstacles.push({ mesh, lane, type })
     }
     for (let i = 0; i < 6; i++) spawnObstacle(-35 - i * 22)
 
