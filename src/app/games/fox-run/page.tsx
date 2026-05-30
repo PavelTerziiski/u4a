@@ -405,10 +405,14 @@ export default function FoxRunPage() {
           const m = child as THREE.Mesh
           if (m.isMesh && m.material) (m.material as THREE.MeshStandardMaterial).color.set(0xffffff)
         }))
+        music.src = '/sounds/forest-story.mp3'
+        music.play().catch(() => {})
       } else {
         bloomPass.strength = 0.35
         pathMat.map = groundTex; pathMat.needsUpdate = true
         grassMat.map = grassTex; grassMat.color.set(0x3a7a2a); grassMat.needsUpdate = true
+        music.src = musicTracks[Math.floor(Math.random() * musicTracks.length)]
+        music.play().catch(() => {})
       }
     }
     applyWorld(1)
