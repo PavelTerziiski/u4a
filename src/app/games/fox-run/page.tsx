@@ -29,6 +29,10 @@ const WORDS = [
   // Дрехи
   'РИЗА','ПАНТАЛОН','РОКЛЯ','ШАПКА','ОБУВКИ','ЧОРАПИ','ШАЛ','ПАЛТО','ЯКЕ','ПОЛА','БЛУЗА','ПРЕСТИЛКА','РЪКАВИЦА',
 ]
+for (let i = WORDS.length - 1; i > 0; i--) {
+  const j = Math.floor(Math.random() * (i + 1));
+  [WORDS[i], WORDS[j]] = [WORDS[j], WORDS[i]]
+}
 
 export default function FoxRunPage() {
   const mountRef = useRef<HTMLDivElement>(null)
@@ -91,8 +95,8 @@ export default function FoxRunPage() {
 
     // --- SCENE ---
     const scene = new THREE.Scene()
-    scene.background = new THREE.Color(0x87CEEB)
-    scene.fog = new THREE.Fog(0x87CEEB, 40, 120)
+    scene.background = new THREE.Color(0xb8e4f9)
+    scene.fog = new THREE.Fog(0xa0d4f0, 40, 120)
 
     // --- CAMERA ---
     const camera = new THREE.PerspectiveCamera(
@@ -177,42 +181,123 @@ export default function FoxRunPage() {
     }
 
     // --- TREES ---
-    function makeTree(x: number, z: number, scale = 1) {
+    function makePineTree(x: number, z: number, scale = 1) {
       const g = new THREE.Group()
       const trunkH = (1.8 + Math.random() * 1.2) * scale
       const trunk = new THREE.Mesh(
         new THREE.CylinderGeometry(0.12 * scale, 0.2 * scale, trunkH, 6),
         new THREE.MeshLambertMaterial({ color: 0x2d1508 })
       )
-      trunk.position.y = trunkH / 2
-      trunk.castShadow = true
-      g.add(trunk)
+      trunk.position.y = trunkH / 2; trunk.castShadow = true; g.add(trunk)
       const greens = [0x0d3a08, 0x124a0c, 0x1a5c12, 0x0f4510]
-      const col = greens[Math.floor(Math.random() * greens.length)]
-      const leafMat = new THREE.MeshLambertMaterial({ color: col })
+      const leafMat = new THREE.MeshLambertMaterial({ color: greens[Math.floor(Math.random() * greens.length)] })
       const layers = 3 + Math.floor(Math.random() * 2)
       for (let l = 0; l < layers; l++) {
-        const r = (1.4 - l * 0.22) * scale
-        const cone = new THREE.Mesh(new THREE.ConeGeometry(r, 1.8 * scale, 7), leafMat)
-        cone.position.y = trunkH + l * 1.2 * scale
-        cone.castShadow = true
-        g.add(cone)
+        const cone = new THREE.Mesh(new THREE.ConeGeometry((1.4 - l * 0.22) * scale, 1.8 * scale, 7), leafMat)
+        cone.position.y = trunkH + l * 1.2 * scale; cone.castShadow = true; g.add(cone)
       }
-      g.position.set(x, 0, z)
-      scene.add(g)
-      return g
+      g.position.set(x, 0, z); scene.add(g); return g
+    }
+
+    function makeBroadleafTree(x: number, z: number, scale = 1) {
+      const g = new THREE.Group()
+      const trunkH = (1.5 + Math.random() * 1.0) * scale
+      const trunk = new THREE.Mesh(
+        new THREE.CylinderGeometry(0.14 * scale, 0.22 * scale, trunkH, 7),
+        new THREE.MeshLambertMaterial({ color: 0x5c3317 })
+      )
+      trunk.position.y = trunkH / 2; trunk.castShadow = true; g.add(trunk)
+      const crownR = (1.3 + Math.random() * 0.5) * scale
+      const crown = new THREE.Mesh(
+        new THREE.SphereGeometry(crownR, 8, 6),
+        new THREE.MeshLambertMaterial({ color: 0x27ae60 })
+      )
+      crown.position.y = trunkH + crownR * 0.8; crown.castShadow = true; g.add(crown)
+      g.position.set(x, 0, z); scene.add(g); return g
+    }
+
+    function makeFruitTree(x: number, z: number, scale = 1) {
+      const g = new THREE.Group()
+      const trunkH = (1.2 + Math.random() * 0.8) * scale
+      const trunk = new THREE.Mesh(
+        new THREE.CylinderGeometry(0.1 * scale, 0.18 * scale, trunkH, 6),
+        new THREE.MeshLambertMaterial({ color: 0x4a2506 })
+      )
+      trunk.position.y = trunkH / 2; trunk.castShadow = true; g.add(trunk)
+      const crownR = (1.0 + Math.random() * 0.4) * scale
+      const crown = new THREE.Mesh(
+        new THREE.SphereGeometry(crownR, 8, 6),
+        new THREE.MeshLambertMaterial({ color: 0x2ecc71 })
+      )
+      crown.position.y = trunkH + crownR * 0.85; crown.castShadow = true; g.add(crown)
+      const fruitMat = new THREE.MeshLambertMaterial({ color: 0xe74c3c })
+      const fruitCount = 5 + Math.floor(Math.random() * 4)
+      for (let f = 0; f < fruitCount; f++) {
+        const theta = Math.random() * Math.PI * 2
+        const phi = Math.random() * Math.PI
+        const fr = crownR * (0.7 + Math.random() * 0.3)
+        const fruit = new THREE.Mesh(new THREE.SphereGeometry(0.1 * scale, 5, 5), fruitMat)
+        fruit.position.set(
+          Math.sin(phi) * Math.cos(theta) * fr,
+          crown.position.y + Math.cos(phi) * fr * 0.5,
+          Math.sin(phi) * Math.sin(theta) * fr
+        )
+        g.add(fruit)
+      }
+      g.position.set(x, 0, z); scene.add(g); return g
+    }
+
+    function makeRandomTree(x: number, z: number, scale = 1) {
+      const t = Math.floor(Math.random() * 3)
+      if (t === 0) return makePineTree(x, z, scale)
+      if (t === 1) return makeBroadleafTree(x, z, scale)
+      return makeFruitTree(x, z, scale)
     }
 
     const trees: THREE.Group[] = []
     for (let i = 0; i < NUM_SEGMENTS; i++) {
       const z = -i * SEGMENT_LENGTH - 4
       const spread = 3 + Math.random() * 4
-      trees.push(makeTree(-(PATH_WIDTH / 2 + 1.2 + spread), z, 0.8 + Math.random() * 0.6))
-      trees.push(makeTree(PATH_WIDTH / 2 + 1.2 + spread, z, 0.8 + Math.random() * 0.6))
+      trees.push(makeRandomTree(-(PATH_WIDTH / 2 + 1.2 + spread), z, 0.7 + Math.random() * 0.7))
+      trees.push(makeRandomTree(PATH_WIDTH / 2 + 1.2 + spread, z, 0.7 + Math.random() * 0.7))
       if (Math.random() > 0.4) {
-        trees.push(makeTree(-(PATH_WIDTH / 2 + 4 + Math.random() * 5), z - 5, 0.6 + Math.random() * 0.8))
-        trees.push(makeTree(PATH_WIDTH / 2 + 4 + Math.random() * 5, z - 5, 0.6 + Math.random() * 0.8))
+        trees.push(makeRandomTree(-(PATH_WIDTH / 2 + 4 + Math.random() * 5), z - 5, 0.7 + Math.random() * 0.7))
+        trees.push(makeRandomTree(PATH_WIDTH / 2 + 4 + Math.random() * 5, z - 5, 0.7 + Math.random() * 0.7))
       }
+    }
+
+    // --- FLOWERS ---
+    const flowerColors = [0xf1c40f, 0x9b59b6, 0xe74c3c]
+    const stemMat = new THREE.MeshLambertMaterial({ color: 0x2ecc71 })
+    const flowers: THREE.Group[] = []
+    for (let i = 0; i < NUM_SEGMENTS * 4; i++) {
+      const side = Math.random() > 0.5 ? 1 : -1
+      const x = side * (PATH_WIDTH / 2 + 0.6 + Math.random() * 7)
+      const z = -Math.random() * NUM_SEGMENTS * SEGMENT_LENGTH
+      const color = flowerColors[Math.floor(Math.random() * flowerColors.length)]
+      const stemH = 0.22 + Math.random() * 0.2
+      const fg = new THREE.Group()
+      const stem = new THREE.Mesh(new THREE.CylinderGeometry(0.02, 0.02, stemH, 5), stemMat)
+      stem.position.y = stemH / 2; fg.add(stem)
+      const head = new THREE.Mesh(new THREE.SphereGeometry(0.1, 6, 6), new THREE.MeshLambertMaterial({ color }))
+      head.position.y = stemH + 0.1; fg.add(head)
+      fg.position.set(x, 0, z); scene.add(fg); flowers.push(fg)
+    }
+
+    // --- HILLS ---
+    const hillMat = new THREE.MeshLambertMaterial({ color: 0x5d4037, side: THREE.DoubleSide })
+    const hillWidth = 10
+    const hillSegments: THREE.Mesh[] = []
+    for (let i = 0; i < NUM_SEGMENTS; i++) {
+      const geoH = new THREE.PlaneGeometry(hillWidth, SEGMENT_LENGTH)
+      const hL = new THREE.Mesh(geoH, hillMat)
+      hL.rotation.x = -Math.PI / 2; hL.rotation.z = 0.3
+      hL.position.set(-(PATH_WIDTH / 2 + grassWidth + hillWidth / 2), 0, -i * SEGMENT_LENGTH)
+      hL.receiveShadow = true; scene.add(hL); hillSegments.push(hL)
+      const hR = new THREE.Mesh(geoH, hillMat)
+      hR.rotation.x = -Math.PI / 2; hR.rotation.z = -0.3
+      hR.position.set(PATH_WIDTH / 2 + grassWidth + hillWidth / 2, 0, -i * SEGMENT_LENGTH)
+      hR.receiveShadow = true; scene.add(hR); hillSegments.push(hR)
     }
 
     // --- FOX ---
@@ -605,6 +690,24 @@ export default function FoxRunPage() {
           tree.position.z -= NUM_SEGMENTS * SEGMENT_LENGTH + Math.random() * 20
           tree.position.x = side * (PATH_WIDTH / 2 + 1.2 + 2 + Math.random() * 5)
         }
+      })
+
+      flowers.forEach(f => {
+        f.position.z += moveZ
+        if (f.position.z > 10) {
+          const side = f.position.x > 0 ? 1 : -1
+          f.position.z -= NUM_SEGMENTS * SEGMENT_LENGTH + Math.random() * 10
+          f.position.x = side * (PATH_WIDTH / 2 + 0.6 + Math.random() * 7)
+        }
+      })
+
+      grassSegments.forEach(seg => {
+        seg.position.z += moveZ
+        if (seg.position.z > SEGMENT_LENGTH * 1.5) seg.position.z -= NUM_SEGMENTS * SEGMENT_LENGTH
+      })
+      hillSegments.forEach(seg => {
+        seg.position.z += moveZ
+        if (seg.position.z > SEGMENT_LENGTH * 1.5) seg.position.z -= NUM_SEGMENTS * SEGMENT_LENGTH
       })
 
       // Letter orbs
