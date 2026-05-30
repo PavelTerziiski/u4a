@@ -392,6 +392,7 @@ export default function FoxRunPage() {
       ;(scene.fog as THREE.Fog).color.set(world.fog)
       if (worldIdx === 1) {
         // Winter
+        bloomPass.strength = 0.1
         pathMat.map = snowPathTex; pathMat.needsUpdate = true
         grassMat.map = snowTex; grassMat.color.set(0xddeeff); grassMat.needsUpdate = true
         trees.forEach(tree => tree.traverse(child => {
@@ -399,6 +400,7 @@ export default function FoxRunPage() {
           if (m.isMesh && m.material) (m.material as THREE.MeshStandardMaterial).color.set(0xffffff)
         }))
       } else {
+        bloomPass.strength = 0.35
         pathMat.map = groundTex; pathMat.needsUpdate = true
         grassMat.map = grassTex; grassMat.color.set(0x3a7a2a); grassMat.needsUpdate = true
       }
@@ -967,10 +969,11 @@ export default function FoxRunPage() {
     // --- POSTPROCESSING ---
     const composer = new EffectComposer(renderer)
     composer.addPass(new RenderPass(scene, camera))
-    composer.addPass(new UnrealBloomPass(
+    const bloomPass = new UnrealBloomPass(
       new THREE.Vector2(container.clientWidth, container.clientHeight),
       0.35, 0.4, 0.6
-    ))
+    )
+    composer.addPass(bloomPass)
 
     animate()
 
@@ -1015,8 +1018,8 @@ export default function FoxRunPage() {
           {(targetWord || '').split('').map((letter, i) => (
             <div key={i} className={`w-10 h-10 rounded-xl flex items-center justify-center text-lg font-bold border-2 transition-all duration-300 ${
               collected[i]
-                ? 'bg-yellow-400 border-yellow-300 text-yellow-900 scale-110'
-                : 'bg-black/40 border-white/20 text-white/40'
+                ? 'bg-yellow-400 border-yellow-300 text-gray-900 scale-110'
+                : 'bg-black/40 border-white/20 text-gray-600'
             }`}>
               {collected[i] ?? letter}
             </div>
@@ -1043,7 +1046,7 @@ export default function FoxRunPage() {
         <div className="text-yellow-400 font-bold text-lg">⭐ {score}</div>
       </div>
       {/* Lives */}
-      <div className="absolute top-11 right-4 z-10 flex gap-1">
+      <div className="absolute top-16 right-16 z-10 flex gap-1">
         {Array.from({ length: Math.max(0, lives) }).map((_, i) => (
           <span key={i} className="text-lg">❤️</span>
         ))}
