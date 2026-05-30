@@ -1003,7 +1003,7 @@ export default function FoxRunPage() {
       renderer.dispose()
       if (container.contains(renderer.domElement)) container.removeChild(renderer.domElement)
     }
-  }, [])
+  }, [selectedLevel])
 
   const WORLD_META = [
     { icon: '🌲', label: 'Гора',    card: 'bg-green-500 border-green-300',               text: 'text-white' },
