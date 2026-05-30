@@ -139,7 +139,10 @@ export default function FoxRunPage() {
     groundTex.wrapS = groundTex.wrapT = THREE.RepeatWrapping
     groundTex.repeat.set(4, 4)
     const pathMat = new THREE.MeshStandardMaterial({ map: groundTex, roughness: 0.9, metalness: 0 })
-    const edgeMat = new THREE.MeshStandardMaterial({ map: groundTex, roughness: 0.9, metalness: 0 })
+    const gravelTex = texLoader.load('/textures/gravel.jpg')
+    gravelTex.wrapS = gravelTex.wrapT = THREE.RepeatWrapping
+    gravelTex.repeat.set(6, 6)
+    const edgeMat = new THREE.MeshStandardMaterial({ map: gravelTex, roughness: 0.9, metalness: 0 })
     const segments: THREE.Mesh[] = []
 
     for (let i = 0; i < NUM_SEGMENTS; i++) {
@@ -336,7 +339,10 @@ export default function FoxRunPage() {
     })()
 
     // --- HILLS ---
-    const hillMat = new THREE.MeshStandardMaterial({ color: 0x4a7c3f, roughness: 0.9, metalness: 0, side: THREE.DoubleSide })
+    const rockTex = texLoader.load('/textures/rock.jpg')
+    rockTex.wrapS = rockTex.wrapT = THREE.RepeatWrapping
+    rockTex.repeat.set(4, 4)
+    const hillMat = new THREE.MeshStandardMaterial({ map: rockTex, roughness: 0.9, metalness: 0, side: THREE.DoubleSide })
     const hillWidth = 18
     const hillSegments: THREE.Mesh[] = []
     for (let i = 0; i < NUM_SEGMENTS; i++) {
