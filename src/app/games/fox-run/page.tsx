@@ -48,6 +48,7 @@ export default function FoxRunPage() {
   const [level, setLevel] = useState(1)
   const [wordsCompletedInLevel, setWordsCompletedInLevel] = useState(0)
   const [levelComplete, setLevelComplete] = useState(false)
+  const [selectedLevel, setSelectedLevel] = useState<number | null>(null)
 
   const gameRef = useRef<{
     targetWord: string
@@ -739,7 +740,7 @@ export default function FoxRunPage() {
       lastTime = now
       state.runTime += dt
       if (mixer) mixer.update(dt)
-      state.speed = 12 + state.runTime * 0.25
+      state.speed = Math.min(12 + state.runTime * 0.25, 20)
       runSound.playbackRate = Math.min(1 + state.runTime * 0.008, 1.6)
       if (laneChangeCooldown > 0) laneChangeCooldown -= dt
       if (state.invincible > 0) state.invincible -= dt
@@ -1003,6 +1004,47 @@ export default function FoxRunPage() {
       if (container.contains(renderer.domElement)) container.removeChild(renderer.domElement)
     }
   }, [])
+
+  const WORLD_META = [
+    { icon: '🌲', label: 'Гора' },
+    { icon: '❄️', label: 'Зима' },
+    { icon: '🏜️', label: 'Пустиня' },
+    { icon: '🌊', label: 'Море' },
+    { icon: '🌙', label: 'Нощ' },
+  ]
+
+  if (selectedLevel === null) {
+    return (
+      <div className="relative w-full h-screen bg-black overflow-hidden flex flex-col items-center justify-center gap-8">
+        <button onClick={() => router.push('/games')}
+          className="absolute top-4 left-4 z-10 bg-black/50 text-white px-4 py-2 rounded-full text-sm font-medium backdrop-blur-sm border border-white/20 hover:bg-black/70 transition-all">
+          ← Назад
+        </button>
+        <h1 className="text-white text-4xl font-bold tracking-tight">Избери ниво</h1>
+        <div className="grid grid-cols-3 gap-4 px-6 sm:grid-cols-5">
+          {WORLD_META.map((w, i) => {
+            const lvl = i + 1
+            const unlocked = lvl === 1
+            return (
+              <button
+                key={lvl}
+                disabled={!unlocked}
+                onClick={() => unlocked && setSelectedLevel(lvl)}
+                className={`flex flex-col items-center gap-2 p-5 rounded-2xl border-2 transition-all
+                  ${unlocked
+                    ? 'bg-white/10 border-white/30 hover:bg-white/20 hover:scale-105 cursor-pointer'
+                    : 'bg-white/5 border-white/10 opacity-50 cursor-not-allowed'}`}
+              >
+                <span className="text-4xl">{unlocked ? w.icon : '🔒'}</span>
+                <span className="text-white font-bold text-lg">{lvl}</span>
+                <span className="text-white/60 text-xs">{w.label}</span>
+              </button>
+            )
+          })}
+        </div>
+      </div>
+    )
+  }
 
   return (
     <div className="relative w-full h-screen bg-black overflow-hidden">
