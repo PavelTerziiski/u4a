@@ -71,7 +71,7 @@ export default function FoxRunPage() {
     renderer.shadowMap.enabled = true
     renderer.shadowMap.type = THREE.PCFSoftShadowMap
     renderer.toneMapping = THREE.ACESFilmicToneMapping
-    renderer.toneMappingExposure = 1.2
+    renderer.toneMappingExposure = 1.0
     renderer.outputColorSpace = THREE.SRGBColorSpace
     // --- МУЗИКА ---
     const musicTracks = ['/sounds/fox-run-music-1.mp3', '/sounds/fox-run-music-2.mp3']
@@ -99,8 +99,8 @@ export default function FoxRunPage() {
 
     // --- SCENE ---
     const scene = new THREE.Scene()
-    scene.background = new THREE.Color(0xb8e4f9)
-    scene.fog = new THREE.Fog(0xa0d4f0, 40, 120)
+    scene.background = new THREE.Color(0x87CEEB)
+    scene.fog = new THREE.Fog(0x87CEEB, 40, 120)
 
     // --- CAMERA ---
     const camera = new THREE.PerspectiveCamera(
@@ -296,11 +296,11 @@ export default function FoxRunPage() {
       const geoH = new THREE.PlaneGeometry(hillWidth, SEGMENT_LENGTH)
       const hL = new THREE.Mesh(geoH, hillMat)
       hL.rotation.x = -Math.PI / 2; hL.rotation.z = 0.3
-      hL.position.set(-(PATH_WIDTH / 2 + grassWidth + hillWidth / 2), 0, -i * SEGMENT_LENGTH)
+      hL.position.set(-(PATH_WIDTH / 2 + grassWidth + hillWidth / 2), -0.05, -i * SEGMENT_LENGTH)
       hL.receiveShadow = true; scene.add(hL); hillSegments.push(hL)
       const hR = new THREE.Mesh(geoH, hillMat)
       hR.rotation.x = -Math.PI / 2; hR.rotation.z = -0.3
-      hR.position.set(PATH_WIDTH / 2 + grassWidth + hillWidth / 2, 0, -i * SEGMENT_LENGTH)
+      hR.position.set(PATH_WIDTH / 2 + grassWidth + hillWidth / 2, -0.05, -i * SEGMENT_LENGTH)
       hR.receiveShadow = true; scene.add(hR); hillSegments.push(hR)
     }
 
@@ -841,7 +841,7 @@ export default function FoxRunPage() {
     composer.addPass(new RenderPass(scene, camera))
     composer.addPass(new UnrealBloomPass(
       new THREE.Vector2(container.clientWidth, container.clientHeight),
-      0.4, 0.3, 0.8
+      0.8, 0.4, 0.6
     ))
 
     animate()
