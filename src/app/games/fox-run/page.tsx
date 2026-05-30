@@ -98,7 +98,7 @@ export default function FoxRunPage() {
     renderer.shadowMap.enabled = true
     renderer.shadowMap.type = THREE.PCFSoftShadowMap
     renderer.toneMapping = THREE.ACESFilmicToneMapping
-    renderer.toneMappingExposure = 1.0
+    renderer.toneMappingExposure = 0.85
     renderer.outputColorSpace = THREE.SRGBColorSpace
     // --- МУЗИКА ---
     const musicTracks = ['/sounds/fox-run-music-1.mp3', '/sounds/fox-run-music-2.mp3']
@@ -189,6 +189,12 @@ export default function FoxRunPage() {
     const grassTex = texLoader.load('/textures/grass.jpg')
     grassTex.wrapS = grassTex.wrapT = THREE.RepeatWrapping
     grassTex.repeat.set(8, 8)
+    const snowTex = texLoader.load('/textures/snow.jpg')
+    snowTex.wrapS = snowTex.wrapT = THREE.RepeatWrapping
+    snowTex.repeat.set(8, 8)
+    const snowPathTex = texLoader.load('/textures/snow-path.jpg')
+    snowPathTex.wrapS = snowPathTex.wrapT = THREE.RepeatWrapping
+    snowPathTex.repeat.set(4, 4)
     const grassMat = new THREE.MeshStandardMaterial({ color: 0x3a7a2a, map: grassTex, roughness: 0.8, metalness: 0 })
     const grassSegments: THREE.Mesh[] = []
     const grassWidth = 6
@@ -378,6 +384,26 @@ export default function FoxRunPage() {
       hR.receiveShadow = true; scene.add(hR); hillSegments.push(hR)
     }
 
+
+    function applyWorld(lv: number) {
+      const worldIdx = (lv - 1) % WORLDS.length
+      const world = WORLDS[worldIdx]
+      scene.background = new THREE.Color(world.sky)
+      ;(scene.fog as THREE.Fog).color.set(world.fog)
+      if (worldIdx === 1) {
+        // Winter
+        pathMat.map = snowPathTex; pathMat.needsUpdate = true
+        grassMat.map = snowTex; grassMat.color.set(0xddeeff); grassMat.needsUpdate = true
+        trees.forEach(tree => tree.traverse(child => {
+          const m = child as THREE.Mesh
+          if (m.isMesh && m.material) (m.material as THREE.MeshStandardMaterial).color.set(0xffffff)
+        }))
+      } else {
+        pathMat.map = groundTex; pathMat.needsUpdate = true
+        grassMat.map = grassTex; grassMat.color.set(0x3a7a2a); grassMat.needsUpdate = true
+      }
+    }
+    applyWorld(1)
 
     // --- FOX ---
     const foxGroup = new THREE.Group()
@@ -852,9 +878,7 @@ export default function FoxRunPage() {
                     setLevel(g.level); setWordsCompletedInLevel(0); setLevelComplete(false)
                     state.runTime = 0
                     g.lives = 3; setLives(3)
-                    const world = WORLDS[(g.level - 1) % WORLDS.length]
-                    scene.background = new THREE.Color(world.sky)
-                    ;(scene.fog as THREE.Fog).color.set(world.fog)
+                    applyWorld(g.level)
                     const nextWord = getNextWord()
                     g.targetWord = nextWord; g.collected = []; g.collectedIndices = new Set()
                     setTargetWord(nextWord); setCollected([])
@@ -945,7 +969,7 @@ export default function FoxRunPage() {
     composer.addPass(new RenderPass(scene, camera))
     composer.addPass(new UnrealBloomPass(
       new THREE.Vector2(container.clientWidth, container.clientHeight),
-      0.8, 0.4, 0.6
+      0.35, 0.4, 0.6
     ))
 
     animate()
