@@ -4,6 +4,9 @@ import { useEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import * as THREE from 'three'
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js'
+import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js'
+import { RenderPass } from 'three/addons/postprocessing/RenderPass.js'
+import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js'
 
 const WORDS = [
   // Животни
@@ -68,7 +71,8 @@ export default function FoxRunPage() {
     renderer.shadowMap.enabled = true
     renderer.shadowMap.type = THREE.PCFSoftShadowMap
     renderer.toneMapping = THREE.ACESFilmicToneMapping
-    renderer.toneMappingExposure = 1.3
+    renderer.toneMappingExposure = 1.2
+    renderer.outputColorSpace = THREE.SRGBColorSpace
     // --- МУЗИКА ---
     const musicTracks = ['/sounds/fox-run-music-1.mp3', '/sounds/fox-run-music-2.mp3']
     const music = new Audio(musicTracks[Math.floor(Math.random() * musicTracks.length)])
@@ -106,11 +110,11 @@ export default function FoxRunPage() {
     camera.lookAt(0, 1.5, -4)
 
     // --- LIGHTS ---
-    scene.add(new THREE.AmbientLight(0xffeedd, 2.2))
-    const sun = new THREE.DirectionalLight(0xfffbe0, 6.0)
+    scene.add(new THREE.AmbientLight(0xffeedd, 0.4))
+    const sun = new THREE.DirectionalLight(0xfffbe0, 2.5)
     sun.position.set(8, 18, 8)
     sun.castShadow = true
-    sun.shadow.mapSize.set(2048, 2048)
+    sun.shadow.mapSize.set(1024, 1024)
     sun.shadow.camera.left = -25
     sun.shadow.camera.right = 25
     sun.shadow.camera.top = 25
@@ -130,8 +134,8 @@ export default function FoxRunPage() {
     const NUM_SEGMENTS = 22
 
     // --- PATH ---
-    const pathMat = new THREE.MeshLambertMaterial({ color: 0x2a1a0e })
-    const edgeMat = new THREE.MeshLambertMaterial({ color: 0x1a0e06 })
+    const pathMat = new THREE.MeshStandardMaterial({ color: 0x2a1a0e, roughness: 0.9, metalness: 0 })
+    const edgeMat = new THREE.MeshStandardMaterial({ color: 0x1a0e06, roughness: 0.9, metalness: 0 })
     const segments: THREE.Mesh[] = []
 
     for (let i = 0; i < NUM_SEGMENTS; i++) {
@@ -151,7 +155,7 @@ export default function FoxRunPage() {
     }
 
     // --- GRASS ---
-    const grassMat = new THREE.MeshLambertMaterial({ color: 0x3a8c3a })
+    const grassMat = new THREE.MeshStandardMaterial({ color: 0x3a8c3a, roughness: 0.8, metalness: 0 })
     const grassSegments: THREE.Mesh[] = []
     const grassWidth = 6
     for (let i = 0; i < NUM_SEGMENTS; i++) {
@@ -186,11 +190,11 @@ export default function FoxRunPage() {
       const trunkH = (1.8 + Math.random() * 1.2) * scale
       const trunk = new THREE.Mesh(
         new THREE.CylinderGeometry(0.12 * scale, 0.2 * scale, trunkH, 6),
-        new THREE.MeshLambertMaterial({ color: 0x2d1508 })
+        new THREE.MeshStandardMaterial({ color: 0x2d1508, roughness: 0.85, metalness: 0 })
       )
       trunk.position.y = trunkH / 2; trunk.castShadow = true; g.add(trunk)
       const greens = [0x0d3a08, 0x124a0c, 0x1a5c12, 0x0f4510]
-      const leafMat = new THREE.MeshLambertMaterial({ color: greens[Math.floor(Math.random() * greens.length)] })
+      const leafMat = new THREE.MeshStandardMaterial({ color: greens[Math.floor(Math.random() * greens.length)], roughness: 0.85, metalness: 0 })
       const layers = 3 + Math.floor(Math.random() * 2)
       for (let l = 0; l < layers; l++) {
         const cone = new THREE.Mesh(new THREE.ConeGeometry((1.4 - l * 0.22) * scale, 1.8 * scale, 7), leafMat)
@@ -204,13 +208,13 @@ export default function FoxRunPage() {
       const trunkH = (1.5 + Math.random() * 1.0) * scale
       const trunk = new THREE.Mesh(
         new THREE.CylinderGeometry(0.14 * scale, 0.22 * scale, trunkH, 7),
-        new THREE.MeshLambertMaterial({ color: 0x5c3317 })
+        new THREE.MeshStandardMaterial({ color: 0x5c3317, roughness: 0.85, metalness: 0 })
       )
       trunk.position.y = trunkH / 2; trunk.castShadow = true; g.add(trunk)
       const crownR = (1.3 + Math.random() * 0.5) * scale
       const crown = new THREE.Mesh(
         new THREE.SphereGeometry(crownR, 8, 6),
-        new THREE.MeshLambertMaterial({ color: 0x27ae60 })
+        new THREE.MeshStandardMaterial({ color: 0x27ae60, roughness: 0.85, metalness: 0 })
       )
       crown.position.y = trunkH + crownR * 0.8; crown.castShadow = true; g.add(crown)
       g.position.set(x, 0, z); scene.add(g); return g
@@ -221,16 +225,16 @@ export default function FoxRunPage() {
       const trunkH = (1.2 + Math.random() * 0.8) * scale
       const trunk = new THREE.Mesh(
         new THREE.CylinderGeometry(0.1 * scale, 0.18 * scale, trunkH, 6),
-        new THREE.MeshLambertMaterial({ color: 0x4a2506 })
+        new THREE.MeshStandardMaterial({ color: 0x4a2506, roughness: 0.85, metalness: 0 })
       )
       trunk.position.y = trunkH / 2; trunk.castShadow = true; g.add(trunk)
       const crownR = (1.0 + Math.random() * 0.4) * scale
       const crown = new THREE.Mesh(
         new THREE.SphereGeometry(crownR, 8, 6),
-        new THREE.MeshLambertMaterial({ color: 0x2ecc71 })
+        new THREE.MeshStandardMaterial({ color: 0x2ecc71, roughness: 0.85, metalness: 0 })
       )
       crown.position.y = trunkH + crownR * 0.85; crown.castShadow = true; g.add(crown)
-      const fruitMat = new THREE.MeshLambertMaterial({ color: 0xe74c3c })
+      const fruitMat = new THREE.MeshStandardMaterial({ color: 0xe74c3c, roughness: 0.7, metalness: 0 })
       const fruitCount = 5 + Math.floor(Math.random() * 4)
       for (let f = 0; f < fruitCount; f++) {
         const theta = Math.random() * Math.PI * 2
@@ -268,7 +272,7 @@ export default function FoxRunPage() {
 
     // --- FLOWERS ---
     const flowerColors = [0xf1c40f, 0x9b59b6, 0xe74c3c]
-    const stemMat = new THREE.MeshLambertMaterial({ color: 0x2ecc71 })
+    const stemMat = new THREE.MeshStandardMaterial({ color: 0x2ecc71, roughness: 0.8, metalness: 0 })
     const flowers: THREE.Group[] = []
     for (let i = 0; i < NUM_SEGMENTS * 4; i++) {
       const side = Math.random() > 0.5 ? 1 : -1
@@ -279,13 +283,13 @@ export default function FoxRunPage() {
       const fg = new THREE.Group()
       const stem = new THREE.Mesh(new THREE.CylinderGeometry(0.02, 0.02, stemH, 5), stemMat)
       stem.position.y = stemH / 2; fg.add(stem)
-      const head = new THREE.Mesh(new THREE.SphereGeometry(0.1, 6, 6), new THREE.MeshLambertMaterial({ color }))
+      const head = new THREE.Mesh(new THREE.SphereGeometry(0.1, 6, 6), new THREE.MeshStandardMaterial({ color, roughness: 0.8, metalness: 0 }))
       head.position.y = stemH + 0.1; fg.add(head)
       fg.position.set(x, 0, z); scene.add(fg); flowers.push(fg)
     }
 
     // --- HILLS ---
-    const hillMat = new THREE.MeshLambertMaterial({ color: 0x5d4037, side: THREE.DoubleSide })
+    const hillMat = new THREE.MeshStandardMaterial({ color: 0x5d4037, roughness: 0.9, metalness: 0, side: THREE.DoubleSide })
     const hillWidth = 10
     const hillSegments: THREE.Mesh[] = []
     for (let i = 0; i < NUM_SEGMENTS; i++) {
@@ -386,8 +390,8 @@ export default function FoxRunPage() {
         const color = orbColors[Math.floor(Math.random() * orbColors.length)]
 
         const orbGeo = new THREE.SphereGeometry(0.38, 16, 16)
-        const orbMat = new THREE.MeshLambertMaterial({
-          color, emissive: color, emissiveIntensity: 0.3,
+        const orbMat = new THREE.MeshStandardMaterial({
+          color, emissive: color, emissiveIntensity: 0.6, roughness: 0.3, metalness: 0.1,
         })
         const orb = new THREE.Mesh(orbGeo, orbMat)
         orb.position.set(lane * LANE_WIDTH, 1.3, zPos)
@@ -609,10 +613,11 @@ export default function FoxRunPage() {
     // --- ANIMATION LOOP ---
     let lastTime = performance.now()
     let animId: number
+    let composer: EffectComposer
 
     function animate() {
       animId = requestAnimationFrame(animate)
-      if (gameRef.current.dead) { renderer.render(scene, camera); return }
+      if (gameRef.current.dead) { composer.render(); return }
 
       const now = performance.now()
       const dt = Math.min((now - lastTime) / 1000, 0.05)
@@ -829,8 +834,16 @@ export default function FoxRunPage() {
       camera.position.y += (camTargetY - camera.position.y) * dt * 4
       camera.lookAt(foxGroup.position.x * 0.4, 1.5 + foxGroup.position.y * 0.2, -5)
 
-      renderer.render(scene, camera)
+      composer.render()
     }
+
+    // --- POSTPROCESSING ---
+    composer = new EffectComposer(renderer)
+    composer.addPass(new RenderPass(scene, camera))
+    composer.addPass(new UnrealBloomPass(
+      new THREE.Vector2(container.clientWidth, container.clientHeight),
+      0.4, 0.3, 0.8
+    ))
 
     animate()
 
@@ -840,6 +853,7 @@ export default function FoxRunPage() {
       camera.aspect = container.clientWidth / container.clientHeight
       camera.updateProjectionMatrix()
       renderer.setSize(container.clientWidth, container.clientHeight)
+      composer.setSize(container.clientWidth, container.clientHeight)
     }
     window.addEventListener('resize', onResize)
 
