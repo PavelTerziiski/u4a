@@ -62,7 +62,7 @@ export default function FoxRunPage() {
   }>({ targetWord: '', collected: [], score: 0, lives: 3, dead: false, level: 1, wordsCompletedInLevel: 0 })
 
   useEffect(() => {
-    if (!mountRef.current) return
+    if (!selectedLevel || !mountRef.current) return
     const container = mountRef.current
 
     // Shuffled word deck — no repeats until all words used
@@ -405,7 +405,7 @@ export default function FoxRunPage() {
           const m = child as THREE.Mesh
           if (m.isMesh && m.material) (m.material as THREE.MeshStandardMaterial).color.set(0xffffff)
         }))
-        music.src = '/sounds/forest-story.mp3'
+        music.src = '/sounds/forest-story-hyperfusion.mp3'
         music.play().catch(() => {})
       } else {
         bloomPass.strength = 0.35
@@ -550,27 +550,39 @@ export default function FoxRunPage() {
     function spawnObstacle(zPos: number) {
       const lane = [-1, 0, 1][Math.floor(Math.random() * 3)]
       const roll = Math.random()
+      const isWinter = gameRef.current.level === 2
       let geo: THREE.BufferGeometry
       let mat: THREE.MeshLambertMaterial
       let type: 'rock' | 'log' | 'bush'
       let posY: number
       if (roll < 0.33) {
         geo = new THREE.CylinderGeometry(0.25, 0.25, LANE_WIDTH * 0.8, 8)
-        mat = new THREE.MeshLambertMaterial({ color: 0x8B5E3C })
+        mat = new THREE.MeshLambertMaterial({ color: isWinter ? 0xddeeff : 0x8B5E3C })
         type = 'log'; posY = 0.25
       } else if (roll < 0.66) {
         geo = new THREE.DodecahedronGeometry(0.45, 0)
-        mat = new THREE.MeshLambertMaterial({ color: 0x667788 })
+        mat = new THREE.MeshLambertMaterial({ color: isWinter ? 0xa8d8ea : 0x667788 })
         type = 'rock'; posY = 0.45
       } else {
         geo = new THREE.SphereGeometry(0.5, 8, 8)
-        mat = new THREE.MeshLambertMaterial({ color: 0x2d7a2d })
+        mat = new THREE.MeshLambertMaterial({ color: isWinter ? 0xffffff : 0x2d7a2d })
         type = 'bush'; posY = 0.5
       }
       const mesh = new THREE.Mesh(geo, mat)
       mesh.position.set(lane * LANE_WIDTH, posY, zPos)
       if (type === 'log') mesh.rotation.z = Math.PI / 2
       mesh.castShadow = true
+      // За зимен храст добави малки снежни конусчета наоколо
+      if (isWinter && type === 'bush') {
+        const snowMat = new THREE.MeshLambertMaterial({ color: 0xffffff })
+        for (let s = 0; s < 4; s++) {
+          const spike = new THREE.Mesh(new THREE.ConeGeometry(0.08, 0.22, 5), snowMat)
+          const angle = (s / 4) * Math.PI * 2
+          spike.position.set(Math.cos(angle) * 0.35, posY + 0.1, Math.sin(angle) * 0.35)
+          scene.add(spike)
+          obstacles.push({ mesh: spike, lane, type: 'bush' })
+        }
+      }
       scene.add(mesh)
       obstacles.push({ mesh, lane, type })
     }
@@ -744,7 +756,7 @@ export default function FoxRunPage() {
       lastTime = now
       state.runTime += dt
       if (mixer) mixer.update(dt)
-      state.speed = Math.min(12 + state.runTime * 0.25, 20)
+      state.speed = Math.min(12 + state.runTime * 0.25, 24 + gameRef.current.level * 2)
       runSound.playbackRate = Math.min(1 + state.runTime * 0.008, 1.6)
       if (laneChangeCooldown > 0) laneChangeCooldown -= dt
       if (state.invincible > 0) state.invincible -= dt
