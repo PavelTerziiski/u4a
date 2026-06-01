@@ -542,7 +542,8 @@ export default function FoxRunPage() {
       cx.fillStyle = 'rgba(10,20,80,0.95)'
       cx.roundRect(16, 16, 992, 480, 40); cx.fill()
       cx.fillStyle = '#ffffff'
-      cx.font = 'bold 200px Nunito, Arial, sans-serif'
+      const fontSize = word.length > 6 ? 140 : word.length > 4 ? 170 : 200
+      cx.font = `bold ${fontSize}px Nunito, Arial, sans-serif`
       cx.textAlign = 'center'; cx.textBaseline = 'middle'
       cx.fillText(word, 512, 270)
       const tex = new THREE.CanvasTexture(cv)
@@ -1166,8 +1167,7 @@ export default function FoxRunPage() {
       hintTimers.push(setTimeout(() => setHint('⬆️ Прескочи препятствието!'), 5000))
       hintTimers.push(setTimeout(() => setHint('↔️ Смени лентата!'), 8000))
       hintTimers.push(setTimeout(() => setHint('🔤 Събирай букви и прави думи!'), 11000))
-      hintTimers.push(setTimeout(() => setHint('🦊 Начало!'), 13000))
-      hintTimers.push(setTimeout(() => setHint(null), 14500))
+      hintTimers.push(setTimeout(() => setHint(null), 13500))
     }
 
     function onResize() {
