@@ -421,9 +421,12 @@ export default function FoxRunPage() {
         bloomPass.strength = 0.2
         pathMat.map = sandPathTex; pathMat.needsUpdate = true
         grassMat.map = sandTex; grassMat.color.set(0xc2a45a); grassMat.needsUpdate = true
+        const cactusGeo = new THREE.CylinderGeometry(0.15, 0.15, 1.5, 6)
         trees.forEach(tree => tree.traverse(child => {
           const m = child as THREE.Mesh
-          if (m.isMesh && m.material) (m.material as THREE.MeshStandardMaterial).color.set(0x8B6914)
+          if (!m.isMesh) return
+          m.geometry = cactusGeo
+          ;(m.material as THREE.MeshStandardMaterial).color.set(0x4a7c2f)
         }))
         music.src = '/sounds/fox-run-music-1.mp3'
         music.play().catch(() => {})
