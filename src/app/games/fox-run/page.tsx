@@ -522,6 +522,7 @@ export default function FoxRunPage() {
       char: string
       lane: number
       collected: boolean
+      isCorrectPair?: boolean
     }
     const letterOrbs: LetterOrb[] = []
 
@@ -531,9 +532,49 @@ export default function FoxRunPage() {
       document.fonts.add(font)
     })()
 
+    function drawWordOrb(word: string, color: number, lane: number, zPos: number, isCorrect: boolean) {
+      const orbGeo = new THREE.SphereGeometry(0.38, 16, 16)
+      const orbMat = new THREE.MeshStandardMaterial({ color, emissive: color, emissiveIntensity: 0.6, roughness: 0.3, metalness: 0.1 })
+      const orb = new THREE.Mesh(orbGeo, orbMat)
+      orb.scale.set(1.8, 1.8, 1)
+      orb.position.set(lane * LANE_WIDTH, 1.3, zPos)
+      scene.add(orb)
+      const glowGeo = new THREE.TorusGeometry(0.68, 0.07, 8, 24)
+      const glowMat = new THREE.MeshBasicMaterial({ color, transparent: true, opacity: 0.5 })
+      const glow = new THREE.Mesh(glowGeo, glowMat)
+      glow.position.copy(orb.position)
+      scene.add(glow)
+      const cv = document.createElement('canvas')
+      cv.setAttribute('lang', 'bg'); cv.width = 512; cv.height = 256
+      const cx = cv.getContext('2d')!
+      cx.clearRect(0, 0, 512, 256)
+      cx.beginPath(); cx.arc(256, 128, 120, 0, Math.PI * 2)
+      cx.fillStyle = 'rgba(0,0,0,0.5)'; cx.fill()
+      cx.fillStyle = '#ffffff'
+      cx.font = 'bold 48px Nunito, Arial, sans-serif'
+      cx.textAlign = 'center'; cx.textBaseline = 'middle'
+      cx.fillText(word, 256, 128)
+      const tex = new THREE.CanvasTexture(cv)
+      const sprite = new THREE.Sprite(new THREE.SpriteMaterial({ map: tex, transparent: true, depthTest: false }))
+      sprite.scale.set(1.8, 0.9, 1)
+      sprite.position.set(0, 0, 0.56)
+      orb.add(sprite)
+      letterOrbs.push({ mesh: orb, glow, char: word, lane, collected: false, isCorrectPair: isCorrect })
+    }
+
     async function spawnLetter(zPos: number) {
       await fontLoadPromise
       const g = gameRef.current
+
+      // Ниво 3: избор правилна/грешна дума
+      if (g.level === 3) {
+        const pair = WORD_PAIRS[Math.floor(Math.random() * WORD_PAIRS.length)]
+        const correctLeft = Math.random() > 0.5
+        drawWordOrb(pair[0], 0x00cc44, correctLeft ? -1 : 1, zPos, true)
+        drawWordOrb(pair[1], 0xcc2244, correctLeft ? 1 : -1, zPos, false)
+        return
+      }
+
       if (!g.targetWord) return
 
       // Всички букви от думата които още не са събрани
@@ -962,11 +1003,47 @@ export default function FoxRunPage() {
           orb.collected = true
           scene.remove(orb.mesh); scene.remove(orb.glow)
           const g = gameRef.current
+
+          // --- НИВО 3 ЛОГИКА ---
+          if (g.level === 3) {
+            letterOrbs.forEach(o => { if (!o.collected) { scene.remove(o.mesh); scene.remove(o.glow); o.collected = true } })
+            if (orb.isCorrectPair) {
+              playCollect()
+              spawnBurst(orb.mesh.position.clone(), 0x00cc44)
+              const newScore = g.score + 30; g.score = newScore; setScore(newScore)
+              g.wordsCompletedInLevel++
+              const wordsNeeded = g.level + 4
+              if (g.wordsCompletedInLevel >= wordsNeeded) {
+                setWordsCompletedInLevel(g.wordsCompletedInLevel); setLevelComplete(true)
+                setTimeout(() => {
+                  g.level++; g.wordsCompletedInLevel = 0
+                  setLevel(g.level); setWordsCompletedInLevel(0); setLevelComplete(false)
+                  state.runTime = 0; g.lives = 3; setLives(3)
+                  applyWorld(g.level)
+                  const nextWord = getNextWord()
+                  g.targetWord = nextWord; g.collected = []; g.collectedIndices = new Set()
+                  setTargetWord(nextWord); setCollected([])
+                  const lvlBonus = g.score + 100; g.score = lvlBonus; setScore(lvlBonus)
+                }, 2000)
+              } else {
+                setWordsCompletedInLevel(g.wordsCompletedInLevel)
+              }
+            } else {
+              playWrong()
+              spawnBurst(orb.mesh.position.clone(), 0xff4444)
+              if (state.invincible <= 0) {
+                state.invincible = 2.5
+                const newLives = g.lives - 1; g.lives = newLives; setLives(newLives)
+                if (newLives <= 0) { g.dead = true; setGameOver(true) }
+              }
+            }
+            return
+          }
+
+          // --- НОРМАЛНА ЛОГИКА (нива 1-2) ---
           const wordArr = g.targetWord.split('')
-          // collectedIndices е Set<number> - кои позиции са събрани
           if (!g.collectedIndices) g.collectedIndices = new Set<number>()
           const indices = g.collectedIndices as Set<number>
-          // Намери първата несъбрана позиция с тази буква
           const targetIdx = wordArr.findIndex((l, i) => l === orb.char && !indices.has(i))
           const isNeeded = targetIdx !== -1
           if (isNeeded) {
@@ -1176,23 +1253,32 @@ export default function FoxRunPage() {
 
       {/* Word UI */}
       <div className="absolute top-4 left-1/2 -translate-x-1/2 z-10 flex flex-col items-center gap-2">
-        <div className="text-white/50 text-xs uppercase tracking-widest">Събери думата</div>
-        <div className="flex gap-2">
-          {(targetWord || '').split('').map((letter, i) => (
-            <div key={i} className={`w-10 h-10 rounded-xl flex items-center justify-center text-lg font-bold border-2 transition-all duration-300 ${
-              collected[i]
-                ? 'bg-yellow-400 border-yellow-300 text-gray-900 scale-110'
-                : 'bg-black/40 border-white/20 text-gray-600'
-            }`}>
-              {collected[i] ?? letter}
+        {level !== 3 && (
+          <>
+            <div className="text-white/50 text-xs uppercase tracking-widest">Събери думата</div>
+            <div className="flex gap-2">
+              {(targetWord || '').split('').map((letter, i) => (
+                <div key={i} className={`w-10 h-10 rounded-xl flex items-center justify-center text-lg font-bold border-2 transition-all duration-300 ${
+                  collected[i]
+                    ? 'bg-yellow-400 border-yellow-300 text-gray-900 scale-110'
+                    : 'bg-black/40 border-white/20 text-gray-600'
+                }`}>
+                  {collected[i] ?? letter}
+                </div>
+              ))}
             </div>
-          ))}
-        </div>
+          </>
+        )}
+        {level === 3 && (
+          <div className="text-white text-lg font-bold bg-black/40 px-4 py-2 rounded-xl backdrop-blur-sm">
+            🟢 Избери правилната дума!
+          </div>
+        )}
         <div className="text-white/60 text-xs font-medium">
           Ниво {level} • {wordsCompletedInLevel}/{level + 4} думи
         </div>
         <div className="text-white/40 text-xs">
-          {level <= 2 ? 'Събери буквите за всяка дума' : 'Избери правилната дума!'}
+          {level <= 2 ? 'Събери буквите за всяка дума' : 'Зелено = правилно • Червено = грешно'}
         </div>
       </div>
 
