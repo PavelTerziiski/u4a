@@ -1164,13 +1164,7 @@ export default function FoxRunPage() {
 
     if (startLevel !== 1) spawnLetter(-20)
 
-    const hintTimers: ReturnType<typeof setTimeout>[] = []
-    if (selectedLevel === 1) {
-      hintTimers.push(setTimeout(() => setHint('⬆️ Прескочи препятствието!'), 5000))
-      hintTimers.push(setTimeout(() => setHint('↔️ Смени лентата!'), 8000))
-      hintTimers.push(setTimeout(() => setHint('🔤 Събирай букви и прави думи!'), 11000))
-      hintTimers.push(setTimeout(() => setHint(null), 13500))
-    }
+
 
     function onResize() {
       camera.aspect = container.clientWidth / container.clientHeight
@@ -1191,7 +1185,6 @@ export default function FoxRunPage() {
       music.src = ''
       runSound.pause()
       runSound.src = ''
-      hintTimers.forEach(t => clearTimeout(t))
       renderer.dispose()
       if (container.contains(renderer.domElement)) container.removeChild(renderer.domElement)
     }
@@ -1276,11 +1269,6 @@ export default function FoxRunPage() {
         </div>
       )}
 
-      {hint && (
-        <div className="absolute top-48 left-1/2 -translate-x-1/2 z-20 bg-black/70 text-white text-xl font-bold px-6 py-3 rounded-2xl backdrop-blur-sm animate-pulse">
-          {hint}
-        </div>
-      )}
 
       {/* Level complete overlay */}
       {levelComplete && (
