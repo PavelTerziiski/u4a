@@ -775,7 +775,7 @@ export default function FoxRunPage() {
       runTime: 0,
       invincible: 0,
       letterSpawnTimer: 1.5,
-      obstacleSpawnZ: -35 - 6 * 22,
+      obstacleSpawnZ: startLevel === 1 ? -80 - 6 * 22 : -35 - 6 * 22,
     }
 
     const JUMP_FORCE = 9
@@ -1163,11 +1163,11 @@ export default function FoxRunPage() {
 
     const hintTimers: ReturnType<typeof setTimeout>[] = []
     if (selectedLevel === 1) {
-      hintTimers.push(setTimeout(() => setHint('⬆️ Прескочи препятствието!'), 3000))
-      hintTimers.push(setTimeout(() => setHint('↔️ Смени лентата!'), 6000))
-      hintTimers.push(setTimeout(() => setHint('🔤 Събирай букви и прави думи!'), 9000))
-      hintTimers.push(setTimeout(() => setHint('🦊 Начало!'), 12000))
-      hintTimers.push(setTimeout(() => setHint(null), 13500))
+      hintTimers.push(setTimeout(() => setHint('⬆️ Прескочи препятствието!'), 5000))
+      hintTimers.push(setTimeout(() => setHint('↔️ Смени лентата!'), 8000))
+      hintTimers.push(setTimeout(() => setHint('🔤 Събирай букви и прави думи!'), 11000))
+      hintTimers.push(setTimeout(() => setHint('🦊 Начало!'), 13000))
+      hintTimers.push(setTimeout(() => setHint(null), 14500))
     }
 
     function onResize() {
