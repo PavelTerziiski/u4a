@@ -778,6 +778,7 @@ export default function FoxRunPage() {
       letterSpawnTimer: startLevel === 3 ? -6 : startLevel === 1 ? -11 : 1.5,
       obstacleSpawnZ: startLevel === 1 ? -80 - 6 * 22 : -35 - 6 * 22,
     }
+    console.log('letterSpawnTimer init:', state.letterSpawnTimer, 'startLevel:', startLevel)
 
     const JUMP_FORCE = 9
     const GRAVITY = -22
