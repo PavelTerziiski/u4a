@@ -395,6 +395,32 @@ export default function FoxRunPage() {
     }
 
 
+    const desertCacti: THREE.Group[] = []
+    function spawnDesertCacti() {
+      const mat = new THREE.MeshLambertMaterial({ color: 0x4a7c2f })
+      const count = 24 + Math.floor(Math.random() * 9)
+      for (let i = 0; i < count; i++) {
+        const side = Math.random() > 0.5 ? 1 : -1
+        const x = side * (PATH_WIDTH / 2 + 2 + Math.random() * 9)
+        const z = -Math.random() * NUM_SEGMENTS * SEGMENT_LENGTH
+        const g = new THREE.Group()
+        const trunk = new THREE.Mesh(new THREE.CylinderGeometry(0.12, 0.15, 1.8, 6), mat)
+        trunk.position.y = 0.9; g.add(trunk)
+        const armH = 0.35 + Math.random() * 0.35
+        ;[-1, 1].forEach((dir, idx) => {
+          const arm = new THREE.Mesh(new THREE.CylinderGeometry(0.07, 0.07, 0.5, 6), mat)
+          arm.rotation.z = Math.PI / 2
+          arm.position.set(dir * 0.28, armH + idx * 0.18, 0)
+          g.add(arm)
+        })
+        g.position.set(x, 0, z)
+        g.visible = false
+        scene.add(g)
+        desertCacti.push(g)
+      }
+    }
+    spawnDesertCacti()
+
     const bloomPass = new UnrealBloomPass(
       new THREE.Vector2(container.clientWidth, container.clientHeight),
       0.35, 0.4, 0.6
@@ -414,6 +440,7 @@ export default function FoxRunPage() {
           const m = child as THREE.Mesh
           if (m.isMesh && m.material) (m.material as THREE.MeshStandardMaterial).color.set(0xffffff)
         }) })
+        desertCacti.forEach(c => { c.visible = false })
         music.src = '/sounds/forest-story-hyperfusion.mp3'
         music.play().catch(() => {})
       } else if (worldIdx === 2) {
@@ -421,10 +448,8 @@ export default function FoxRunPage() {
         bloomPass.strength = 0.2
         pathMat.map = sandPathTex; pathMat.needsUpdate = true
         grassMat.map = sandTex; grassMat.color.set(0xc2a45a); grassMat.needsUpdate = true
-        trees.forEach(tree => { tree.visible = true; tree.traverse(child => {
-          const m = child as THREE.Mesh
-          if (m.isMesh && m.material) (m.material as THREE.MeshStandardMaterial).color.set(0x4a7c2f)
-        }) })
+        trees.forEach(tree => { tree.visible = false })
+        desertCacti.forEach(c => { c.visible = true })
         music.src = '/sounds/fox-run-music-1.mp3'
         music.play().catch(() => {})
       } else {
@@ -435,6 +460,7 @@ export default function FoxRunPage() {
           const m = child as THREE.Mesh
           if (m.isMesh && m.material) (m.material as THREE.MeshStandardMaterial).color.set(0x3a8c3a)
         }) })
+        desertCacti.forEach(c => { c.visible = false })
         music.src = musicTracks[Math.floor(Math.random() * musicTracks.length)]
         music.play().catch(() => {})
       }
@@ -881,6 +907,14 @@ export default function FoxRunPage() {
           const side = tree.position.x > 0 ? 1 : -1
           tree.position.z -= NUM_SEGMENTS * SEGMENT_LENGTH + Math.random() * 20
           tree.position.x = side * (PATH_WIDTH / 2 + 1.2 + 2 + Math.random() * 5)
+        }
+      })
+      desertCacti.forEach(c => {
+        c.position.z += moveZ
+        if (c.position.z > 10) {
+          const side = c.position.x > 0 ? 1 : -1
+          c.position.z -= NUM_SEGMENTS * SEGMENT_LENGTH + Math.random() * 20
+          c.position.x = side * (PATH_WIDTH / 2 + 2 + Math.random() * 9)
         }
       })
 
