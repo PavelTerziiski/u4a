@@ -87,6 +87,9 @@ export default function FoxRunPage() {
       { sky: 0x1a1a2e, fog: 0x16213e },
     ]
 
+    // Apply selected level
+    gameRef.current.level = selectedLevel ?? 1
+
     // Pick first word
     const firstWord = getNextWord()
     gameRef.current.targetWord = firstWord
@@ -432,7 +435,7 @@ export default function FoxRunPage() {
         music.play().catch(() => {})
       }
     }
-    applyWorld(1)
+    applyWorld(selectedLevel ?? 1)
 
     // --- FOX ---
     const foxGroup = new THREE.Group()
