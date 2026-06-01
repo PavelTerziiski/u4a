@@ -196,6 +196,12 @@ export default function FoxRunPage() {
     const snowPathTex = texLoader.load('/textures/snow-path.jpg')
     snowPathTex.wrapS = snowPathTex.wrapT = THREE.RepeatWrapping
     snowPathTex.repeat.set(4, 4)
+    const sandTex = texLoader.load('/textures/sand.jpg')
+    sandTex.wrapS = sandTex.wrapT = THREE.RepeatWrapping
+    sandTex.repeat.set(8, 8)
+    const sandPathTex = texLoader.load('/textures/sand-path.jpg')
+    sandPathTex.wrapS = sandPathTex.wrapT = THREE.RepeatWrapping
+    sandPathTex.repeat.set(4, 4)
     const grassMat = new THREE.MeshStandardMaterial({ color: 0x3a7a2a, map: grassTex, roughness: 0.8, metalness: 0 })
     const grassSegments: THREE.Mesh[] = []
     const grassWidth = 6
@@ -407,6 +413,17 @@ export default function FoxRunPage() {
         }))
         music.src = '/sounds/forest-story-hyperfusion.mp3'
         music.play().catch(() => {})
+      } else if (worldIdx === 2) {
+        // Desert
+        bloomPass.strength = 0.2
+        pathMat.map = sandPathTex; pathMat.needsUpdate = true
+        grassMat.map = sandTex; grassMat.color.set(0xc2a45a); grassMat.needsUpdate = true
+        trees.forEach(tree => tree.traverse(child => {
+          const m = child as THREE.Mesh
+          if (m.isMesh && m.material) (m.material as THREE.MeshStandardMaterial).color.set(0x8B6914)
+        }))
+        music.src = '/sounds/fox-run-music-1.mp3'
+        music.play().catch(() => {})
       } else {
         bloomPass.strength = 0.35
         pathMat.map = groundTex; pathMat.needsUpdate = true
@@ -550,41 +567,72 @@ export default function FoxRunPage() {
     function spawnObstacle(zPos: number) {
       const lane = [-1, 0, 1][Math.floor(Math.random() * 3)]
       const roll = Math.random()
-      const isWinter = gameRef.current.level === 2
+      const lvl = gameRef.current.level
+      const isWinter = lvl === 2
+      const isDesert = lvl === 3
       let geo: THREE.BufferGeometry
       let mat: THREE.MeshLambertMaterial
       let type: 'rock' | 'log' | 'bush'
       let posY: number
+
       if (roll < 0.33) {
-        geo = new THREE.CylinderGeometry(0.25, 0.25, LANE_WIDTH * 0.8, 8)
-        mat = new THREE.MeshLambertMaterial({ color: isWinter ? 0xddeeff : 0x8B5E3C })
-        type = 'log'; posY = 0.25
+        // Log / Ice log / Cactus
+        if (isDesert) {
+          // Кактус — вертикален цилиндър + две ръце
+          geo = new THREE.CylinderGeometry(0.15, 0.15, 1.2, 6)
+          mat = new THREE.MeshLambertMaterial({ color: 0x4a7c2f })
+          type = 'log'; posY = 0.6
+        } else {
+          geo = new THREE.CylinderGeometry(0.25, 0.25, LANE_WIDTH * 0.8, 8)
+          mat = new THREE.MeshLambertMaterial({ color: isWinter ? 0xddeeff : 0x8B5E3C })
+          type = 'log'; posY = 0.25
+        }
       } else if (roll < 0.66) {
         geo = new THREE.DodecahedronGeometry(0.45, 0)
-        mat = new THREE.MeshLambertMaterial({ color: isWinter ? 0xa8d8ea : 0x667788 })
+        mat = new THREE.MeshLambertMaterial({ color: isWinter ? 0xa8d8ea : isDesert ? 0xc19a6b : 0x667788 })
         type = 'rock'; posY = 0.45
       } else {
-        geo = new THREE.SphereGeometry(0.5, 8, 8)
-        mat = new THREE.MeshLambertMaterial({ color: isWinter ? 0xffffff : 0x2d7a2d })
+        // Bush / Snow bush / Tumbleweed
+        if (isDesert) {
+          geo = new THREE.TorusGeometry(0.3, 0.1, 6, 8)
+          mat = new THREE.MeshLambertMaterial({ color: 0xd4a853 })
+        } else {
+          geo = new THREE.SphereGeometry(0.5, 8, 8)
+          mat = new THREE.MeshLambertMaterial({ color: isWinter ? 0xffffff : 0x2d7a2d })
+        }
         type = 'bush'; posY = 0.5
       }
+
       const mesh = new THREE.Mesh(geo, mat)
       mesh.position.set(lane * LANE_WIDTH, posY, zPos)
-      if (type === 'log') mesh.rotation.z = Math.PI / 2
+      if (type === 'log' && !isDesert) mesh.rotation.z = Math.PI / 2
       mesh.castShadow = true
-      // За зимен храст добави малки снежни конусчета наоколо
+      scene.add(mesh)
+      obstacles.push({ mesh, lane, type })
+
+      // Кактус ръце
+      if (isDesert && type === 'log') {
+        const armMat = new THREE.MeshLambertMaterial({ color: 0x4a7c2f })
+        const lArm = new THREE.Mesh(new THREE.CylinderGeometry(0.08, 0.08, 0.4, 6), armMat)
+        lArm.rotation.z = Math.PI / 2
+        lArm.position.set(lane * LANE_WIDTH - 0.28, posY + 0.1, zPos)
+        scene.add(lArm); obstacles.push({ mesh: lArm, lane, type: 'log' })
+        const rArm = new THREE.Mesh(new THREE.CylinderGeometry(0.08, 0.08, 0.4, 6), armMat)
+        rArm.rotation.z = Math.PI / 2
+        rArm.position.set(lane * LANE_WIDTH + 0.28, posY + 0.1, zPos)
+        scene.add(rArm); obstacles.push({ mesh: rArm, lane, type: 'log' })
+      }
+
+      // Зимни снежни конусчета около храст
       if (isWinter && type === 'bush') {
         const snowMat = new THREE.MeshLambertMaterial({ color: 0xffffff })
         for (let s = 0; s < 4; s++) {
           const spike = new THREE.Mesh(new THREE.ConeGeometry(0.08, 0.22, 5), snowMat)
           const angle = (s / 4) * Math.PI * 2
           spike.position.set(Math.cos(angle) * 0.35, posY + 0.1, Math.sin(angle) * 0.35)
-          scene.add(spike)
-          obstacles.push({ mesh: spike, lane, type: 'bush' })
+          scene.add(spike); obstacles.push({ mesh: spike, lane, type: 'bush' })
         }
       }
-      scene.add(mesh)
-      obstacles.push({ mesh, lane, type })
     }
     for (let i = 0; i < 6; i++) spawnObstacle(-35 - i * 22)
 
