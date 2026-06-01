@@ -55,13 +55,6 @@ export default function FoxRunPage() {
   const [levelComplete, setLevelComplete] = useState(false)
   const [selectedLevel, setSelectedLevel] = useState<number | null>(null)
   const [hint, setHint] = useState<string | null>(null)
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const [wordPair, setWordPair] = useState<{left: string; right: string; correctSide: 'left'|'right'} | null>(null)
-
-  const wordPairRef = useRef<{left: string; right: string; correctSide: 'left'|'right'} | null>(null)
-  const applyWorldRef = useRef<((lv: number) => void) | null>(null)
-  const getNextWordRef = useRef<(() => string) | null>(null)
-  const wordPairDeckRef = useRef<{deck: [string, string][], idx: number}>({ deck: [...WORD_PAIRS], idx: 0 })
 
   const gameRef = useRef<{
     targetWord: string
@@ -82,7 +75,6 @@ export default function FoxRunPage() {
     const wordDeck = [...WORDS]
     let wordDeckIndex = 0
     function getNextWord(): string {
-      getNextWordRef.current = getNextWord
       if (wordDeckIndex >= wordDeck.length) {
         for (let i = wordDeck.length - 1; i > 0; i--) {
           const j = Math.floor(Math.random() * (i + 1))
@@ -443,7 +435,6 @@ export default function FoxRunPage() {
     )
 
     function applyWorld(lv: number) {
-      applyWorldRef.current = applyWorld
       const worldIdx = (lv - 1) % WORLDS.length
       const world = WORLDS[worldIdx]
       scene.background = new THREE.Color(world.sky)
@@ -534,7 +525,6 @@ export default function FoxRunPage() {
       lane: number
       collected: boolean
       isCorrectPair?: boolean
-      isSign?: boolean
     }
     const letterOrbs: LetterOrb[] = []
 
@@ -544,48 +534,35 @@ export default function FoxRunPage() {
       document.fonts.add(font)
     })()
 
-    function drawWordSign(word: string, side: 'left'|'right', zPos: number, isCorrect: boolean) {
-      const x = side === 'left' ? -(PATH_WIDTH * 0.25) : PATH_WIDTH * 0.25
-      const group = new THREE.Group()
-      const pole = new THREE.Mesh(
-        new THREE.CylinderGeometry(0.08, 0.08, 2.5, 6),
-        new THREE.MeshLambertMaterial({ color: 0x8B6914 })
-      )
-      pole.position.y = 1.25; pole.castShadow = true; group.add(pole)
-      const board = new THREE.Mesh(
-        new THREE.BoxGeometry(PATH_WIDTH * 0.48, 1.8, 0.1),
-        new THREE.MeshLambertMaterial({ color: 0x1a3a6b })
-      )
-      board.position.y = 2.8; group.add(board)
+    function drawWordOrb(word: string, lane: number, zPos: number, isCorrect: boolean) {
       const cv = document.createElement('canvas')
-      cv.setAttribute('lang', 'bg'); cv.width = 1024; cv.height = 256
+      cv.setAttribute('lang', 'bg'); cv.width = 1024; cv.height = 512
       const cx = cv.getContext('2d')!
-      cx.clearRect(0, 0, 1024, 256)
-      cx.fillStyle = '#1a3a6b'; cx.fillRect(0, 0, 1024, 256)
+      cx.clearRect(0, 0, 1024, 512)
+      cx.fillStyle = 'rgba(10,20,80,0.95)'
+      cx.roundRect(16, 16, 992, 480, 40); cx.fill()
       cx.fillStyle = '#ffffff'
-      cx.font = 'bold 140px Nunito, Arial, sans-serif'
+      cx.font = 'bold 200px Nunito, Arial, sans-serif'
       cx.textAlign = 'center'; cx.textBaseline = 'middle'
-      cx.fillText(word, 512, 138)
+      cx.fillText(word, 512, 270)
       const tex = new THREE.CanvasTexture(cv)
       const sprite = new THREE.Sprite(new THREE.SpriteMaterial({ map: tex, transparent: true }))
-      sprite.scale.set(PATH_WIDTH * 0.48, 1.8, 1)
-      sprite.position.set(0, 2.8, 0.11)
-      group.add(sprite)
-      group.position.set(x, 0, zPos)
-      scene.add(group)
-      letterOrbs.push({ mesh: group, glow: group, char: word, lane: side === 'left' ? -1 : 1, collected: false, isCorrectPair: isCorrect, isSign: true })
+      sprite.scale.set(3.5, 1.8, 1)
+      sprite.position.set(lane * LANE_WIDTH, 1.8, zPos)
+      scene.add(sprite)
+      letterOrbs.push({ mesh: sprite, glow: sprite, char: word, lane, collected: false, isCorrectPair: isCorrect })
     }
 
     async function spawnLetter(zPos: number) {
       await fontLoadPromise
       const g = gameRef.current
 
-      // Ниво 3: HTML overlay + 3D табели
+      // Ниво 3: огромни спрайт орби
       if (g.level === 3) {
-        const np = getNextPair(); wordPairRef.current = np; setWordPair(np)
-        const correctLeft = np.correctSide === 'left'
-        drawWordSign(np.left,  'left',  zPos, correctLeft)
-        drawWordSign(np.right, 'right', zPos, !correctLeft)
+        const pair = WORD_PAIRS[Math.floor(Math.random() * WORD_PAIRS.length)]
+        const correctLeft = Math.random() > 0.5
+        drawWordOrb(pair[0], correctLeft ? -1 : 1, zPos, true)
+        drawWordOrb(pair[1], correctLeft ? 1 : -1, zPos, false)
         return
       }
 
@@ -813,10 +790,6 @@ export default function FoxRunPage() {
     function handleKeyDown(e: KeyboardEvent) {
       if (keys[e.code]) return
       keys[e.code] = true
-      if (gameRef.current.level === 3 && wordPairRef.current) {
-        if (e.code === 'ArrowLeft') { e.preventDefault(); handleWordChoice('left'); return }
-        if (e.code === 'ArrowRight') { e.preventDefault(); handleWordChoice('right'); return }
-      }
       if (e.code === 'ArrowLeft') moveLane(-1)
       if (e.code === 'ArrowRight') moveLane(1)
       if (e.code === 'ArrowUp' || e.code === 'Space') { e.preventDefault(); jump() }
@@ -1004,7 +977,7 @@ export default function FoxRunPage() {
       for (const orb of letterOrbs) {
         if (orb.collected) continue
         orb.mesh.position.z += moveZ
-        if (!orb.isSign) {
+        if (orb.isCorrectPair === undefined) {
           orb.glow.position.z += moveZ
           orb.mesh.rotation.y += dt * 1.5
           orb.glow.rotation.z += dt * 2
@@ -1016,7 +989,44 @@ export default function FoxRunPage() {
         const dx = foxGroup.position.x - orb.mesh.position.x
         const foxHeight = state.foxY
         const dz = orb.mesh.position.z - 0
-        // dy removed
+
+        // Level 3: large sprite orbs
+        if (orb.isCorrectPair !== undefined) {
+          if (Math.abs(dx) < 1.5 && dz > -1.2 && dz < 2.0 && foxHeight < 0.8 && !state.isSliding) {
+            for (const o of letterOrbs) {
+              if (o.isCorrectPair !== undefined && !o.collected) { scene.remove(o.mesh); o.collected = true }
+            }
+            const g = gameRef.current
+            if (orb.isCorrectPair) {
+              playCollect(); spawnBurst(orb.mesh.position.clone(), 0xFFD700)
+              const newScore = g.score + 30; g.score = newScore; setScore(newScore)
+              g.wordsCompletedInLevel++
+              setWordsCompletedInLevel(g.wordsCompletedInLevel)
+              if (g.wordsCompletedInLevel >= g.level + 4) {
+                setLevelComplete(true)
+                setTimeout(() => {
+                  g.level++; g.wordsCompletedInLevel = 0
+                  setLevel(g.level); setWordsCompletedInLevel(0); setLevelComplete(false)
+                  state.runTime = 0; g.lives = 3; setLives(3)
+                  applyWorld(g.level)
+                  const nextWord = getNextWord()
+                  g.targetWord = nextWord; g.collected = []; g.collectedIndices = new Set()
+                  setTargetWord(nextWord); setCollected([])
+                  const bonus = g.score + 100; g.score = bonus; setScore(bonus)
+                }, 2000)
+              }
+            } else {
+              playWrong(); spawnBurst(orb.mesh.position.clone(), 0xff4444)
+              if (state.invincible <= 0) {
+                state.invincible = 2.5
+                const newLives = g.lives - 1; g.lives = newLives; setLives(newLives)
+                if (newLives <= 0) { g.dead = true; setGameOver(true) }
+              }
+            }
+          }
+          continue
+        }
+
         if (Math.abs(dx) < 1.0 && dz > -1.2 && dz < 2.0 && foxHeight < 0.8 && !state.isSliding) {
           orb.collected = true
           scene.remove(orb.mesh); scene.remove(orb.glow)
@@ -1184,57 +1194,6 @@ export default function FoxRunPage() {
       if (container.contains(renderer.domElement)) container.removeChild(renderer.domElement)
     }
   }, [selectedLevel])
-
-  function getNextPair() {
-    const ref = wordPairDeckRef.current
-    if (ref.idx >= ref.deck.length) {
-      for (let i = ref.deck.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1))
-        ;[ref.deck[i], ref.deck[j]] = [ref.deck[j], ref.deck[i]]
-      }
-      ref.idx = 0
-    }
-    const pair = ref.deck[ref.idx++]
-    const correctSide = Math.random() > 0.5 ? 'left' as const : 'right' as const
-    return { left: correctSide === 'left' ? pair[0] : pair[1], right: correctSide === 'right' ? pair[0] : pair[1], correctSide }
-  }
-
-  function handleWordChoice(side: 'left' | 'right') {
-    const pair = wordPairRef.current
-    if (!pair || gameRef.current.level !== 3) return
-    wordPairRef.current = null; setWordPair(null)
-    const isCorrect = side === pair.correctSide
-    if (isCorrect) {
-      try { const a = new Audio('/sounds/coin-collect.mp3'); a.volume = 0.55; a.play().catch(() => {}) } catch {}
-      const newScore = gameRef.current.score + 30; gameRef.current.score = newScore; setScore(newScore)
-      gameRef.current.wordsCompletedInLevel++
-      const wordsNeeded = gameRef.current.level + 4
-      setWordsCompletedInLevel(gameRef.current.wordsCompletedInLevel)
-      if (gameRef.current.wordsCompletedInLevel >= wordsNeeded) {
-        setLevelComplete(true)
-        setTimeout(() => {
-          gameRef.current.level++; gameRef.current.wordsCompletedInLevel = 0
-          setLevel(gameRef.current.level); setWordsCompletedInLevel(0); setLevelComplete(false)
-          gameRef.current.lives = 3; setLives(3)
-          applyWorldRef.current?.(gameRef.current.level)
-          const nextWord = getNextWordRef.current?.() ?? ''
-          gameRef.current.targetWord = nextWord; gameRef.current.collected = []; gameRef.current.collectedIndices = new Set()
-          setTargetWord(nextWord); setCollected([])
-          const bonus = gameRef.current.score + 100; gameRef.current.score = bonus; setScore(bonus)
-          if (gameRef.current.level === 3) {
-            const np = getNextPair(); wordPairRef.current = np; setWordPair(np)
-          }
-        }, 2000)
-      } else {
-        setTimeout(() => { const np = getNextPair(); wordPairRef.current = np; setWordPair(np) }, 500)
-      }
-    } else {
-      try { const a = new Audio('/sounds/wrong.mp3'); a.volume = 0.35; a.play().catch(() => {}) } catch {}
-      const newLives = gameRef.current.lives - 1; gameRef.current.lives = newLives; setLives(newLives)
-      if (newLives <= 0) { gameRef.current.dead = true; setGameOver(true) }
-      else { setTimeout(() => { const np = getNextPair(); wordPairRef.current = np; setWordPair(np) }, 500) }
-    }
-  }
 
   const WORLD_META = [
     { icon: '🌲', label: 'Гора',    card: 'bg-green-500 border-green-300',               text: 'text-white' },
