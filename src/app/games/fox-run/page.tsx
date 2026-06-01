@@ -1365,24 +1365,6 @@ export default function FoxRunPage() {
         </div>
       )}
 
-      {/* Ниво 3 HTML избор на дума */}
-      {level === 3 && wordPair && (
-        <div className="absolute bottom-0 left-0 w-full h-1/3 z-10 flex">
-          <div
-            className="w-1/2 h-full flex items-center justify-center bg-blue-900/80 backdrop-blur-sm border-r-2 border-white/20 cursor-pointer hover:bg-blue-800/90 transition-colors"
-            onClick={() => handleWordChoice('left')}
-          >
-            <span className="text-white text-5xl font-bold drop-shadow-lg">{wordPair.left}</span>
-          </div>
-          <div
-            className="w-1/2 h-full flex items-center justify-center bg-blue-900/80 backdrop-blur-sm cursor-pointer hover:bg-blue-800/90 transition-colors"
-            onClick={() => handleWordChoice('right')}
-          >
-            <span className="text-white text-5xl font-bold drop-shadow-lg">{wordPair.right}</span>
-          </div>
-        </div>
-      )}
-
       <div ref={mountRef} className="w-full h-full" />
     </div>
   )
