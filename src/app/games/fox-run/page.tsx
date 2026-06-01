@@ -54,6 +54,7 @@ export default function FoxRunPage() {
   const [wordsCompletedInLevel, setWordsCompletedInLevel] = useState(0)
   const [levelComplete, setLevelComplete] = useState(false)
   const [selectedLevel, setSelectedLevel] = useState<number | null>(null)
+  const [hint, setHint] = useState<string | null>(null)
 
   const gameRef = useRef<{
     targetWord: string
@@ -1091,6 +1092,15 @@ export default function FoxRunPage() {
 
     spawnLetter(-20)
 
+    const hintTimers: ReturnType<typeof setTimeout>[] = []
+    if (selectedLevel === 1) {
+      hintTimers.push(setTimeout(() => setHint('⬆️ Прескочи препятствието!'), 3000))
+      hintTimers.push(setTimeout(() => setHint('↔️ Смени лентата!'), 6000))
+      hintTimers.push(setTimeout(() => setHint('🔤 Събирай букви и прави думи!'), 9000))
+      hintTimers.push(setTimeout(() => setHint('🦊 Начало!'), 12000))
+      hintTimers.push(setTimeout(() => setHint(null), 13500))
+    }
+
     function onResize() {
       camera.aspect = container.clientWidth / container.clientHeight
       camera.updateProjectionMatrix()
@@ -1110,6 +1120,7 @@ export default function FoxRunPage() {
       music.src = ''
       runSound.pause()
       runSound.src = ''
+      hintTimers.forEach(t => clearTimeout(t))
       renderer.dispose()
       if (container.contains(renderer.domElement)) container.removeChild(renderer.domElement)
     }
@@ -1180,7 +1191,16 @@ export default function FoxRunPage() {
         <div className="text-white/60 text-xs font-medium">
           Ниво {level} • {wordsCompletedInLevel}/{level + 4} думи
         </div>
+        <div className="text-white/40 text-xs">
+          {level <= 2 ? 'Събери буквите за всяка дума' : 'Избери правилната дума!'}
+        </div>
       </div>
+
+      {hint && (
+        <div className="absolute top-48 left-1/2 -translate-x-1/2 z-20 bg-black/70 text-white text-xl font-bold px-6 py-3 rounded-2xl backdrop-blur-sm animate-pulse">
+          {hint}
+        </div>
+      )}
 
       {/* Level complete overlay */}
       {levelComplete && (
