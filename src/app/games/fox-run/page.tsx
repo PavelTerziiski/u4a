@@ -1160,7 +1160,7 @@ export default function FoxRunPage() {
 
     animate()
 
-    spawnLetter(-20)
+    if (startLevel !== 1) spawnLetter(-20)
 
     const hintTimers: ReturnType<typeof setTimeout>[] = []
     if (selectedLevel === 1) {
