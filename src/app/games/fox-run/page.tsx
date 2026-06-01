@@ -534,7 +534,7 @@ export default function FoxRunPage() {
 
     function drawWordOrb(word: string, color: number, lane: number, zPos: number, isCorrect: boolean) {
       const orbGeo = new THREE.SphereGeometry(0.38, 16, 16)
-      const orbMat = new THREE.MeshStandardMaterial({ color, emissive: color, emissiveIntensity: 0.6, roughness: 0.3, metalness: 0.1 })
+      const orbMat = new THREE.MeshStandardMaterial({ color, emissive: 0x2255aa, emissiveIntensity: 0.6, roughness: 0.3, metalness: 0.1 })
       const orb = new THREE.Mesh(orbGeo, orbMat)
       orb.scale.set(1.8, 1.8, 1)
       orb.position.set(lane * LANE_WIDTH, 1.3, zPos)
@@ -570,8 +570,8 @@ export default function FoxRunPage() {
       if (g.level === 3) {
         const pair = WORD_PAIRS[Math.floor(Math.random() * WORD_PAIRS.length)]
         const correctLeft = Math.random() > 0.5
-        drawWordOrb(pair[0], 0x00cc44, correctLeft ? -1 : 1, zPos, true)
-        drawWordOrb(pair[1], 0xcc2244, correctLeft ? 1 : -1, zPos, false)
+        drawWordOrb(pair[0], 0x4488ff, correctLeft ? -1 : 1, zPos, true)
+        drawWordOrb(pair[1], 0x4488ff, correctLeft ? 1 : -1, zPos, false)
         return
       }
 
