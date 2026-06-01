@@ -533,6 +533,7 @@ export default function FoxRunPage() {
       lane: number
       collected: boolean
       isCorrectPair?: boolean
+      isSign?: boolean
     }
     const letterOrbs: LetterOrb[] = []
 
@@ -542,13 +543,48 @@ export default function FoxRunPage() {
       document.fonts.add(font)
     })()
 
+    function drawWordSign(word: string, side: 'left'|'right', zPos: number, isCorrect: boolean) {
+      const x = side === 'left' ? -(PATH_WIDTH * 0.25) : PATH_WIDTH * 0.25
+      const group = new THREE.Group()
+      const pole = new THREE.Mesh(
+        new THREE.CylinderGeometry(0.08, 0.08, 2.5, 6),
+        new THREE.MeshLambertMaterial({ color: 0x8B6914 })
+      )
+      pole.position.y = 1.25; pole.castShadow = true; group.add(pole)
+      const board = new THREE.Mesh(
+        new THREE.BoxGeometry(PATH_WIDTH * 0.48, 1.8, 0.1),
+        new THREE.MeshLambertMaterial({ color: 0x1a3a6b })
+      )
+      board.position.y = 2.8; group.add(board)
+      const cv = document.createElement('canvas')
+      cv.setAttribute('lang', 'bg'); cv.width = 1024; cv.height = 256
+      const cx = cv.getContext('2d')!
+      cx.clearRect(0, 0, 1024, 256)
+      cx.fillStyle = '#1a3a6b'; cx.fillRect(0, 0, 1024, 256)
+      cx.fillStyle = '#ffffff'
+      cx.font = 'bold 140px Nunito, Arial, sans-serif'
+      cx.textAlign = 'center'; cx.textBaseline = 'middle'
+      cx.fillText(word, 512, 138)
+      const tex = new THREE.CanvasTexture(cv)
+      const sprite = new THREE.Sprite(new THREE.SpriteMaterial({ map: tex, transparent: true }))
+      sprite.scale.set(PATH_WIDTH * 0.48, 1.8, 1)
+      sprite.position.set(0, 2.8, 0.11)
+      group.add(sprite)
+      group.position.set(x, 0, zPos)
+      scene.add(group)
+      letterOrbs.push({ mesh: group, glow: group, char: word, lane: side === 'left' ? -1 : 1, collected: false, isCorrectPair: isCorrect, isSign: true })
+    }
+
     async function spawnLetter(zPos: number) {
       await fontLoadPromise
       const g = gameRef.current
 
-      // Ниво 3: HTML overlay избор
+      // Ниво 3: HTML overlay + 3D табели
       if (g.level === 3) {
         const np = getNextPair(); wordPairRef.current = np; setWordPair(np)
+        const correctLeft = np.correctSide === 'left'
+        drawWordSign(np.left,  'left',  zPos, correctLeft)
+        drawWordSign(np.right, 'right', zPos, !correctLeft)
         return
       }
 
@@ -964,16 +1000,13 @@ export default function FoxRunPage() {
       })
 
       // Letter orbs
-      letterOrbs.forEach(orb => {
-        if (orb.collected) return
+      for (const orb of letterOrbs) {
+        if (orb.collected) continue
         orb.mesh.position.z += moveZ
-        orb.glow.position.z += moveZ
-        orb.mesh.rotation.y += dt * 1.5
-        orb.glow.rotation.z += dt * 2
-        // Hover bob
-        if (orb.isCorrectPair !== undefined) {
-          orb.mesh.position.y = 1.25 + Math.sin(Date.now() * 0.002) * 0.1
-        } else {
+        if (!orb.isSign) {
+          orb.glow.position.z += moveZ
+          orb.mesh.rotation.y += dt * 1.5
+          orb.glow.rotation.z += dt * 2
           orb.mesh.position.y = 1.1 + Math.sin(state.runTime * 3 + orb.lane) * 0.18
           orb.glow.position.y = orb.mesh.position.y
         }
@@ -1047,7 +1080,7 @@ export default function FoxRunPage() {
           scene.remove(orb.mesh); scene.remove(orb.glow)
           orb.collected = true
         }
-      })
+      }
 
       // Spawn new letters — timer-based, ~3-4s interval
       state.letterSpawnTimer -= dt
