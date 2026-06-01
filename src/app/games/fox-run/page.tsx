@@ -519,8 +519,8 @@ export default function FoxRunPage() {
 
     // --- LETTER ORBS ---
     interface LetterOrb {
-      mesh: THREE.Mesh
-      glow: THREE.Mesh
+      mesh: THREE.Object3D
+      glow: THREE.Object3D
       char: string
       lane: number
       collected: boolean
@@ -547,23 +547,11 @@ export default function FoxRunPage() {
       cx.textAlign = 'center'; cx.textBaseline = 'middle'
       cx.fillText(word, 256, 138)
       const tex = new THREE.CanvasTexture(cv)
-      const geo = new THREE.PlaneGeometry(LANE_WIDTH * 0.95, 2.5)
-      const mat = new THREE.MeshBasicMaterial({ map: tex, transparent: true, side: THREE.DoubleSide })
-      const mesh = new THREE.Mesh(geo, mat)
-      mesh.position.set(lane * LANE_WIDTH, 1.25, zPos)
-      scene.add(mesh)
-      const edges = new THREE.LineSegments(
-        new THREE.EdgesGeometry(geo),
-        new THREE.LineBasicMaterial({ color: 0x88aaff })
-      )
-      mesh.add(edges)
-      // dummy glow (required by LetterOrb interface)
-      const glowGeo = new THREE.PlaneGeometry(0.01, 0.01)
-      const glowMat = new THREE.MeshBasicMaterial({ visible: false })
-      const glow = new THREE.Mesh(glowGeo, glowMat)
-      glow.position.copy(mesh.position)
-      scene.add(glow)
-      letterOrbs.push({ mesh, glow, char: word, lane, collected: false, isCorrectPair: isCorrect })
+      const sprite = new THREE.Sprite(new THREE.SpriteMaterial({ map: tex, transparent: true }))
+      sprite.scale.set(LANE_WIDTH * 0.95, 2.5, 1)
+      sprite.position.set(lane * LANE_WIDTH, 1.25, zPos)
+      scene.add(sprite)
+      letterOrbs.push({ mesh: sprite, glow: sprite, char: word, lane, collected: false, isCorrectPair: isCorrect })
     }
 
     async function spawnLetter(zPos: number) {
@@ -995,8 +983,12 @@ export default function FoxRunPage() {
         orb.mesh.rotation.y += dt * 1.5
         orb.glow.rotation.z += dt * 2
         // Hover bob
-        orb.mesh.position.y = 1.1 + Math.sin(state.runTime * 3 + orb.lane) * 0.18
-        orb.glow.position.y = orb.mesh.position.y
+        if (orb.isCorrectPair !== undefined) {
+          orb.mesh.position.y = 1.25 + Math.sin(Date.now() * 0.002) * 0.1
+        } else {
+          orb.mesh.position.y = 1.1 + Math.sin(state.runTime * 3 + orb.lane) * 0.18
+          orb.glow.position.y = orb.mesh.position.y
+        }
 
         // Collision with fox
         const dx = foxGroup.position.x - orb.mesh.position.x
