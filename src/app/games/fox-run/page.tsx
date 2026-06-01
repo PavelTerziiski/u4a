@@ -1089,7 +1089,7 @@ export default function FoxRunPage() {
         <div className="grid grid-cols-3 gap-4 px-6 sm:grid-cols-5">
           {WORLD_META.map((w, i) => {
             const lvl = i + 1
-            const unlocked = lvl === 1
+            const unlocked = true // TODO: върни заключването преди launch
             return (
               <button
                 key={lvl}
