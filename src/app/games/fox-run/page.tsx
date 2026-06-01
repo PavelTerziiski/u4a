@@ -400,6 +400,31 @@ export default function FoxRunPage() {
       0.35, 0.4, 0.6
     )
 
+    const desertCactus: THREE.Group[] = []
+
+    function spawnDesertCactus() {
+      const cactusMat = new THREE.MeshLambertMaterial({ color: 0x4a7c2f })
+      const count = 20 + Math.floor(Math.random() * 11)
+      for (let i = 0; i < count; i++) {
+        const side = Math.random() > 0.5 ? 1 : -1
+        const x = side * (PATH_WIDTH / 2 + 2 + Math.random() * 10)
+        const z = -Math.random() * NUM_SEGMENTS * SEGMENT_LENGTH
+        const g = new THREE.Group()
+        const trunk = new THREE.Mesh(new THREE.CylinderGeometry(0.12, 0.15, 1.8, 6), cactusMat)
+        trunk.position.y = 0.9; g.add(trunk)
+        const armH = 0.3 + Math.random() * 0.4
+        ;[-1, 1].forEach((dir, idx) => {
+          const arm = new THREE.Mesh(new THREE.CylinderGeometry(0.07, 0.07, 0.5, 6), cactusMat)
+          arm.rotation.z = Math.PI / 2
+          arm.position.set(dir * 0.28, armH + idx * 0.15, 0)
+          g.add(arm)
+        })
+        g.position.set(x, 0, z)
+        scene.add(g)
+        desertCactus.push(g)
+      }
+    }
+
     function applyWorld(lv: number) {
       const worldIdx = (lv - 1) % WORLDS.length
       const world = WORLDS[worldIdx]
@@ -410,10 +435,11 @@ export default function FoxRunPage() {
         bloomPass.strength = 0.1
         pathMat.map = snowPathTex; pathMat.needsUpdate = true
         grassMat.map = snowTex; grassMat.color.set(0xddeeff); grassMat.needsUpdate = true
-        trees.forEach(tree => tree.traverse(child => {
+        trees.forEach(tree => { tree.visible = true; tree.traverse(child => {
           const m = child as THREE.Mesh
           if (m.isMesh && m.material) (m.material as THREE.MeshStandardMaterial).color.set(0xffffff)
-        }))
+        }) })
+        desertCactus.forEach(c => { c.visible = false })
         music.src = '/sounds/forest-story-hyperfusion.mp3'
         music.play().catch(() => {})
       } else if (worldIdx === 2) {
@@ -421,19 +447,20 @@ export default function FoxRunPage() {
         bloomPass.strength = 0.2
         pathMat.map = sandPathTex; pathMat.needsUpdate = true
         grassMat.map = sandTex; grassMat.color.set(0xc2a45a); grassMat.needsUpdate = true
-        const cactusGeo = new THREE.CylinderGeometry(0.15, 0.15, 1.5, 6)
-        trees.forEach(tree => tree.traverse(child => {
-          const m = child as THREE.Mesh
-          if (!m.isMesh) return
-          m.geometry = cactusGeo
-          ;(m.material as THREE.MeshStandardMaterial).color.set(0x4a7c2f)
-        }))
+        trees.forEach(tree => { tree.visible = false })
+        if (desertCactus.length === 0) spawnDesertCactus()
+        else desertCactus.forEach(c => { c.visible = true })
         music.src = '/sounds/fox-run-music-1.mp3'
         music.play().catch(() => {})
       } else {
         bloomPass.strength = 0.35
         pathMat.map = groundTex; pathMat.needsUpdate = true
         grassMat.map = grassTex; grassMat.color.set(0x3a7a2a); grassMat.needsUpdate = true
+        trees.forEach(tree => { tree.visible = true; tree.traverse(child => {
+          const m = child as THREE.Mesh
+          if (m.isMesh && m.material) (m.material as THREE.MeshStandardMaterial).color.set(0x3a8c3a)
+        }) })
+        desertCactus.forEach(c => { c.visible = false })
         music.src = musicTracks[Math.floor(Math.random() * musicTracks.length)]
         music.play().catch(() => {})
       }
