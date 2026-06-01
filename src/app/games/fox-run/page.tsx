@@ -1098,7 +1098,8 @@ export default function FoxRunPage() {
       // Spawn new letters — timer-based, ~3-4s interval
       state.letterSpawnTimer -= dt
       if (state.letterSpawnTimer <= 0) {
-        spawnLetter(-(state.speed * 3.5))
+        const spawnDist = startLevel === 1 && state.runTime < 12 ? state.speed * 8 : state.speed * 3.5
+        spawnLetter(-spawnDist)
         state.letterSpawnTimer = 3 + Math.random() * 1
       }
 
