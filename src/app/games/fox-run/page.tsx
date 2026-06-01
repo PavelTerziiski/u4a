@@ -94,7 +94,9 @@ export default function FoxRunPage() {
     ]
 
     // Apply selected level
-    gameRef.current.level = selectedLevel ?? 1
+    const startLevel = selectedLevel ?? 1
+    gameRef.current.level = startLevel
+    if (startLevel === 3) { gameRef.current.lives = 5; setLives(5) }
 
     // Pick first word
     const firstWord = getNextWord()
@@ -532,34 +534,36 @@ export default function FoxRunPage() {
       document.fonts.add(font)
     })()
 
-    function drawWordOrb(word: string, color: number, lane: number, zPos: number, isCorrect: boolean) {
-      const orbGeo = new THREE.SphereGeometry(0.38, 16, 16)
-      const orbMat = new THREE.MeshStandardMaterial({ color, emissive: 0x2255aa, emissiveIntensity: 0.6, roughness: 0.3, metalness: 0.1 })
-      const orb = new THREE.Mesh(orbGeo, orbMat)
-      orb.scale.set(1.8, 1.8, 1)
-      orb.position.set(lane * LANE_WIDTH, 1.3, zPos)
-      scene.add(orb)
-      const glowGeo = new THREE.TorusGeometry(0.68, 0.07, 8, 24)
-      const glowMat = new THREE.MeshBasicMaterial({ color, transparent: true, opacity: 0.5 })
-      const glow = new THREE.Mesh(glowGeo, glowMat)
-      glow.position.copy(orb.position)
-      scene.add(glow)
+    function drawWordGate(word: string, lane: number, zPos: number, isCorrect: boolean) {
       const cv = document.createElement('canvas')
       cv.setAttribute('lang', 'bg'); cv.width = 512; cv.height = 256
       const cx = cv.getContext('2d')!
       cx.clearRect(0, 0, 512, 256)
-      cx.beginPath(); cx.arc(256, 128, 120, 0, Math.PI * 2)
-      cx.fillStyle = 'rgba(0,0,0,0.5)'; cx.fill()
+      cx.fillStyle = 'rgba(0,30,100,0.9)'
+      cx.roundRect(8, 8, 496, 240, 24)
+      cx.fill()
       cx.fillStyle = '#ffffff'
-      cx.font = 'bold 48px Nunito, Arial, sans-serif'
+      cx.font = 'bold 96px Nunito, Arial, sans-serif'
       cx.textAlign = 'center'; cx.textBaseline = 'middle'
-      cx.fillText(word, 256, 128)
+      cx.fillText(word, 256, 138)
       const tex = new THREE.CanvasTexture(cv)
-      const sprite = new THREE.Sprite(new THREE.SpriteMaterial({ map: tex, transparent: true, depthTest: false }))
-      sprite.scale.set(1.8, 0.9, 1)
-      sprite.position.set(0, 0, 0.56)
-      orb.add(sprite)
-      letterOrbs.push({ mesh: orb, glow, char: word, lane, collected: false, isCorrectPair: isCorrect })
+      const geo = new THREE.PlaneGeometry(LANE_WIDTH * 0.95, 2.5)
+      const mat = new THREE.MeshBasicMaterial({ map: tex, transparent: true, side: THREE.DoubleSide })
+      const mesh = new THREE.Mesh(geo, mat)
+      mesh.position.set(lane * LANE_WIDTH, 1.25, zPos)
+      scene.add(mesh)
+      const edges = new THREE.LineSegments(
+        new THREE.EdgesGeometry(geo),
+        new THREE.LineBasicMaterial({ color: 0x88aaff })
+      )
+      mesh.add(edges)
+      // dummy glow (required by LetterOrb interface)
+      const glowGeo = new THREE.PlaneGeometry(0.01, 0.01)
+      const glowMat = new THREE.MeshBasicMaterial({ visible: false })
+      const glow = new THREE.Mesh(glowGeo, glowMat)
+      glow.position.copy(mesh.position)
+      scene.add(glow)
+      letterOrbs.push({ mesh, glow, char: word, lane, collected: false, isCorrectPair: isCorrect })
     }
 
     async function spawnLetter(zPos: number) {
@@ -570,8 +574,8 @@ export default function FoxRunPage() {
       if (g.level === 3) {
         const pair = WORD_PAIRS[Math.floor(Math.random() * WORD_PAIRS.length)]
         const correctLeft = Math.random() > 0.5
-        drawWordOrb(pair[0], 0x4488ff, correctLeft ? -1 : 1, zPos, true)
-        drawWordOrb(pair[1], 0x4488ff, correctLeft ? 1 : -1, zPos, false)
+        drawWordGate(pair[0], correctLeft ? -1 : 1, zPos, true)
+        drawWordGate(pair[1], correctLeft ? 1 : -1, zPos, false)
         return
       }
 
@@ -1251,36 +1255,36 @@ export default function FoxRunPage() {
         ← Назад
       </button>
 
-      {/* Word UI */}
-      <div className="absolute top-4 left-1/2 -translate-x-1/2 z-10 flex flex-col items-center gap-2">
-        {level !== 3 && (
-          <>
-            <div className="text-white/50 text-xs uppercase tracking-widest">Събери думата</div>
-            <div className="flex gap-2">
-              {(targetWord || '').split('').map((letter, i) => (
-                <div key={i} className={`w-10 h-10 rounded-xl flex items-center justify-center text-lg font-bold border-2 transition-all duration-300 ${
-                  collected[i]
-                    ? 'bg-yellow-400 border-yellow-300 text-gray-900 scale-110'
-                    : 'bg-black/40 border-white/20 text-gray-600'
-                }`}>
-                  {collected[i] ?? letter}
-                </div>
-              ))}
-            </div>
-          </>
-        )}
-        {level === 3 && (
-          <div className="text-white text-lg font-bold bg-black/40 px-4 py-2 rounded-xl backdrop-blur-sm">
-            🟢 Избери правилната дума!
+      {/* Word UI — скрито при ниво 3 */}
+      {level !== 3 && (
+        <div className="absolute top-4 left-1/2 -translate-x-1/2 z-10 flex flex-col items-center gap-2">
+          <div className="text-white/50 text-xs uppercase tracking-widest">Събери думата</div>
+          <div className="flex gap-2">
+            {(targetWord || '').split('').map((letter, i) => (
+              <div key={i} className={`w-10 h-10 rounded-xl flex items-center justify-center text-lg font-bold border-2 transition-all duration-300 ${
+                collected[i]
+                  ? 'bg-yellow-400 border-yellow-300 text-gray-900 scale-110'
+                  : 'bg-black/40 border-white/20 text-gray-600'
+              }`}>
+                {collected[i] ?? letter}
+              </div>
+            ))}
           </div>
-        )}
-        <div className="text-white/60 text-xs font-medium">
-          Ниво {level} • {wordsCompletedInLevel}/{level + 4} думи
+          <div className="text-white/60 text-xs font-medium">
+            Ниво {level} • {wordsCompletedInLevel}/{level + 4} думи
+          </div>
+          <div className="text-white/40 text-xs">Събери буквите за всяка дума</div>
         </div>
-        <div className="text-white/40 text-xs">
-          {level <= 2 ? 'Събери буквите за всяка дума' : 'Зелено = правилно • Червено = грешно'}
+      )}
+      {/* Ниво 3 индикатор */}
+      {level === 3 && (
+        <div className="absolute top-4 left-1/2 -translate-x-1/2 z-10 flex flex-col items-center gap-1">
+          <div className="text-white/60 text-xs font-medium">
+            Ниво {level} • {wordsCompletedInLevel}/{level + 4} думи
+          </div>
+          <div className="text-white/40 text-xs">Избери правилната дума!</div>
         </div>
-      </div>
+      )}
 
       {hint && (
         <div className="absolute top-48 left-1/2 -translate-x-1/2 z-20 bg-black/70 text-white text-xl font-bold px-6 py-3 rounded-2xl backdrop-blur-sm animate-pulse">
