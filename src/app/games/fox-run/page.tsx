@@ -55,6 +55,7 @@ export default function FoxRunPage() {
   const [levelComplete, setLevelComplete] = useState(false)
   const [selectedLevel, setSelectedLevel] = useState<number | null>(null)
   const [hint, setHint] = useState<string | null>(null)
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [wordPair, setWordPair] = useState<{left: string; right: string; correctSide: 'left'|'right'} | null>(null)
 
   const wordPairRef = useRef<{left: string; right: string; correctSide: 'left'|'right'} | null>(null)
