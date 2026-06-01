@@ -95,6 +95,7 @@ export default function FoxRunPage() {
     // Apply selected level
     const startLevel = selectedLevel ?? 1
     gameRef.current.level = startLevel
+    setLevel(startLevel)
     if (startLevel === 3) { gameRef.current.lives = 5; setLives(5) }
 
     // Pick first word
