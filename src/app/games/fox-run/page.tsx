@@ -775,7 +775,7 @@ export default function FoxRunPage() {
       slideTimer: 0,
       runTime: 0,
       invincible: 0,
-      letterSpawnTimer: startLevel === 3 ? -6 : 1.5,
+      letterSpawnTimer: startLevel === 3 ? -6 : startLevel === 1 ? -11 : 1.5,
       obstacleSpawnZ: startLevel === 1 ? -80 - 6 * 22 : -35 - 6 * 22,
     }
 
