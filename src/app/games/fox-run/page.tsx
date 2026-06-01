@@ -774,7 +774,7 @@ export default function FoxRunPage() {
       slideTimer: 0,
       runTime: 0,
       invincible: 0,
-      letterSpawnTimer: 1.5,
+      letterSpawnTimer: startLevel === 3 ? -6 : 1.5,
       obstacleSpawnZ: startLevel === 1 ? -80 - 6 * 22 : -35 - 6 * 22,
     }
 
@@ -1002,7 +1002,7 @@ export default function FoxRunPage() {
               const newScore = g.score + 30; g.score = newScore; setScore(newScore)
               g.wordsCompletedInLevel++
               setWordsCompletedInLevel(g.wordsCompletedInLevel)
-              if (g.wordsCompletedInLevel >= g.level + 4) {
+              if (g.wordsCompletedInLevel >= (g.level === 3 ? 35 : g.level + 4)) {
                 setLevelComplete(true)
                 setTimeout(() => {
                   g.level++; g.wordsCompletedInLevel = 0
