@@ -54,7 +54,6 @@ export default function FoxRunPage() {
   const [wordsCompletedInLevel, setWordsCompletedInLevel] = useState(0)
   const [levelComplete, setLevelComplete] = useState(false)
   const [selectedLevel, setSelectedLevel] = useState<number | null>(null)
-  const [hint, setHint] = useState<string | null>(null)
 
   const gameRef = useRef<{
     targetWord: string
