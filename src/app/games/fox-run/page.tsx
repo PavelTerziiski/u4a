@@ -1262,9 +1262,8 @@ export default function FoxRunPage() {
       {level === 3 && (
         <div className="absolute top-4 left-1/2 -translate-x-1/2 z-10 flex flex-col items-center gap-1">
           <div className="text-white/60 text-xs font-medium">
-            Ниво {level} • {wordsCompletedInLevel}/{level + 4} думи
+            Верни: {wordsCompletedInLevel}/35
           </div>
-          <div className="text-white/40 text-xs">Избери правилната дума!</div>
         </div>
       )}
 
