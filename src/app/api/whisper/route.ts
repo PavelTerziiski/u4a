@@ -11,7 +11,7 @@ export async function POST(req: NextRequest) {
     }
 
     const openaiFormData = new FormData()
-    openaiFormData.append('file', file, 'audio.webm')
+    openaiFormData.append('file', file, 'audio.m4a')
     openaiFormData.append('model', 'whisper-1')
     openaiFormData.append('language', language)
 
