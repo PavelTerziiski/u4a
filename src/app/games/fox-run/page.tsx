@@ -122,7 +122,16 @@ export default function FoxRunPage() {
     const music = new Audio(musicTracks[Math.floor(Math.random() * musicTracks.length)])
     music.loop = true
     music.volume = 0.35
-    // Autoplay стартира от обединения gesture listener по-долу
+    // Autoplay при първи user gesture
+    const startMusic = () => {
+      music.play().catch(() => {})
+      window.removeEventListener('keydown', startMusic)
+      window.removeEventListener('click', startMusic)
+      container.removeEventListener('touchstart', startMusic)
+    }
+    window.addEventListener('keydown', startMusic)
+    window.addEventListener('click', startMusic)
+    container.addEventListener('touchstart', startMusic)
 
     renderer.domElement.setAttribute('tabindex', '0')
     renderer.domElement.style.outline = 'none'
@@ -827,14 +836,15 @@ export default function FoxRunPage() {
     const runSound = new Audio('/sounds/fox-run-loop.mp3')
     runSound.loop = true
     runSound.volume = 0.35
-
-    // Единен listener — стартира music + runSound при първи user gesture
-    const startAudio = () => {
-      music.play().catch(() => {})
+    const startRunSound = () => {
       runSound.play().catch(() => {})
+      window.removeEventListener('keydown', startRunSound)
+      window.removeEventListener('click', startRunSound)
+      container.removeEventListener('touchstart', startRunSound)
     }
-    window.addEventListener('pointerdown', startAudio, { once: true })
-    window.addEventListener('keydown', startAudio, { once: true })
+    window.addEventListener('keydown', startRunSound)
+    window.addEventListener('click', startRunSound)
+    container.addEventListener('touchstart', startRunSound)
 
     function moveLane(dir: number) {
       if (laneChangeCooldown > 0) return
