@@ -5,6 +5,7 @@ import { supabase } from '@/lib/supabase'
 type Sentence = { text: string }
 type PronWord = { id: string; letter: string; word: string; emoji: string; tts_text: string; sort_order: number }
 type Dictation = { id: string; title: string; grade: number; sentences: Sentence[] }
+type Mission = { id: string; title: string; order_num: number; dictation_id: string | null; reading_dictation_id: string | null }
 
 export default function AccentCheck() {
   const [dictations, setDictations] = useState<Dictation[]>([])
@@ -20,7 +21,9 @@ export default function AccentCheck() {
   const [titleText, setTitleText] = useState('')
   const [showDelete, setShowDelete] = useState(false)
   const [pronWords, setPronWords] = useState<PronWord[]>([])
-  const [activeSection, setActiveSection] = useState<'dictations' | 'pronunciation' | 'strings'>('dictations')
+  const [activeSection, setActiveSection] = useState<'dictations' | 'pronunciation' | 'strings' | 'missions'>('dictations')
+  const [missions, setMissions] = useState<Mission[]>([])
+  const [missionDictCache, setMissionDictCache] = useState<Record<string, Dictation>>({})
   const [editingPron, setEditingPron] = useState<PronWord | null>(null)
   const [pronForm, setPronForm] = useState({ word: '', emoji: '', tts_text: '' })
   const [strings, setStrings] = useState<{id: string, key: string, text: string, description: string}[]>([])
@@ -34,6 +37,9 @@ export default function AccentCheck() {
       .then(({ data }) => { if (data) setPronWords(data) })
     supabase.from('pronunciation_strings').select('*').order('key')
       .then(({ data }) => { if (data) setStrings(data) })
+    supabase.from('missions').select('id, title, order_num, dictation_id, reading_dictation_id')
+      .eq('book_id', '6e1927fe-38e0-4ce5-864d-98556a897e1c').order('order_num')
+      .then(({ data }) => { if (data) setMissions(data) })
   }, [])
 
   const playText = async (text: string) => {
@@ -71,17 +77,27 @@ export default function AccentCheck() {
     setEditText('')
   }
 
+  const loadDictationById = async (id: string) => {
+    setActiveWord(null); setActiveSent(null); setMsg('')
+    if (missionDictCache[id]) { setSelected(missionDictCache[id]); return }
+    const { data } = await supabase.from('dictations').select('id, title, grade, sentences').eq('id', id).single()
+    if (data) { setMissionDictCache(prev => ({ ...prev, [id]: data })); setSelected(data) }
+  }
+
   return (
     <div style={{display:'flex', height:'100vh', fontFamily:'sans-serif', background:'#fff'}}>
 
       {/* SIDEBAR */}
       <div style={{width:'220px', borderRight:'1px solid #e5e7eb', overflowY:'auto', padding:'16px'}}>
         <div style={{fontWeight:'bold', fontSize:'16px', marginBottom:'16px', color:'#000'}}>🎙️ Ударения</div>
-        <div style={{display:'flex', gap:'6px', marginBottom:'12px'}}>
+        <div style={{display:'flex', gap:'6px', marginBottom:'6px'}}>
           <button onClick={() => setActiveSection('dictations')} style={{flex:1, padding:'6px', background: activeSection==='dictations' ? '#f97316' : '#f3f4f6', color: activeSection==='dictations' ? '#fff' : '#000', border:'none', borderRadius:'6px', cursor:'pointer', fontSize:'11px', fontWeight:'bold'}}>📝 Диктовки</button>
           <button onClick={() => setActiveSection('pronunciation')} style={{flex:1, padding:'6px', background: activeSection==='pronunciation' ? '#7c3aed' : '#f3f4f6', color: activeSection==='pronunciation' ? '#fff' : '#000', border:'none', borderRadius:'6px', cursor:'pointer', fontSize:'11px', fontWeight:'bold'}}>🗣️ Правоговор</button>
         </div>
-        <button onClick={() => setActiveSection('strings')} style={{width:'100%', padding:'6px', background: activeSection==='strings' ? '#059669' : '#f3f4f6', color: activeSection==='strings' ? '#fff' : '#000', border:'none', borderRadius:'6px', cursor:'pointer', fontSize:'11px', fontWeight:'bold', marginBottom:'8px'}}>💬 Системни текстове</button>
+        <div style={{display:'flex', gap:'6px', marginBottom:'8px'}}>
+          <button onClick={() => setActiveSection('strings')} style={{flex:1, padding:'6px', background: activeSection==='strings' ? '#059669' : '#f3f4f6', color: activeSection==='strings' ? '#fff' : '#000', border:'none', borderRadius:'6px', cursor:'pointer', fontSize:'11px', fontWeight:'bold'}}>💬 Текстове</button>
+          <button onClick={() => setActiveSection('missions')} style={{flex:1, padding:'6px', background: activeSection==='missions' ? '#0ea5e9' : '#f3f4f6', color: activeSection==='missions' ? '#fff' : '#000', border:'none', borderRadius:'6px', cursor:'pointer', fontSize:'11px', fontWeight:'bold'}}>🗺️ Мисии</button>
+        </div>
         {activeSection === 'dictations' && [1,2,3,4].map(g => (
           <div key={g}>
             <button onClick={() => setOpenGrade(openGrade === g ? null : g)}
@@ -101,6 +117,25 @@ export default function AccentCheck() {
             style={{width:'100%', textAlign:'left', padding:'5px 10px', background: editingPron?.id === w.id ? '#ede9fe' : 'transparent', color: editingPron?.id === w.id ? '#7c3aed' : '#374151', border:'none', borderRadius:'6px', marginBottom:'2px', cursor:'pointer', fontSize:'12px', fontWeight: editingPron?.id === w.id ? 'bold' : 'normal'}}>
             {w.emoji} {w.letter} — {w.word}
           </button>
+        ))}
+        {activeSection === 'missions' && missions.map(m => (
+          <div key={m.id} style={{marginBottom:'10px'}}>
+            <div style={{fontSize:'11px', fontWeight:'bold', color:'#0369a1', padding:'4px 6px', background:'#e0f2fe', borderRadius:'6px', marginBottom:'3px'}}>
+              Мисия {m.order_num} — {m.title}
+            </div>
+            {m.dictation_id && (
+              <button onClick={() => loadDictationById(m.dictation_id!)}
+                style={{width:'100%', textAlign:'left', padding:'4px 10px 4px 16px', background: selected?.id === m.dictation_id ? '#fff7ed' : 'transparent', color: selected?.id === m.dictation_id ? '#ea580c' : '#374151', border:'none', borderRadius:'6px', marginBottom:'2px', cursor:'pointer', fontSize:'12px', fontWeight: selected?.id === m.dictation_id ? 'bold' : 'normal'}}>
+                📝 Диктовка
+              </button>
+            )}
+            {m.reading_dictation_id && (
+              <button onClick={() => loadDictationById(m.reading_dictation_id!)}
+                style={{width:'100%', textAlign:'left', padding:'4px 10px 4px 16px', background: selected?.id === m.reading_dictation_id ? '#f0fdf4' : 'transparent', color: selected?.id === m.reading_dictation_id ? '#16a34a' : '#374151', border:'none', borderRadius:'6px', marginBottom:'2px', cursor:'pointer', fontSize:'12px', fontWeight: selected?.id === m.reading_dictation_id ? 'bold' : 'normal'}}>
+                👁 Четене
+              </button>
+            )}
+          </div>
         ))}
       </div>
 
