@@ -55,6 +55,14 @@ export default function FoxRunPage() {
   const [levelComplete, setLevelComplete] = useState(false)
   const [selectedLevel, setSelectedLevel] = useState<number | null>(null)
 
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search)
+    const levelParam = parseInt(params.get('level') || '0')
+    if (levelParam >= 1 && levelParam <= 5) {
+      setSelectedLevel(levelParam)
+    }
+  }, [])
+
   const gameRef = useRef<{
     targetWord: string
     collected: string[]
