@@ -142,16 +142,20 @@ export default function FoxRunPage() {
     let musicSource: AudioBufferSourceNode | null = null
     let musicStarted = false
     let currentMusicUrl = ''
+    let musicSwitching = false
     const musicGain = audioCtx.createGain(); musicGain.gain.value = 0.35; musicGain.connect(audioCtx.destination)
 
     async function switchMusic(url: string) {
-      if (url === currentMusicUrl) return
+      if (musicSwitching) return
+      musicSwitching = true
+      if (url === currentMusicUrl) { musicSwitching = false; return }
       currentMusicUrl = url
       if (musicSource) { try { musicSource.stop() } catch {} musicSource = null }
       const buf = await loadAudioBuffer(url)
       musicSource = audioCtx.createBufferSource()
       musicSource.buffer = buf; musicSource.loop = true
       musicSource.connect(musicGain); musicSource.start()
+      musicSwitching = false
     }
 
     // Run loop
