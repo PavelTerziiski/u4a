@@ -117,21 +117,66 @@ export default function FoxRunPage() {
     renderer.toneMapping = THREE.ACESFilmicToneMapping
     renderer.toneMappingExposure = 0.85
     renderer.outputColorSpace = THREE.SRGBColorSpace
-    // --- МУЗИКА ---
+    // --- AUDIO CONTEXT ---
     const musicTracks = ['/sounds/fox-run-music-1.mp3', '/sounds/fox-run-music-2.mp3']
-    const music = new Audio(musicTracks[Math.floor(Math.random() * musicTracks.length)])
-    music.loop = true
-    music.volume = 0.35
-    // Autoplay при първи user gesture
-    const startMusic = () => {
-      music.play().catch(() => {})
-      window.removeEventListener('keydown', startMusic)
-      window.removeEventListener('click', startMusic)
-      container.removeEventListener('touchstart', startMusic)
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const audioCtx = new (window.AudioContext || (window as any).webkitAudioContext)()
+    const audioBuffers = new Map<string, AudioBuffer>()
+
+    async function loadAudioBuffer(url: string): Promise<AudioBuffer> {
+      if (audioBuffers.has(url)) return audioBuffers.get(url)!
+      const res = await fetch(url)
+      const ab = await res.arrayBuffer()
+      const buf = await audioCtx.decodeAudioData(ab)
+      audioBuffers.set(url, buf)
+      return buf
     }
-    window.addEventListener('keydown', startMusic)
-    window.addEventListener('click', startMusic)
-    container.addEventListener('touchstart', startMusic)
+
+    function playOnce(buf: AudioBuffer | null, volume: number) {
+      if (!buf) return
+      const gain = audioCtx.createGain(); gain.gain.value = volume; gain.connect(audioCtx.destination)
+      const src = audioCtx.createBufferSource(); src.buffer = buf; src.connect(gain); src.start()
+    }
+
+    // Looping music
+    let musicSource: AudioBufferSourceNode | null = null
+    const musicGain = audioCtx.createGain(); musicGain.gain.value = 0.35; musicGain.connect(audioCtx.destination)
+
+    async function switchMusic(url: string) {
+      if (musicSource) { try { musicSource.stop() } catch {} musicSource = null }
+      const buf = await loadAudioBuffer(url)
+      musicSource = audioCtx.createBufferSource()
+      musicSource.buffer = buf; musicSource.loop = true
+      musicSource.connect(musicGain); musicSource.start()
+    }
+
+    // Run loop
+    let runSoundSource: AudioBufferSourceNode | null = null
+    const runSoundGain = audioCtx.createGain(); runSoundGain.gain.value = 0.35; runSoundGain.connect(audioCtx.destination)
+
+    async function startRunLoop() {
+      if (runSoundSource) return
+      const buf = await loadAudioBuffer('/sounds/fox-run-loop.mp3')
+      runSoundSource = audioCtx.createBufferSource()
+      runSoundSource.buffer = buf; runSoundSource.loop = true
+      runSoundSource.connect(runSoundGain); runSoundSource.start()
+    }
+
+    // SFX buffers (loaded async)
+    let sfxBufLeft: AudioBuffer | null = null
+    let sfxBufRight: AudioBuffer | null = null
+    let sfxBufJump: AudioBuffer | null = null
+    ;(async () => {
+      sfxBufLeft  = await loadAudioBuffer('/sounds/fox-left.mp3')
+      sfxBufRight = await loadAudioBuffer('/sounds/fox-right.mp3')
+      sfxBufJump  = await loadAudioBuffer('/sounds/fox-jump.mp3')
+    })()
+
+    // Start audio immediately (works if AudioContext was unlocked by injected JS)
+    audioCtx.resume().then(() => {
+      switchMusic(musicTracks[Math.floor(Math.random() * musicTracks.length)])
+      startRunLoop()
+    })
 
     renderer.domElement.setAttribute('tabindex', '0')
     renderer.domElement.style.outline = 'none'
@@ -454,8 +499,7 @@ export default function FoxRunPage() {
           if (m.isMesh && m.material) (m.material as THREE.MeshStandardMaterial).color.set(0xffffff)
         }) })
         desertCacti.forEach(c => { c.visible = false })
-        music.src = '/sounds/forest-story-hyperfusion.mp3'
-        music.play().catch(() => {})
+        switchMusic('/sounds/forest-story-hyperfusion.mp3')
       } else if (worldIdx === 2) {
         // Desert
         bloomPass.strength = 0.2
@@ -463,8 +507,7 @@ export default function FoxRunPage() {
         grassMat.map = sandTex; grassMat.color.set(0xc2a45a); grassMat.needsUpdate = true
         trees.forEach(tree => { tree.visible = false })
         desertCacti.forEach(c => { c.visible = true })
-        music.src = '/sounds/fox-run-music-1.mp3'
-        music.play().catch(() => {})
+        switchMusic('/sounds/fox-run-music-1.mp3')
       } else {
         bloomPass.strength = 0.35
         pathMat.map = groundTex; pathMat.needsUpdate = true
@@ -474,8 +517,7 @@ export default function FoxRunPage() {
           if (m.isMesh && m.material) (m.material as THREE.MeshStandardMaterial).color.set(0x3a8c3a)
         }) })
         desertCacti.forEach(c => { c.visible = false })
-        music.src = musicTracks[Math.floor(Math.random() * musicTracks.length)]
-        music.play().catch(() => {})
+        switchMusic(musicTracks[Math.floor(Math.random() * musicTracks.length)])
       }
     }
     applyWorld(selectedLevel ?? 1)
@@ -753,20 +795,17 @@ export default function FoxRunPage() {
     }
 
     // --- SOUND ---
-    function playCollect() {
-      try {
-        const audio = new Audio('/sounds/coin-collect.mp3')
-        audio.volume = 0.55
-        audio.play().catch(() => {})
-      } catch {}
-    }
-    function playWrong() {
-      try {
-        const audio = new Audio('/sounds/wrong.mp3')
-        audio.volume = 0.35
-        audio.play().catch(() => {})
-      } catch {}
-    }
+    let sfxBufCollect: AudioBuffer | null = null
+    let sfxBufWrong: AudioBuffer | null = null
+    let sfxBufWin: AudioBuffer | null = null
+    ;(async () => {
+      sfxBufCollect = await loadAudioBuffer('/sounds/coin-collect.mp3')
+      sfxBufWrong   = await loadAudioBuffer('/sounds/wrong.mp3')
+      sfxBufWin     = await loadAudioBuffer('/sounds/fox-run-win.mp3')
+    })()
+
+    function playCollect() { playOnce(sfxBufCollect, 0.55) }
+    function playWrong()   { playOnce(sfxBufWrong,   0.35) }
 
     // --- GAME STATE ---
     const state = {
@@ -823,32 +862,7 @@ export default function FoxRunPage() {
     container.addEventListener('touchstart', onTouchStart)
     container.addEventListener('touchend', onTouchEnd)
 
-    // Pre-load звуци за да не секат
-    const sfxLeft = new Audio('/sounds/fox-left.mp3'); sfxLeft.volume = 0.4
-    const sfxRight = new Audio('/sounds/fox-right.mp3'); sfxRight.volume = 0.4
-    const sfxJump = new Audio('/sounds/fox-jump.mp3'); sfxJump.volume = 0.5
-
-    function playSfx(audio: HTMLAudioElement) {
-      try { audio.currentTime = 0; audio.play().catch(() => {}) } catch {}
-    }
-
-    // Run loop звук
-    const runSound = new Audio('/sounds/fox-run-loop.mp3')
-    runSound.loop = true
-    runSound.volume = 0.35
-    const startRunSound = () => {
-      runSound.play().catch(() => {})
-      window.removeEventListener('keydown', startRunSound)
-      window.removeEventListener('click', startRunSound)
-      container.removeEventListener('touchstart', startRunSound)
-    }
-    window.addEventListener('keydown', startRunSound)
-    window.addEventListener('click', startRunSound)
-    container.addEventListener('touchstart', startRunSound)
-
-    // Eager play attempt — succeeds if AudioContext вече е unlock-нат от native WebView
-    music.play().catch(() => {})
-    runSound.play().catch(() => {})
+    function playSfx(buf: AudioBuffer | null, volume: number) { playOnce(buf, volume) }
 
     function moveLane(dir: number) {
       if (laneChangeCooldown > 0) return
@@ -856,19 +870,19 @@ export default function FoxRunPage() {
       if (n !== state.currentLane) {
         state.currentLane = n; state.targetX = n * LANE_WIDTH
         laneChangeCooldown = 0.22
-        playSfx(dir > 0 ? sfxRight : sfxLeft)
+        playSfx(dir > 0 ? sfxBufRight : sfxBufLeft, 0.4)
       }
     }
     function jump() {
       if (!state.isJumping && !state.isSliding) {
         state.isJumping = true; state.jumpVelocity = JUMP_FORCE
-        playSfx(sfxJump)
+        playSfx(sfxBufJump, 0.5)
       }
     }
     function slide() {
       if (!state.isJumping && !state.isSliding) {
         state.isSliding = true; state.slideTimer = SLIDE_DURATION
-        playSfx(sfxJump)
+        playSfx(sfxBufJump, 0.5)
       }
     }
 
@@ -886,7 +900,7 @@ export default function FoxRunPage() {
       state.runTime += dt
       if (mixer) mixer.update(dt)
       state.speed = Math.min(12 + state.runTime * 0.25, 20 + gameRef.current.level * 2)
-      runSound.playbackRate = Math.min(1 + state.runTime * 0.008, 1.6)
+      if (runSoundSource) runSoundSource.playbackRate.value = Math.min(1 + state.runTime * 0.008, 1.6)
       if (laneChangeCooldown > 0) laneChangeCooldown -= dt
       if (state.invincible > 0) state.invincible -= dt
 
@@ -1062,7 +1076,7 @@ export default function FoxRunPage() {
             g.score = newScore
             setScore(newScore)
             if (indices.size === g.targetWord.length) {
-              try { const s = new Audio('/sounds/fox-run-win.mp3'); s.volume = 0.32; s.play().catch(() => {}) } catch {}
+              playOnce(sfxBufWin, 0.32)
               // Word complete!
               setTimeout(() => {
                 g.wordsCompletedInLevel++
@@ -1190,10 +1204,9 @@ export default function FoxRunPage() {
       window.removeEventListener('resize', onResize)
       container.removeEventListener('touchstart', onTouchStart)
       container.removeEventListener('touchend', onTouchEnd)
-      music.pause()
-      music.src = ''
-      runSound.pause()
-      runSound.src = ''
+      if (musicSource) { try { musicSource.stop() } catch {} }
+      if (runSoundSource) { try { runSoundSource.stop() } catch {} }
+      audioCtx.close()
       renderer.dispose()
       if (container.contains(renderer.domElement)) container.removeChild(renderer.domElement)
     }
