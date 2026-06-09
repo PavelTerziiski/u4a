@@ -140,6 +140,7 @@ export default function FoxRunPage() {
 
     // Looping music
     let musicSource: AudioBufferSourceNode | null = null
+    let musicStarted = false
     const musicGain = audioCtx.createGain(); musicGain.gain.value = 0.35; musicGain.connect(audioCtx.destination)
 
     async function switchMusic(url: string) {
@@ -174,7 +175,7 @@ export default function FoxRunPage() {
 
     // Start audio immediately (works if AudioContext was unlocked by injected JS)
     audioCtx.resume().then(() => {
-      switchMusic(musicTracks[Math.floor(Math.random() * musicTracks.length)])
+      if (!musicStarted) { musicStarted = true; switchMusic(musicTracks[Math.floor(Math.random() * musicTracks.length)]) }
       startRunLoop()
     })
 
@@ -1255,11 +1256,6 @@ export default function FoxRunPage() {
   return (
     <div className="relative w-full h-screen bg-black overflow-hidden">
       {/* Back */}
-      <button onClick={() => router.push('/games')}
-        className="absolute top-4 left-4 z-10 bg-black/50 text-white px-4 py-2 rounded-full text-sm font-medium backdrop-blur-sm border border-white/20 hover:bg-black/70 transition-all">
-        ← Назад
-      </button>
-
       {/* Word UI — скрито при ниво 3 */}
       {level !== 3 && (
         <div className="absolute top-4 left-1/2 -translate-x-1/2 z-10 flex flex-col items-center gap-2">
@@ -1307,7 +1303,7 @@ export default function FoxRunPage() {
         <div className="text-yellow-400 font-bold text-lg">⭐ {score}</div>
       </div>
       {/* Lives */}
-      <div className="absolute top-16 right-16 z-10 flex gap-1">
+      <div className="absolute top-4 left-4 z-10 flex gap-1">
         {Array.from({ length: Math.max(0, lives) }).map((_, i) => (
           <span key={i} className="text-lg">❤️</span>
         ))}
