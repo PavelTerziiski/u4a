@@ -846,6 +846,10 @@ export default function FoxRunPage() {
     window.addEventListener('click', startRunSound)
     container.addEventListener('touchstart', startRunSound)
 
+    // Eager play attempt — succeeds if AudioContext вече е unlock-нат от native WebView
+    music.play().catch(() => {})
+    runSound.play().catch(() => {})
+
     function moveLane(dir: number) {
       if (laneChangeCooldown > 0) return
       const n = Math.max(-1, Math.min(1, state.currentLane + dir))
