@@ -1267,9 +1267,9 @@ export default function FoxRunPage() {
       {level !== 3 && (
         <div className="absolute top-4 left-1/2 -translate-x-1/2 z-10 flex flex-col items-center gap-2">
           <div className="text-white/50 text-xs uppercase tracking-widest">Събери думата</div>
-          <div className="flex gap-2">
+          <div className="flex flex-wrap justify-center gap-1 max-w-xs">
             {(targetWord || '').split('').map((letter, i) => (
-              <div key={i} className={`w-10 h-10 rounded-xl flex items-center justify-center text-lg font-bold border-2 transition-all duration-300 ${
+              <div key={i} className={`w-8 h-8 rounded-lg flex items-center justify-center text-sm font-bold border-2 transition-all duration-300 ${
                 collected[i]
                   ? 'bg-yellow-400 border-yellow-300 text-gray-900 scale-110'
                   : 'bg-black/40 border-white/20 text-gray-600'
