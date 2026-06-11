@@ -72,6 +72,7 @@ export default function AccentCheck() {
     const sentences = [...(selected.sentences as Sentence[])]
     sentences[activeSent.sentIdx] = { text: editText }
     const { error } = await supabase.from('dictations').update({ sentences }).eq('id', selected.id)
+    console.log('saveText result:', error)
     if (error) { setMsg(`❌ ${error.message}`); return }
     const updated = { ...selected, sentences }
     setSelected(updated)
