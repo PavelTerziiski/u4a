@@ -75,9 +75,23 @@ export default function FoxRunPage() {
     if (!selectedLevel || !mountRef.current) return
     const container = mountRef.current
 
-    // Shuffled word deck — use URL words param if provided, else default WORDS
+    // Shuffled word deck — use URL words param if provided (fill to 10), else default WORDS
     const urlWords = new URLSearchParams(window.location.search).get('words')
-    const wordDeck = urlWords ? urlWords.split(',').map(w => w.trim().toUpperCase()).filter(Boolean) : [...WORDS]
+    function shuffle<T>(arr: T[]): T[] {
+      for (let i = arr.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [arr[i], arr[j]] = [arr[j], arr[i]]
+      }
+      return arr
+    }
+    let wordDeck: string[]
+    if (urlWords) {
+      const custom = urlWords.split(',').map(w => w.trim().toUpperCase()).filter(Boolean)
+      const extra = shuffle(WORDS.filter(w => !custom.includes(w))).slice(0, Math.max(0, 10 - custom.length))
+      wordDeck = shuffle([...custom, ...extra])
+    } else {
+      wordDeck = [...WORDS]
+    }
     let wordDeckIndex = 0
     function getNextWord(): string {
       if (wordDeckIndex >= wordDeck.length) {
@@ -1043,6 +1057,7 @@ export default function FoxRunPage() {
                   setLevel(g.level); setWordsCompletedInLevel(0); setLevelComplete(false)
                   state.runTime = 0; g.lives = 3; setLives(3)
                   applyWorld(g.level)
+                  shuffle(wordDeck); wordDeckIndex = 0
                   const nextWord = getNextWord()
                   g.targetWord = nextWord; g.collected = []; g.collectedIndices = new Set()
                   setTargetWord(nextWord); setCollected([])
@@ -1101,6 +1116,7 @@ export default function FoxRunPage() {
                     state.runTime = 0
                     g.lives = 3; setLives(3)
                     applyWorld(g.level)
+                    shuffle(wordDeck); wordDeckIndex = 0
                     const nextWord = getNextWord()
                     g.targetWord = nextWord; g.collected = []; g.collectedIndices = new Set()
                     setTargetWord(nextWord); setCollected([])
@@ -1268,7 +1284,7 @@ export default function FoxRunPage() {
       {level !== 3 && (
         <div className="absolute top-4 left-1/2 -translate-x-1/2 z-10 flex flex-col items-center gap-2">
           <div className="text-white/50 text-xs uppercase tracking-widest">Събери думата</div>
-          <div className="flex flex-wrap justify-center gap-1 max-w-xs">
+          <div className="flex justify-center gap-1">
             {(targetWord || '').split('').map((letter, i) => (
               <div key={i} className={`w-8 h-8 rounded-lg flex items-center justify-center text-sm font-bold border-2 transition-all duration-300 ${
                 collected[i]
