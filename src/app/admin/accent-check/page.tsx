@@ -5,7 +5,7 @@ import { supabase } from '@/lib/supabase'
 type Sentence = { text: string }
 type PronWord = { id: string; letter: string; word: string; emoji: string; tts_text: string; sort_order: number }
 type Dictation = { id: string; title: string; grade: number; sentences: Sentence[] }
-type Mission = { id: string; title: string; order_num: number; dictation_id: string | null; reading_dictation_id: string | null }
+type Mission = { id: string; title: string; order_num: number; dictation_id: string | null; reading_dictation_id: string | null; words?: string | null }
 
 export default function AccentCheck() {
   const [dictations, setDictations] = useState<Dictation[]>([])
@@ -24,6 +24,9 @@ export default function AccentCheck() {
   const [activeSection, setActiveSection] = useState<'dictations' | 'pronunciation' | 'strings' | 'missions'>('dictations')
   const [missions, setMissions] = useState<Mission[]>([])
   const [missionDictCache, setMissionDictCache] = useState<Record<string, Dictation>>({})
+  const [selectedMission, setSelectedMission] = useState<Mission | null>(null)
+  const [missionWordsEdit, setMissionWordsEdit] = useState('')
+  const [savingWords, setSavingWords] = useState(false)
   const [editingPron, setEditingPron] = useState<PronWord | null>(null)
   const [pronForm, setPronForm] = useState({ word: '', emoji: '', tts_text: '' })
   const [strings, setStrings] = useState<{id: string, key: string, text: string, description: string}[]>([])
@@ -37,7 +40,7 @@ export default function AccentCheck() {
       .then(({ data }) => { if (data) setPronWords(data) })
     supabase.from('pronunciation_strings').select('*').order('key')
       .then(({ data }) => { if (data) setStrings(data) })
-    supabase.from('missions').select('id, title, order_num, dictation_id, reading_dictation_id')
+    supabase.from('missions').select('id, title, order_num, dictation_id, reading_dictation_id, words')
       .eq('book_id', '6e1927fe-38e0-4ce5-864d-98556a897e1c').order('order_num')
       .then(({ data }) => { if (data) setMissions(data) })
   }, [])
@@ -124,13 +127,13 @@ export default function AccentCheck() {
               Мисия {m.order_num} — {m.title}
             </div>
             {m.dictation_id && (
-              <button onClick={() => loadDictationById(m.dictation_id!)}
+              <button onClick={() => { setSelectedMission(m); setMissionWordsEdit(m.words ?? ''); loadDictationById(m.dictation_id!); }}
                 style={{width:'100%', textAlign:'left', padding:'4px 10px 4px 16px', background: selected?.id === m.dictation_id ? '#fff7ed' : 'transparent', color: selected?.id === m.dictation_id ? '#ea580c' : '#374151', border:'none', borderRadius:'6px', marginBottom:'2px', cursor:'pointer', fontSize:'12px', fontWeight: selected?.id === m.dictation_id ? 'bold' : 'normal'}}>
                 📝 Диктовка
               </button>
             )}
             {m.reading_dictation_id && (
-              <button onClick={() => loadDictationById(m.reading_dictation_id!)}
+              <button onClick={() => { setSelectedMission(m); setMissionWordsEdit(m.words ?? ''); loadDictationById(m.reading_dictation_id!); }}
                 style={{width:'100%', textAlign:'left', padding:'4px 10px 4px 16px', background: selected?.id === m.reading_dictation_id ? '#f0fdf4' : 'transparent', color: selected?.id === m.reading_dictation_id ? '#16a34a' : '#374151', border:'none', borderRadius:'6px', marginBottom:'2px', cursor:'pointer', fontSize:'12px', fontWeight: selected?.id === m.reading_dictation_id ? 'bold' : 'normal'}}>
                 👁 Четене
               </button>
@@ -227,6 +230,38 @@ export default function AccentCheck() {
           <div style={{color:'#9ca3af', textAlign:'center', marginTop:'80px', fontSize:'18px'}}>← Избери диктовка</div>
         ) : (
           <>
+            {activeSection === 'missions' && selectedMission && (
+              <div style={{background:'#fffbeb', border:'2px solid #f59e0b', borderRadius:'12px', padding:'14px 16px', marginBottom:'16px'}}>
+                <div style={{fontWeight:'bold', color:'#92400e', fontSize:'13px', marginBottom:'8px'}}>🦊 ДУМИ ЗА FOX RUN (Мисия {selectedMission.order_num})</div>
+                <div style={{display:'flex', gap:'8px', alignItems:'center'}}>
+                  <input
+                    value={missionWordsEdit}
+                    onChange={e => setMissionWordsEdit(e.target.value)}
+                    placeholder="ПЕРО,КАМЪК,СИМВОЛ,РЕКА,САНДЪЧЕ"
+                    style={{flex:1, border:'1px solid #d1d5db', borderRadius:'8px', padding:'7px 10px', fontSize:'14px', color:'#000'}}
+                  />
+                  <button
+                    disabled={savingWords}
+                    onClick={async () => {
+                      setSavingWords(true)
+                      const { error } = await supabase.from('missions').update({ words: missionWordsEdit }).eq('id', selectedMission.id)
+                      if (!error) {
+                        setMissions(prev => prev.map(m => m.id === selectedMission.id ? { ...m, words: missionWordsEdit } : m))
+                        setSelectedMission(prev => prev ? { ...prev, words: missionWordsEdit } : prev)
+                        setMsg('✅ Думите са запазени')
+                      } else {
+                        setMsg('❌ ' + error.message)
+                      }
+                      setSavingWords(false)
+                    }}
+                    style={{background:'#f59e0b', color:'#fff', border:'none', borderRadius:'8px', padding:'7px 18px', cursor:'pointer', fontWeight:'bold', opacity: savingWords ? 0.6 : 1}}
+                  >
+                    {savingWords ? '...' : 'Запази думи'}
+                  </button>
+                </div>
+                <div style={{fontSize:'11px', color:'#92400e', marginTop:'6px'}}>Разделени със запетая, главни букви</div>
+              </div>
+            )}
             <div style={{display:'flex', alignItems:'center', gap:'10px', marginBottom:'4px'}}>
               {editingTitle ? (
                 <>
