@@ -84,10 +84,11 @@ export default function AccentCheck() {
     setEditText('')
   }
 
-  const loadDictationById = async (id: string) => {
+  const loadDictationById = async (id: string, forceRefresh = false) => {
     setActiveWord(null); setActiveSent(null); setMsg('')
-    if (missionDictCache[id]) { setSelected(missionDictCache[id]); return }
-    const { data } = await supabase.from('dictations').select('id, title, grade, sentences').eq('id', id).single()
+    if (!forceRefresh && missionDictCache[id]) { setSelected(missionDictCache[id]); return }
+    const { data, error } = await supabase.from('dictations').select('id, title, grade, sentences').eq('id', id).single()
+    console.log('loadDictationById:', id, error?.message)
     if (data) { setMissionDictCache(prev => ({ ...prev, [id]: data })); setSelected(data) }
   }
 
