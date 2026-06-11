@@ -75,8 +75,9 @@ export default function FoxRunPage() {
     if (!selectedLevel || !mountRef.current) return
     const container = mountRef.current
 
-    // Shuffled word deck — no repeats until all words used
-    const wordDeck = [...WORDS]
+    // Shuffled word deck — use URL words param if provided, else default WORDS
+    const urlWords = new URLSearchParams(window.location.search).get('words')
+    const wordDeck = urlWords ? urlWords.split(',').map(w => w.trim().toUpperCase()).filter(Boolean) : [...WORDS]
     let wordDeckIndex = 0
     function getNextWord(): string {
       if (wordDeckIndex >= wordDeck.length) {
