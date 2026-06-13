@@ -7,7 +7,7 @@ export async function POST(req: NextRequest) {
   const headers = { 'Access-Control-Allow-Origin': '*' }
   try {
     const body = await req.json()
-    const { office_id, office_name, page, name, email, phone } = body
+    const { office_id, office_name, name, email, phone } = body
 
     await resend.emails.send({
       from: 'u4a.bg <noreply@u4a.bg>',
