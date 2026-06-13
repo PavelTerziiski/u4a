@@ -11,7 +11,7 @@ export async function POST(req: NextRequest) {
 
     await resend.emails.send({
       from: 'u4a.bg <noreply@u4a.bg>',
-      to: 'pavel.impro@gmail.com',
+      to: 'roditelyat@gmail.com',
       subject: '📦 Нова поръчка — Speedy офис',
       html: `
         <h2>Нова поръчка с доставка до офис на Speedy</h2>
