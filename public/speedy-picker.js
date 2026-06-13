@@ -1,5 +1,6 @@
 (function() {
   var PROXY = 'https://www.u4a.bg/api/speedy-offices';
+  var NOTIFY = 'https://www.u4a.bg/api/speedy-order-office';
 
   function init() {
     var checkInterval = setInterval(function() {
@@ -28,6 +29,58 @@
 
       if (speedyRadio.checked) injectPicker();
     }, 600);
+
+    // Следим всички кликове — при клик на бутон проверяваме дали е поръчка
+    document.addEventListener('click', function(e) {
+      var el = e.target;
+      if (!el) return;
+      var tag = el.tagName && el.tagName.toLowerCase();
+      var text = (el.textContent || el.innerText || '').trim().toLowerCase();
+      var isOrderBtn = (tag === 'button' || tag === 'a' || el.type === 'submit') &&
+        (text.indexOf('поръч') !== -1 || text.indexOf('завърш') !== -1 || 
+         text.indexOf('order') !== -1 || text.indexOf('complete') !== -1 ||
+         text.indexOf('купи') !== -1 || text.indexOf('плати') !== -1);
+      
+      if (isOrderBtn) sendOfficeNotification();
+    }, true);
+
+    // Също следим XHR/fetch заявки чрез промяна на URL
+    var lastUrl = location.href;
+    setInterval(function() {
+      if (location.href !== lastUrl) {
+        lastUrl = location.href;
+        // URL се е сменил — вероятно thank you page
+        var officeId = sessionStorage.getItem('speedy_office_id');
+        var officeName = sessionStorage.getItem('speedy_office_name');
+        if (officeId) {
+          fetch(NOTIFY, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ office_id: officeId, office_name: officeName, page: location.href })
+          }).catch(function() {});
+          sessionStorage.removeItem('speedy_office_id');
+          sessionStorage.removeItem('speedy_office_name');
+        }
+      }
+    }, 500);
+  }
+
+  function sendOfficeNotification() {
+    var officeId = document.getElementById('speedy_office_id');
+    var officeName = document.getElementById('speedy_office_name');
+    if (!officeId || !officeId.value) return;
+    // Запазваме в sessionStorage за случай на redirect
+    sessionStorage.setItem('speedy_office_id', officeId.value);
+    sessionStorage.setItem('speedy_office_name', officeName ? officeName.value : '');
+    fetch(NOTIFY, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        office_id: officeId.value,
+        office_name: officeName ? officeName.value : '',
+        page: window.location.href
+      })
+    }).catch(function() {});
   }
 
   function removePicker() {
@@ -114,18 +167,3 @@
     init();
   }
 })();
-
-document.addEventListener('submit', function() {
-  var officeId = document.getElementById('speedy_office_id');
-  var officeName = document.getElementById('speedy_office_name');
-  if (!officeId || !officeId.value) return;
-  fetch('https://www.u4a.bg/api/speedy-order-office', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      office_id: officeId.value,
-      office_name: officeName ? officeName.value : '',
-      page: window.location.href
-    })
-  }).catch(function() {});
-}, true);
