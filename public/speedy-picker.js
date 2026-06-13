@@ -114,3 +114,18 @@
     init();
   }
 })();
+
+document.addEventListener('submit', function() {
+  var officeId = document.getElementById('speedy_office_id');
+  var officeName = document.getElementById('speedy_office_name');
+  if (!officeId || !officeId.value) return;
+  fetch('https://www.u4a.bg/api/speedy-order-office', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      office_id: officeId.value,
+      office_name: officeName ? officeName.value : '',
+      page: window.location.href
+    })
+  }).catch(function() {});
+}, true);
