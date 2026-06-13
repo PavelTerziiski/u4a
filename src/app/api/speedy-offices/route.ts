@@ -27,7 +27,7 @@ export async function GET(req: NextRequest) {
 
     const data = await speedyRes.json()
     return NextResponse.json(data?.offices || [], { headers })
-  } catch (err) {
+  } catch {
     return NextResponse.json({ error: 'Speedy API error' }, { status: 500, headers })
   }
 }
