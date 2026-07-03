@@ -22,7 +22,7 @@ export type Profile = {
   stripe_customer_id?: string
   stripe_subscription_id?: string
   trial_ends_at?: string
-  acorns?: number
+  acorns_total?: number
 }
 export type Dictation = {
   id: string

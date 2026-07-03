@@ -18,7 +18,7 @@ export async function awardAcorns(
   // Fetch current balance to compute new total
   const { data: current, error: fetchErr } = await supabase
     .from('profiles')
-    .select('acorns')
+    .select('acorns_total')
     .eq('username', profile.username)
     .single()
 
@@ -27,11 +27,11 @@ export async function awardAcorns(
     return null
   }
 
-  const newTotal = (current.acorns || 0) + amount
+  const newTotal = (current.acorns_total || 0) + amount
 
   const { error: updateErr } = await supabase
     .from('profiles')
-    .update({ acorns: newTotal })
+    .update({ acorns_total: newTotal })
     .eq('username', profile.username)
 
   if (updateErr) {
