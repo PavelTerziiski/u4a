@@ -125,7 +125,7 @@ export default function Dashboard() {
             <div className="stat-label">Дни Streak</div>
           </div>
           <div className="stat-card" style={{ background: 'linear-gradient(135deg, #FEF3C7, #FDE68A)', border: '2px solid #FBBF24' }}>
-            <div className="stat-number" style={{ color: '#78350F' }}>🌰 {profile?.acorns || 0}</div>
+            <div className="stat-number" style={{ color: '#78350F' }}>🌰 {profile?.acorns_total || 0}</div>
             <div className="stat-label" style={{ color: '#92400E' }}>Жълъди</div>
           </div>
         </div>
