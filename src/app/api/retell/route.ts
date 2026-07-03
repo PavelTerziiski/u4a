@@ -48,8 +48,12 @@ export async function POST(req: NextRequest) {
   const data = await response.json()
   const text = data.content?.[0]?.text || ''
 
+  console.log('[retell] raw model text:', text)
+
   try {
-    return NextResponse.json(JSON.parse(text))
+    const raw = text.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim()
+    const parsed = JSON.parse(raw)
+    return NextResponse.json(parsed)
   } catch {
     return NextResponse.json({ error: 'Invalid response from model' }, { status: 500 })
   }
