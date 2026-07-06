@@ -316,92 +316,47 @@ export default function FoxRunPage() {
     }
 
     // --- TREES & FLOWERS ---
-    function makePineTree(x: number, z: number, scale = 1) {
-      const g = new THREE.Group()
-      const trunkH = (1.8 + Math.random() * 1.2) * scale
-      const trunk = new THREE.Mesh(
-        new THREE.CylinderGeometry(0.12 * scale, 0.2 * scale, trunkH, 6),
-        new THREE.MeshStandardMaterial({ color: 0x2d1508, roughness: 0.85, metalness: 0 })
-      )
-      trunk.position.y = trunkH / 2; trunk.castShadow = true; g.add(trunk)
-      const greens = [0x0d3a08, 0x124a0c, 0x1a5c12, 0x0f4510]
-      const leafMat = new THREE.MeshStandardMaterial({ color: greens[Math.floor(Math.random() * greens.length)], roughness: 0.85, metalness: 0 })
-      const layers = 3 + Math.floor(Math.random() * 2)
-      for (let l = 0; l < layers; l++) {
-        const cone = new THREE.Mesh(new THREE.ConeGeometry((1.4 - l * 0.22) * scale, 1.8 * scale, 7), leafMat)
-        cone.position.y = trunkH + l * 1.2 * scale; cone.castShadow = true; g.add(cone)
-      }
-      g.position.set(x, 0, z); scene.add(g); return g
-    }
-
-    function makeBroadleafTree(x: number, z: number, scale = 1) {
-      const g = new THREE.Group()
-      const trunkH = (1.5 + Math.random() * 1.0) * scale
-      const trunk = new THREE.Mesh(
-        new THREE.CylinderGeometry(0.14 * scale, 0.22 * scale, trunkH, 7),
-        new THREE.MeshStandardMaterial({ color: 0x5c3317, roughness: 0.85, metalness: 0 })
-      )
-      trunk.position.y = trunkH / 2; trunk.castShadow = true; g.add(trunk)
-      const crownR = (1.3 + Math.random() * 0.5) * scale
-      const crown = new THREE.Mesh(
-        new THREE.SphereGeometry(crownR, 8, 6),
-        new THREE.MeshStandardMaterial({ color: 0x27ae60, roughness: 0.85, metalness: 0 })
-      )
-      crown.position.y = trunkH + crownR * 0.8; crown.castShadow = true; g.add(crown)
-      g.position.set(x, 0, z); scene.add(g); return g
-    }
-
-    function makeFruitTree(x: number, z: number, scale = 1) {
-      const g = new THREE.Group()
-      const trunkH = (1.2 + Math.random() * 0.8) * scale
-      const trunk = new THREE.Mesh(
-        new THREE.CylinderGeometry(0.1 * scale, 0.18 * scale, trunkH, 6),
-        new THREE.MeshStandardMaterial({ color: 0x4a2506, roughness: 0.85, metalness: 0 })
-      )
-      trunk.position.y = trunkH / 2; trunk.castShadow = true; g.add(trunk)
-      const crownR = (1.0 + Math.random() * 0.4) * scale
-      const crown = new THREE.Mesh(
-        new THREE.SphereGeometry(crownR, 8, 6),
-        new THREE.MeshStandardMaterial({ color: 0x2ecc71, roughness: 0.85, metalness: 0 })
-      )
-      crown.position.y = trunkH + crownR * 0.85; crown.castShadow = true; g.add(crown)
-      const fruitMat = new THREE.MeshStandardMaterial({ color: 0xe74c3c, roughness: 0.7, metalness: 0 })
-      const fruitCount = 5 + Math.floor(Math.random() * 4)
-      for (let f = 0; f < fruitCount; f++) {
-        const theta = Math.random() * Math.PI * 2
-        const phi = Math.random() * Math.PI
-        const fr = crownR * (0.7 + Math.random() * 0.3)
-        const fruit = new THREE.Mesh(new THREE.SphereGeometry(0.1 * scale, 5, 5), fruitMat)
-        fruit.position.set(
-          Math.sin(phi) * Math.cos(theta) * fr,
-          crown.position.y + Math.cos(phi) * fr * 0.5,
-          Math.sin(phi) * Math.sin(theta) * fr
-        )
-        g.add(fruit)
-      }
-      g.position.set(x, 0, z); scene.add(g); return g
-    }
-
-    function makeRandomTree(x: number, z: number, scale = 1) {
-      const t = Math.floor(Math.random() * 3)
-      if (t === 0) return makePineTree(x, z, scale)
-      if (t === 1) return makeBroadleafTree(x, z, scale)
-      return makeFruitTree(x, z, scale)
-    }
-
+    // All trees are nature-pack GLTF models (public/models/nature/glTF) — no more
+    // procedural Cone/Sphere placeholders. Everything loads async, so positions are
+    // generated once the models are in.
     const trees: THREE.Group[] = []
     const flowers: THREE.Group[] = []
+    const bushes: THREE.Group[] = []
+    const mountains: THREE.Group[] = []
 
-    // Spawn 70% procedural trees immediately; Kenney 30% + all flowers loaded async
-    for (let i = 0; i < NUM_SEGMENTS; i++) {
-      const z = -i * SEGMENT_LENGTH - 4
-      const spread = 3 + Math.random() * 4
-      if (Math.random() > 0.3) trees.push(makeRandomTree(-(PATH_WIDTH / 2 + 1.2 + spread), z, 0.7 + Math.random() * 0.7))
-      if (Math.random() > 0.3) trees.push(makeRandomTree(PATH_WIDTH / 2 + 1.2 + spread, z, 0.7 + Math.random() * 0.7))
-      if (Math.random() > 0.4) {
-        if (Math.random() > 0.3) trees.push(makeRandomTree(-(PATH_WIDTH / 2 + 4 + Math.random() * 5), z - 5, 0.7 + Math.random() * 0.7))
-        if (Math.random() > 0.3) trees.push(makeRandomTree(PATH_WIDTH / 2 + 4 + Math.random() * 5, z - 5, 0.7 + Math.random() * 0.7))
+    // Winter snow-cap effect: tints upward-facing surfaces white via a small
+    // fragment-shader patch (dot product with world-up) instead of a separate
+    // snow mesh, so it follows each model's actual shape (branch tops, rock
+    // ridges) rather than reading as a flat paint job. snowUniform.value is
+    // toggled 0/1 in applyWorld() — only the winter world turns it on.
+    const snowMaterials: THREE.Material[] = []
+    function makeSnowy(material: THREE.Material) {
+      if (material.userData.snowUniform) return
+      const snowUniform = { value: 0 }
+      material.userData.snowUniform = snowUniform
+      material.onBeforeCompile = shader => {
+        shader.uniforms.snowAmount = snowUniform
+        shader.vertexShader = shader.vertexShader
+          .replace('#include <common>', '#include <common>\nvarying vec3 vWorldNormal;')
+          .replace('#include <defaultnormal_vertex>', '#include <defaultnormal_vertex>\nvWorldNormal = normalize(mat3(modelMatrix) * normal);')
+        shader.fragmentShader = shader.fragmentShader
+          .replace('#include <common>', '#include <common>\nuniform float snowAmount;\nvarying vec3 vWorldNormal;')
+          .replace('#include <dithering_fragment>', `
+            float snowFace = smoothstep(0.35, 0.75, vWorldNormal.y) * snowAmount;
+            gl_FragColor.rgb = mix(gl_FragColor.rgb, vec3(0.96, 0.98, 1.0), snowFace);
+            #include <dithering_fragment>`)
       }
+      material.needsUpdate = true
+      snowMaterials.push(material)
+    }
+    function addSnowToModel(model: THREE.Object3D) {
+      model.traverse(child => {
+        const m = child as THREE.Mesh
+        if (m.isMesh && m.material) {
+          const mats = Array.isArray(m.material) ? m.material : [m.material]
+          mats.forEach(makeSnowy)
+        }
+      })
     }
 
     ;(async () => {
@@ -417,17 +372,78 @@ export default function FoxRunPage() {
           }, undefined, reject)
         )
       try {
-        const [pine, oak, def, shroom, flower, stump] = await Promise.all([
+        const naturePath = '/models/nature/glTF/'
+        const [
+          pine, oak, def, shroom, flower, stump,
+          birch1, birch2, birch3, birch4, birch5,
+          maple1, maple2, maple3, maple4, maple5,
+          dead1, dead3, dead5, dead7, dead9,
+          bush, bushFlowers, bushSmall,
+          rocks,
+        ] = await Promise.all([
           loadGLTF('/models/tree_pine.glb'),
           loadGLTF('/models/tree_oak.glb'),
           loadGLTF('/models/tree_default.glb'),
           loadGLTF('/models/mushroom_red.glb'),
           loadGLTF('/models/flower_purpleA.glb'),
           loadGLTF('/models/stump.glb'),
+          loadGLTF(naturePath + 'BirchTree_1.gltf'),
+          loadGLTF(naturePath + 'BirchTree_2.gltf'),
+          loadGLTF(naturePath + 'BirchTree_3.gltf'),
+          loadGLTF(naturePath + 'BirchTree_4.gltf'),
+          loadGLTF(naturePath + 'BirchTree_5.gltf'),
+          loadGLTF(naturePath + 'MapleTree_1.gltf'),
+          loadGLTF(naturePath + 'MapleTree_2.gltf'),
+          loadGLTF(naturePath + 'MapleTree_3.gltf'),
+          loadGLTF(naturePath + 'MapleTree_4.gltf'),
+          loadGLTF(naturePath + 'MapleTree_5.gltf'),
+          loadGLTF(naturePath + 'DeadTree_1.gltf'),
+          loadGLTF(naturePath + 'DeadTree_3.gltf'),
+          loadGLTF(naturePath + 'DeadTree_5.gltf'),
+          loadGLTF(naturePath + 'DeadTree_7.gltf'),
+          loadGLTF(naturePath + 'DeadTree_9.gltf'),
+          loadGLTF(naturePath + 'Bush.gltf'),
+          loadGLTF(naturePath + 'Bush_Flowers.gltf'),
+          loadGLTF(naturePath + 'Bush_Small.gltf'),
+          loadGLTF(naturePath + 'Rocks.glb'),
         ])
         const treeSrcs = [pine, oak, def]
+        const natureTreeSrcs = [
+          birch1, birch2, birch3, birch4, birch5,
+          maple1, maple2, maple3, maple4, maple5,
+          dead1, dead3, dead5, dead7, dead9,
+        ]
+        const bushSrcs = [bush, bushFlowers, bushSmall]
 
-        // 30% Kenney trees
+        // Apply the snow shader once per loaded template — every instance placed
+        // below is a clone that shares the same material reference, so this covers
+        // all of them and applyWorld() only needs to flip one uniform per material.
+        natureTreeSrcs.forEach(addSnowToModel)
+        bushSrcs.forEach(addSnowToModel)
+        addSnowToModel(rocks)
+
+        function placeNatureTree(x: number, z: number) {
+          const src = natureTreeSrcs[Math.floor(Math.random() * natureTreeSrcs.length)]
+          const g = src.clone()
+          g.scale.setScalar(0.6 + Math.random() * 0.5)
+          g.rotation.y = Math.random() * Math.PI * 2
+          g.position.set(x, 0, z)
+          scene.add(g); trees.push(g)
+        }
+
+        // Nature-pack trees along the path (replaces the old procedural Cone/Sphere trees)
+        for (let i = 0; i < NUM_SEGMENTS; i++) {
+          const z = -i * SEGMENT_LENGTH - 4
+          const spread = 3 + Math.random() * 4
+          if (Math.random() > 0.3) placeNatureTree(-(PATH_WIDTH / 2 + 1.2 + spread), z)
+          if (Math.random() > 0.3) placeNatureTree(PATH_WIDTH / 2 + 1.2 + spread, z)
+          if (Math.random() > 0.4) {
+            if (Math.random() > 0.3) placeNatureTree(-(PATH_WIDTH / 2 + 4 + Math.random() * 5), z - 5)
+            if (Math.random() > 0.3) placeNatureTree(PATH_WIDTH / 2 + 4 + Math.random() * 5, z - 5)
+          }
+        }
+
+        // 30% Kenney trees, layered in for extra variety
         for (let i = 0; i < NUM_SEGMENTS; i++) {
           const z = -i * SEGMENT_LENGTH - 4
           const spread = 3 + Math.random() * 4
@@ -456,6 +472,62 @@ export default function FoxRunPage() {
           fg.position.set(x, 0, z)
           scene.add(fg); flowers.push(fg)
         }
+
+        // Nature-pack bushes hugging the path edge, well clear of the letter-orb lanes
+        // (orbs only ever sit at x = lane * LANE_WIDTH, lane in [-1,0,1])
+        for (let i = 0; i < NUM_SEGMENTS * 3; i++) {
+          const side = Math.random() > 0.5 ? 1 : -1
+          const x = side * (PATH_WIDTH / 2 + 0.5 + Math.random() * 2.5)
+          const z = -Math.random() * NUM_SEGMENTS * SEGMENT_LENGTH
+          const bg = bushSrcs[Math.floor(Math.random() * bushSrcs.length)].clone()
+          bg.scale.setScalar(0.8 + Math.random() * 0.6)
+          bg.rotation.y = Math.random() * Math.PI * 2
+          bg.position.set(x, 0, z)
+          scene.add(bg); bushes.push(bg)
+        }
+
+        // Rocky horizon layer — individual rocks from Rocks.glb, scaled way up and
+        // placed past the hill line so they read as a distant rocky ridge, not
+        // boulders next to the path.
+        // Rocks.glb nests the 5 rocks under an empty "RootNode" wrapper (scene ->
+        // RootNode -> Rock_1..5) with each rock's own transform baked ~190 units off
+        // from the scene root by the source FBX export, so we walk down to the actual
+        // meshes and re-ground each individually rather than scaling the whole row
+        // (which is a wide, low 7x2x1 unit strip — scaling that for height instead of
+        // per-rock would blow the width out to 30-40 units, reaching back toward the path).
+        const rockMeshes: THREE.Object3D[] = []
+        rocks.traverse(obj => { if ((obj as THREE.Mesh).isMesh) rockMeshes.push(obj) })
+        const rockSrcs = rockMeshes.map(mesh => {
+          const box = new THREE.Box3().setFromObject(mesh)
+          const height = box.max.y - box.min.y
+          const centerX = (box.min.x + box.max.x) / 2
+          const centerZ = (box.min.z + box.max.z) / 2
+          mesh.position.x -= centerX
+          mesh.position.y -= box.min.y
+          mesh.position.z -= centerZ
+          const g = new THREE.Group()
+          g.add(mesh)
+          return { group: g, height }
+        })
+
+        for (let i = 0; i < NUM_SEGMENTS; i++) {
+          const side = Math.random() > 0.5 ? 1 : -1
+          const src = rockSrcs[Math.floor(Math.random() * rockSrcs.length)]
+          const targetHeight = 8 + Math.random() * 8
+          const s = targetHeight / src.height
+          const mg = src.group.clone()
+          mg.scale.setScalar(s)
+          mg.rotation.y = Math.random() * Math.PI * 2
+          const x = side * (PATH_WIDTH / 2 + grassWidth + 6 + Math.random() * 8)
+          const z = -i * SEGMENT_LENGTH - 30 - Math.random() * SEGMENT_LENGTH
+          mg.position.set(x, -0.5, z)
+          scene.add(mg); mountains.push(mg)
+        }
+
+        // applyWorld() ran once already at setup, before any of the above existed
+        // (trees/bushes/mountains/snowMaterials were all empty) — re-apply now so a
+        // direct non-forest start (e.g. ?level=2) still gets correct visibility/snow.
+        applyWorld(startLevel)
       } catch {}
     })()
 
@@ -513,14 +585,13 @@ export default function FoxRunPage() {
       scene.background = new THREE.Color(world.sky)
       ;(scene.fog as THREE.Fog).color.set(world.fog)
       if (worldIdx === 1) {
-        // Winter
+        // Winter — trees keep their own GLTF textures/materials; only fog, sky and
+        // ground react to the world so lighting stays consistent (no forced recolor).
         bloomPass.strength = 0.1
         pathMat.map = snowPathTex; pathMat.needsUpdate = true
         grassMat.map = snowTex; grassMat.color.set(0xddeeff); grassMat.needsUpdate = true
-        trees.forEach(tree => { tree.visible = true; tree.traverse(child => {
-          const m = child as THREE.Mesh
-          if (m.isMesh && m.material) (m.material as THREE.MeshStandardMaterial).color.set(0xffffff)
-        }) })
+        trees.forEach(tree => { tree.visible = true })
+        bushes.forEach(b => { b.visible = true })
         desertCacti.forEach(c => { c.visible = false })
         switchMusic('/sounds/forest-story-hyperfusion.mp3')
       } else if (worldIdx === 2) {
@@ -529,19 +600,20 @@ export default function FoxRunPage() {
         pathMat.map = sandPathTex; pathMat.needsUpdate = true
         grassMat.map = sandTex; grassMat.color.set(0xc2a45a); grassMat.needsUpdate = true
         trees.forEach(tree => { tree.visible = false })
+        bushes.forEach(b => { b.visible = false })
         desertCacti.forEach(c => { c.visible = true })
         switchMusic('/sounds/fox-run-music-1.mp3')
       } else {
         bloomPass.strength = 0.35
         pathMat.map = groundTex; pathMat.needsUpdate = true
         grassMat.map = grassTex; grassMat.color.set(0x3a7a2a); grassMat.needsUpdate = true
-        trees.forEach(tree => { tree.visible = true; tree.traverse(child => {
-          const m = child as THREE.Mesh
-          if (m.isMesh && m.material) (m.material as THREE.MeshStandardMaterial).color.set(0x3a8c3a)
-        }) })
+        trees.forEach(tree => { tree.visible = true })
+        bushes.forEach(b => { b.visible = true })
         desertCacti.forEach(c => { c.visible = false })
         switchMusic(musicTracks[Math.floor(Math.random() * musicTracks.length)])
       }
+      const snowOn = worldIdx === 1 ? 1 : 0
+      snowMaterials.forEach(m => { m.userData.snowUniform.value = snowOn })
     }
     applyWorld(selectedLevel ?? 1)
 
@@ -1009,6 +1081,22 @@ export default function FoxRunPage() {
           const side = f.position.x > 0 ? 1 : -1
           f.position.z -= NUM_SEGMENTS * SEGMENT_LENGTH + Math.random() * 10
           f.position.x = side * (PATH_WIDTH / 2 + 0.6 + Math.random() * 7)
+        }
+      })
+      bushes.forEach(b => {
+        b.position.z += moveZ
+        if (b.position.z > 10) {
+          const side = b.position.x > 0 ? 1 : -1
+          b.position.z -= NUM_SEGMENTS * SEGMENT_LENGTH + Math.random() * 10
+          b.position.x = side * (PATH_WIDTH / 2 + 0.5 + Math.random() * 2.5)
+        }
+      })
+      mountains.forEach(m => {
+        m.position.z += moveZ
+        if (m.position.z > 10) {
+          const side = m.position.x > 0 ? 1 : -1
+          m.position.z -= NUM_SEGMENTS * SEGMENT_LENGTH + Math.random() * 20
+          m.position.x = side * (PATH_WIDTH / 2 + grassWidth + 6 + Math.random() * 8)
         }
       })
 
