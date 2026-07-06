@@ -126,7 +126,6 @@ export default function Settings() {
       setProfile({ ...profile, fox_name: displayName, avatar_id: selectedAvatar, preferred_voice: selectedVoice })
     }
   }
-
   const currentPlan = profile?.plan_type || 'free'
   const isTrial = !profile?.is_premium && (profile?.total_sessions || 0) < 6
   const planInfo = PLAN_LABELS[currentPlan] || PLAN_LABELS['free']
@@ -188,7 +187,7 @@ export default function Settings() {
                 ⬆️ Смени план
               </button>
             )}
-            {profile?.stripe_customer_id && (
+            {currentPlan !== 'free' && (
               <button onClick={handlePortal} disabled={portalLoading} style={{ flex: 1, padding: '10px 0', borderRadius: 12, border: '2px solid #FED7AA', background: 'white', color: '#92400E', fontFamily: 'Nunito, sans-serif', fontWeight: 800, fontSize: '0.9rem', cursor: 'pointer', opacity: portalLoading ? 0.6 : 1 }}>
                 {portalLoading ? '⏳...' : '⚙️ Управлявай'}
               </button>
@@ -337,6 +336,11 @@ export default function Settings() {
               <div style={{ fontFamily: 'Nunito, sans-serif', fontSize: '0.75rem', color: '#7C3AED' }}>Многоезичен женски глас · EN & DE</div>
             </div>
             {(profile?.plan_type === 'max' || isTrial) ? (
+              <span></span>
+            ) : (
+              <span style={{ fontSize: '0.75rem', color: '#7C3AED', fontFamily: 'Nunito, sans-serif', fontWeight: 800 }}>🔒 Max</span>
+            )}
+            {false ? (
               <button
                 onClick={e => { e.stopPropagation(); playVoicePreview('koala') }}
                 style={{
@@ -346,10 +350,10 @@ export default function Settings() {
                   fontWeight: 800, fontSize: '0.8rem', cursor: 'pointer'
                 }}
               >
-                {playingVoice === 'koala' ? '▶ ...' : '▶ Чуй'}
+                {playingVoice === 'koala' ? '▶ ...' : '🎵 EN & DE'}
               </button>
             ) : (
-              <div style={{ fontSize: '0.75rem', color: '#7C3AED', fontFamily: 'Nunito, sans-serif', fontWeight: 800 }}>🔒 Max</div>
+              <div></div>
             )}
           </div>
 
@@ -368,9 +372,14 @@ export default function Settings() {
             <div style={{ fontSize: '1.8rem' }}>🦒</div>
             <div style={{ flex: 1 }}>
               <div style={{ fontFamily: 'Nunito, sans-serif', fontWeight: 800, color: '#5B21B6', fontSize: '0.95rem' }}>Господин Жираф</div>
-              <div style={{ fontFamily: 'Nunito, sans-serif', fontSize: '0.75rem', color: '#7C3AED' }}>Многоезичен мъжки глас · EN & DE</div>
+              <div style={{ fontFamily: 'Nunito, sans-serif', fontSize: '0.75rem', color: '#7C3AED' }}>Мъжки глас · EN & DE</div>
             </div>
             {(profile?.plan_type === 'max' || isTrial) ? (
+              <span></span>
+            ) : (
+              <span style={{ fontSize: '0.75rem', color: '#7C3AED', fontFamily: 'Nunito, sans-serif', fontWeight: 800 }}>🔒 Max</span>
+            )}
+            {false ? (
               <button
                 onClick={e => { e.stopPropagation(); playVoicePreview('straus') }}
                 style={{
@@ -380,13 +389,12 @@ export default function Settings() {
                   fontWeight: 800, fontSize: '0.8rem', cursor: 'pointer'
                 }}
               >
-                {playingVoice === 'koala' ? '▶ ...' : '▶ Чуй'}
+                {playingVoice === 'koala' ? '▶ ...' : '🎵 EN & DE'}
               </button>
             ) : (
-              <div style={{ fontSize: '0.75rem', color: '#7C3AED', fontFamily: 'Nunito, sans-serif', fontWeight: 800 }}>🔒 Max</div>
+              <div></div>
             )}
           </div>
-
           {!profile?.is_premium && !isTrial && (
             <button onClick={handleUpgrade} style={{
               background: '#F97316', color: 'white', border: 'none',
@@ -423,26 +431,32 @@ export default function Settings() {
       </div>
       <div className="bottom-nav">
         <div className="nav-item" onClick={() => router.push('/dashboard')}>
-          <span style={{background:'white',borderRadius:'50%',width:56,height:56,display:'flex',alignItems:'center',justifyContent:'center',marginBottom:2,boxShadow:'0 2px 8px rgba(0,0,0,0.15)'}}>
-            <span style={{fontSize:32}}>🏡</span>
+          <span style={{background:'white',borderRadius:'50%',width:72,height:72,display:'flex',alignItems:'center',justifyContent:'center',marginBottom:2,boxShadow:'0 2px 8px rgba(0,0,0,0.15)'}}>
+            <img src="/icons/home.png" style={{width:44,height:44,objectFit:'contain'}} />
           </span>
           Начало
         </div>
+        <div className="nav-item" onClick={() => router.push('/dictation')}>
+          <span style={{background:'white',borderRadius:'50%',width:72,height:72,display:'flex',alignItems:'center',justifyContent:'center',marginBottom:2,boxShadow:'0 2px 8px rgba(0,0,0,0.15)'}}>
+            <img src="/icons/dictations.png" style={{width:44,height:44,objectFit:'contain'}} />
+          </span>
+          Диктовки
+        </div>
         <div className="nav-item" onClick={() => router.push('/friends')}>
-          <span style={{background:'white',borderRadius:'50%',width:56,height:56,display:'flex',alignItems:'center',justifyContent:'center',marginBottom:2,boxShadow:'0 2px 8px rgba(0,0,0,0.15)'}}>
-            <span style={{fontSize:32}}>🐻</span>
+          <span style={{background:'white',borderRadius:'50%',width:72,height:72,display:'flex',alignItems:'center',justifyContent:'center',marginBottom:2,boxShadow:'0 2px 8px rgba(0,0,0,0.15)'}}>
+            <img src="/icons/friends.png" style={{width:44,height:44,objectFit:'contain'}} />
           </span>
           Приятели
         </div>
         <div className="nav-item active">
-          <span style={{background:'white',borderRadius:'50%',width:56,height:56,display:'flex',alignItems:'center',justifyContent:'center',marginBottom:2,boxShadow:'0 2px 8px rgba(0,0,0,0.15)'}}>
-            <span style={{fontSize:32}}>⚙️</span>
+          <span style={{background:'white',borderRadius:'50%',width:72,height:72,display:'flex',alignItems:'center',justifyContent:'center',marginBottom:2,boxShadow:'0 2px 8px rgba(0,0,0,0.15)'}}>
+            <img src="/icons/settings.png" style={{width:44,height:44,objectFit:'contain'}} />
           </span>
           Настройки
         </div>
         <div className="nav-item" onClick={() => router.push('/parent-view')}>
           <span style={{background:'white',borderRadius:'50%',width:56,height:56,display:'flex',alignItems:'center',justifyContent:'center',marginBottom:2,boxShadow:'0 2px 8px rgba(0,0,0,0.15)'}}>
-            <span style={{fontSize:32}}>👨‍👩‍👧</span>
+            <span style={{fontSize:28}}>👨‍👩‍👧</span>
           </span>
           За родителя
         </div>
