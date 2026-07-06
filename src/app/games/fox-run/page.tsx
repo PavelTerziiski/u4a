@@ -422,7 +422,7 @@ export default function FoxRunPage() {
         bushSrcs.forEach(addSnowToModel)
         addSnowToModel(rocks)
 
-        function placeNatureTree(x: number, z: number) {
+        const placeNatureTree = (x: number, z: number) => {
           const src = natureTreeSrcs[Math.floor(Math.random() * natureTreeSrcs.length)]
           const g = src.clone()
           g.scale.setScalar(0.6 + Math.random() * 0.5)
