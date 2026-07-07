@@ -676,7 +676,20 @@ export default function FoxRunPage() {
       document.fonts.add(font)
     })()
 
-    function drawWordOrb(word: string, lane: number, zPos: number, isCorrect: boolean) {
+    // Word-sign texture cache (desert word-pair mechanic) — reuses the 1024x512
+    // CanvasTexture for a given word instead of re-rasterizing + re-uploading it
+    // to the GPU on every spawn. Bounded LRU so a long session doesn't just grow
+    // the leak more slowly: oldest entry is disposed once the cap is hit.
+    const wordTextureCache = new Map<string, THREE.CanvasTexture>()
+    const WORD_TEXTURE_CACHE_LIMIT = 24
+    function getWordTexture(word: string): THREE.CanvasTexture {
+      const cached = wordTextureCache.get(word)
+      if (cached) {
+        // touch: move to the end so it's the most-recently-used entry
+        wordTextureCache.delete(word)
+        wordTextureCache.set(word, cached)
+        return cached
+      }
       const cv = document.createElement('canvas')
       cv.setAttribute('lang', 'bg'); cv.width = 1024; cv.height = 512
       const cx = cv.getContext('2d')!
@@ -689,6 +702,27 @@ export default function FoxRunPage() {
       cx.textAlign = 'center'; cx.textBaseline = 'middle'
       cx.fillText(word, 512, 270)
       const tex = new THREE.CanvasTexture(cv)
+      wordTextureCache.set(word, tex)
+      if (wordTextureCache.size > WORD_TEXTURE_CACHE_LIMIT) {
+        const oldestKey = wordTextureCache.keys().next().value
+        if (oldestKey !== undefined) {
+          wordTextureCache.get(oldestKey)?.dispose()
+          wordTextureCache.delete(oldestKey)
+        }
+      }
+      return tex
+    }
+
+    // SpriteMaterial is per-instance (not shared), so it's always safe to dispose
+    // on removal — but its .map is a cached texture that may still be referenced
+    // by other live/cached sprites, so it must NOT be disposed here.
+    function disposeWordSprite(obj: THREE.Object3D) {
+      const mat = (obj as THREE.Sprite).material as THREE.SpriteMaterial | undefined
+      mat?.dispose()
+    }
+
+    function drawWordOrb(word: string, lane: number, zPos: number, isCorrect: boolean) {
+      const tex = getWordTexture(word)
       const sprite = new THREE.Sprite(new THREE.SpriteMaterial({ map: tex, transparent: true }))
       sprite.scale.set(3.5, 1.8, 1)
       sprite.position.set(lane * LANE_WIDTH, 1.8, zPos)
@@ -1130,7 +1164,9 @@ export default function FoxRunPage() {
         if (orb.isCorrectPair !== undefined) {
           if (Math.abs(dx) < 1.5 && dz > -1.2 && dz < 2.0 && foxHeight < 0.8 && !state.isSliding) {
             for (const o of letterOrbs) {
-              if (o.isCorrectPair !== undefined && !o.collected) { scene.remove(o.mesh); o.collected = true }
+              if (o.isCorrectPair !== undefined && !o.collected) {
+                scene.remove(o.mesh); disposeWordSprite(o.mesh); o.collected = true
+              }
             }
             const g = gameRef.current
             if (orb.isCorrectPair) {
@@ -1160,6 +1196,12 @@ export default function FoxRunPage() {
                 if (newLives <= 0) { g.dead = true; setGameOver(true) }
               }
             }
+          }
+          // Recycle off-screen — skipped pairs (player ran past without touching
+          // either sign) never hit the collision branch above, so without this
+          // they'd fly behind the camera and sit in the scene graph forever.
+          if (!orb.collected && orb.mesh.position.z > 3) {
+            scene.remove(orb.mesh); disposeWordSprite(orb.mesh); orb.collected = true
           }
           continue
         }
