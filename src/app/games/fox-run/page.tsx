@@ -42,6 +42,10 @@ const WORD_PAIRS: [string, string][] = [
   ["дъб","дъп"],["хляб","хляп"],["зъб","зъп"],["гълъб","гълъп"],["гръб","гръп"],["клуб","клуп"],["дроб","дроп"],["боб","боп"],["гардероб","гардероп"],["джоб","джоп"],["лед","лет"],["мед","мет"],["ред","рет"],["глад","глат"],["град","грат"],["плод","плот"],["народ","нарот"],["вход","вхот"],["обяд","обят"],["брод","брот"],["рог","рок"],["праг","прак"],["враг","врак"],["бряг","бряк"],["сняг","сняк"],["кръг","крък"],["юг","юк"],["бог","бок"],["лев","леф"],["нов","ноф"],["здрав","здраф"],["крив","криф"],["прав","праф"],["сив","сиф"],["розов","розоф"],["готов","готоф"],["такъв","такъф"],["носов","нософ"],["мраз","мрас"],["низ","нис"],["образ","обрас"],["ряз","ряс"],["съюз","съюс"],["израз","израс"],["нож","нош"],["гараж","гараш"],["мъж","мъш"],["багаж","багаш"],["плаж","плаш"],["страж","страш"],["тираж","тираш"],["монтаж","монташ"],["ръка","рака"],["мъгла","магла"],["въже","важе"],["къща","каща"],["дъска","даска"],["тъга","тага"],["къпина","капина"],["лъжица","лажица"],["пътека","патека"],["въпрос","вапрос"],["късмет","касмет"],["дъга","дага"],["ръкав","ракав"],["мъничък","маничък"],["дънер","данер"],["тръба","траба"],["гъба","габа"],["мъх","мах"],["възел","вазел"],["дъх","дах"],["къс","кас"],["ръжен","ражен"],["тъпан","тапан"],["събота","сабота"],["зима","зема"],["лисица","лесица"],["игла","егла"],["пиле","пили"],["река","рика"],["дете","дити"],["зеле","зили"],["мечка","мичка"],["венец","винец"],["тетрадка","титрадка"],["седем","сидем"],["беля","биля"],["легло","лигло"],["череша","чиреша"],["снежен","снижен"],["телефон","тилифон"],["пеперуда","пиперуда"],["коте","коти"],["село","сило"],["ден","дин"],["медал","мидал"],["вестник","вистник"],["перо","пиро"],["десет","дисет"],["червен","чирвен"],["езеро","изеро"],["мелница","милница"],["бреза","бриза"],["детелина","дителина"],["безброй","безброи"],["бял","бел"],["пял","пел"],["видял","видел"],["седял","седел"],["летял","летел"],["живял","живел"],["стоял","стоел"],["зрял","зрел"],["безмислен","бесмислен"],["безсилен","бессилен"],["безстрашен","бесстрашен"],["безспорен","бесспорен"],["безсънен","бессънен"],["безсрамен","бессрамен"],["безцветен","бесцветен"],["безчувствен","бесчувствен"],["ябълка","абълка"],["яйце","айце"],["юнак","унак"],["ягода","агода"],["яма","ама"],["яке","аке"],["ястреб","астреб"],["юфка","уфка"],["южен","ужен"],["ютия","утия"],["юрган","урган"],["люлка","лулка"],["бонбон","бомбон"],["слънце","сланце"],["училище","учелише"],["приятел","преятел"],["рисувам","ресувам"],
 ]
 
+// Ниво 3 (desert) word-pair target — win condition check and HUD display both
+// read this instead of a hardcoded number so the two never drift apart.
+const DESERT_WORDS_TARGET = 15
+
 export default function FoxRunPage() {
   const mountRef = useRef<HTMLDivElement>(null)
   const router = useRouter()
@@ -323,6 +327,10 @@ export default function FoxRunPage() {
     const flowers: THREE.Group[] = []
     const bushes: THREE.Group[] = []
     const mountains: THREE.Group[] = []
+    // Ambient floating dust — declared here (assigned once created further down)
+    // so applyWorld() can toggle it per-world even though it's first called
+    // before the particle system itself exists.
+    let particles: THREE.Points | null = null
 
     // Winter snow-cap effect: tints upward-facing surfaces white via a small
     // fragment-shader patch (dot product with world-up) instead of a separate
@@ -593,6 +601,7 @@ export default function FoxRunPage() {
         trees.forEach(tree => { tree.visible = true })
         bushes.forEach(b => { b.visible = true })
         desertCacti.forEach(c => { c.visible = false })
+        if (particles) particles.visible = true
         switchMusic('/sounds/forest-story-hyperfusion.mp3')
       } else if (worldIdx === 2) {
         // Desert
@@ -602,6 +611,7 @@ export default function FoxRunPage() {
         trees.forEach(tree => { tree.visible = false })
         bushes.forEach(b => { b.visible = false })
         desertCacti.forEach(c => { c.visible = true })
+        if (particles) particles.visible = false
         switchMusic('/sounds/fox-run-music-1.mp3')
       } else {
         bloomPass.strength = 0.35
@@ -610,6 +620,7 @@ export default function FoxRunPage() {
         trees.forEach(tree => { tree.visible = true })
         bushes.forEach(b => { b.visible = true })
         desertCacti.forEach(c => { c.visible = false })
+        if (particles) particles.visible = true
         switchMusic(musicTracks[Math.floor(Math.random() * musicTracks.length)])
       }
       const snowOn = worldIdx === 1 ? 1 : 0
@@ -895,7 +906,8 @@ export default function FoxRunPage() {
     }
     particleGeo.setAttribute('position', new THREE.BufferAttribute(pPos, 3))
     const particleMat = new THREE.PointsMaterial({ color: 0xaaffaa, size: 0.07, transparent: true, opacity: 0.6 })
-    scene.add(new THREE.Points(particleGeo, particleMat))
+    particles = new THREE.Points(particleGeo, particleMat)
+    scene.add(particles)
 
     // --- COLLECT BURST ---
     function spawnBurst(pos: THREE.Vector3, color: number) {
@@ -1174,7 +1186,7 @@ export default function FoxRunPage() {
               const newScore = g.score + 30; g.score = newScore; setScore(newScore)
               g.wordsCompletedInLevel++
               setWordsCompletedInLevel(g.wordsCompletedInLevel)
-              if (g.wordsCompletedInLevel >= (g.level === 3 ? 35 : g.level + 4)) {
+              if (g.wordsCompletedInLevel >= (g.level === 3 ? DESERT_WORDS_TARGET : g.level + 4)) {
                 setLevelComplete(true)
                 setTimeout(() => {
                   g.level++; g.wordsCompletedInLevel = 0
@@ -1435,7 +1447,7 @@ export default function FoxRunPage() {
       {level === 3 && (
         <div className="absolute top-4 left-1/2 -translate-x-1/2 z-10 flex flex-col items-center gap-1">
           <div className="text-white/60 text-xs font-medium">
-            Верни: {wordsCompletedInLevel}/35
+            Верни: {wordsCompletedInLevel}/{DESERT_WORDS_TARGET}
           </div>
         </div>
       )}
