@@ -1982,7 +1982,7 @@ export default function FoxRunPage() {
               <div key={i} className={`w-8 h-8 rounded-lg flex items-center justify-center text-sm font-bold border-2 transition-all duration-300 ${
                 collected[i]
                   ? 'bg-yellow-400 border-yellow-300 text-gray-900 scale-110'
-                  : 'bg-black/40 border-white/20 text-gray-600'
+                  : 'bg-black/85 border-white/20 text-white/80'
               }`}>
                 {collected[i] ?? letter}
               </div>
