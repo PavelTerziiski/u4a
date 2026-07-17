@@ -162,6 +162,19 @@ export default function FoxRunPage() {
       }
     }
 
+    // Temporary diagnostic logging for the iOS silent-audio investigation —
+    // always logs to console AND forwards to the RN WebView bridge, so it
+    // shows up in Metro regardless of whether Safari Web Inspector is handy.
+    function logAudioInfo(message: string) {
+      console.log('[audio]', message)
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const rnWebView = (window as any).ReactNativeWebView
+      if (rnWebView?.postMessage) {
+        rnWebView.postMessage(JSON.stringify({ type: 'audio-info', message }))
+      }
+    }
+    logAudioInfo(`audioCtx created, initial state = ${audioCtx.state}`)
+
     async function loadAudioBuffer(url: string): Promise<AudioBuffer> {
       if (audioBuffers.has(url)) return audioBuffers.get(url)!
       try {
@@ -169,6 +182,7 @@ export default function FoxRunPage() {
         const ab = await res.arrayBuffer()
         const buf = await audioCtx.decodeAudioData(ab)
         audioBuffers.set(url, buf)
+        logAudioInfo(`decoded ${url} ok (${buf.duration.toFixed(2)}s)`)
         return buf
       } catch (err) {
         logAudioError(`decodeAudioData failed for ${url}: ${err}`)
@@ -199,6 +213,7 @@ export default function FoxRunPage() {
       musicSource = audioCtx.createBufferSource()
       musicSource.buffer = buf; musicSource.loop = true
       musicSource.connect(musicGain); musicSource.start()
+      logAudioInfo(`musicSource.start() called for ${url}, audioCtx.state = ${audioCtx.state}`)
       musicSwitching = false
     }
 
@@ -212,6 +227,7 @@ export default function FoxRunPage() {
       runSoundSource = audioCtx.createBufferSource()
       runSoundSource.buffer = buf; runSoundSource.loop = true
       runSoundSource.connect(runSoundGain); runSoundSource.start()
+      logAudioInfo(`runSoundSource.start() called, audioCtx.state = ${audioCtx.state}`)
     }
 
     // SFX buffers (loaded async)
@@ -228,10 +244,12 @@ export default function FoxRunPage() {
     // user-gesture event, so this is called from the real touchstart
     // handler below rather than immediately at mount.
     function unlockAndStartAudio() {
+      logAudioInfo(`unlockAndStartAudio() called, audioCtx.state before resume() = ${audioCtx.state}`)
       audioCtx.resume().then(() => {
+        logAudioInfo(`resume() resolved, audioCtx.state after = ${audioCtx.state}`)
         if (!musicStarted) { musicStarted = true; switchMusic(musicTracks[Math.floor(Math.random() * musicTracks.length)]) }
         startRunLoop()
-      }).catch(err => logAudioError(`audioCtx.resume() failed: ${err}`))
+      }).catch(err => logAudioError(`audioCtx.resume() failed: ${err}, state = ${audioCtx.state}`))
     }
 
     renderer.domElement.setAttribute('tabindex', '0')
