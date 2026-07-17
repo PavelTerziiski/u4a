@@ -661,6 +661,20 @@ export default function FoxRunPage() {
     spawnDesertCacti()
 
     // --- OCEAN WORLD (world index 3): wave-displaced water plane + palm/island horizon decor ---
+    // GPU cleanup helper for this world's assets — scene.remove()/unmount
+    // alone doesn't free geometry/material/texture GPU memory (same class of
+    // leak as the desert word-orb fix), so every ocean mesh gets traversed
+    // and disposed explicitly in the effect's cleanup below.
+    function disposeObject3D(obj: THREE.Object3D) {
+      obj.traverse(child => {
+        const mesh = child as THREE.Mesh
+        if (!mesh.isMesh) return
+        mesh.geometry?.dispose()
+        const mat = mesh.material
+        if (Array.isArray(mat)) mat.forEach(m => m.dispose())
+        else mat?.dispose()
+      })
+    }
     const oceanTimeUniform = { value: 0 }
     // roughness/metalness raised from the original 0.25/0.1 — that glossier
     // surface threw hard specular hotspots that, combined with bloom, read as
@@ -710,7 +724,17 @@ export default function FoxRunPage() {
     waterMat.needsUpdate = true
 
     const OCEAN_DEPTH = NUM_SEGMENTS * SEGMENT_LENGTH + 60
-    const waterPlane = new THREE.Mesh(new THREE.PlaneGeometry(80, OCEAN_DEPTH, 100, 100), waterMat)
+    // Segment counts matched to each axis' wave wavelength rather than kept
+    // uniform: the primary wave term only varies along local X (~14-unit
+    // wavelength across an 80-unit width), so 100 widthSegments was ~17
+    // segments/cycle — far smoother than a sine curve needs (8-12 is already
+    // smooth). 40 keeps ~7/cycle, still smooth, at 60% fewer vertices on that
+    // axis. heightSegments (local Y, world depth) only trimmed 100->80 since
+    // the secondary cross-term wave (~10.5-unit wavelength over a 300+ unit
+    // depth) was already under-sampled before this change — cutting it
+    // further would visibly flatten that ripple. The per-fragment foam noise
+    // (independent of mesh resolution) masks most of the remaining softness.
+    const waterPlane = new THREE.Mesh(new THREE.PlaneGeometry(80, OCEAN_DEPTH, 40, 80), waterMat)
     waterPlane.rotation.x = -Math.PI / 2
     // Camera and fox never actually move in Z (only world props scroll toward
     // them), so unlike the tiled ground/hill segments this single static plane
@@ -1886,6 +1910,13 @@ export default function FoxRunPage() {
       if (musicSource) { try { musicSource.stop() } catch {} }
       if (runSoundSource) { try { runSoundSource.stop() } catch {} }
       audioCtx.close()
+      // Ocean world GPU resources — see disposeObject3D above.
+      oceanIslands.forEach(disposeObject3D)
+      oceanShips.forEach(disposeObject3D)
+      if (surfboardMesh) disposeObject3D(surfboardMesh)
+      if (sharkTemplate) disposeObject3D(sharkTemplate)
+      waterPlane.geometry.dispose()
+      waterMat.dispose()
       renderer.dispose()
       if (container.contains(renderer.domElement)) container.removeChild(renderer.domElement)
     }
