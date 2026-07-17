@@ -83,7 +83,15 @@ export default function FoxRunPage() {
     dead: boolean
     level: number
     wordsCompletedInLevel: number
-  }>({ targetWord: '', collected: [], score: 0, lives: 3, dead: false, level: 1, wordsCompletedInLevel: 0 })
+    // Cumulative words-completed / words-required across the whole session
+    // (survives level-ups, unlike wordsCompletedInLevel which resets each
+    // time) — reported back to the RN host as the Fox Run result.
+    sessionWordsCollected: number
+    sessionWordsTarget: number
+  }>({
+    targetWord: '', collected: [], score: 0, lives: 3, dead: false, level: 1, wordsCompletedInLevel: 0,
+    sessionWordsCollected: 0, sessionWordsTarget: 0,
+  })
 
   useEffect(() => {
     if (!selectedLevel || !mountRef.current) return
@@ -151,6 +159,27 @@ export default function FoxRunPage() {
     gameRef.current.level = startLevel
     setLevel(startLevel)
     if (startLevel === 3) { gameRef.current.lives = 5; setLives(5) }
+    gameRef.current.sessionWordsCollected = 0
+    gameRef.current.sessionWordsTarget = startLevel === 3 ? DESERT_WORDS_TARGET : startLevel + 4
+
+    // Reports the running collected/total tally to the RN host so it always
+    // has a fresh snapshot cached, regardless of whether the player closes
+    // via a natural level-up loop, dying (gameOver), or the RN ✕ button —
+    // there's no single "game end" event to hook, so this fires after every
+    // word completion instead and the RN side just uses whatever was last
+    // received when the screen actually closes.
+    function postFoxRunResult() {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const rnWebView = (window as any).ReactNativeWebView
+      if (rnWebView?.postMessage) {
+        rnWebView.postMessage(JSON.stringify({
+          type: 'foxrun-result',
+          collected: gameRef.current.sessionWordsCollected,
+          total: gameRef.current.sessionWordsTarget,
+        }))
+      }
+    }
+    postFoxRunResult()
 
     // Pick first word
     const firstWord = getNextWord()
@@ -1718,11 +1747,14 @@ export default function FoxRunPage() {
               playCollect(); spawnBurst(orb.mesh.position.clone(), 0xFFD700)
               const newScore = g.score + 30; g.score = newScore; setScore(newScore)
               g.wordsCompletedInLevel++
+              g.sessionWordsCollected++
               setWordsCompletedInLevel(g.wordsCompletedInLevel)
+              postFoxRunResult()
               if (g.wordsCompletedInLevel >= (g.level === 3 ? DESERT_WORDS_TARGET : g.level + 4)) {
                 setLevelComplete(true)
                 setTimeout(() => {
                   g.level++; g.wordsCompletedInLevel = 0
+                  g.sessionWordsTarget += g.level === 3 ? DESERT_WORDS_TARGET : g.level + 4
                   setLevel(g.level); setWordsCompletedInLevel(0); setLevelComplete(false)
                   state.runTime = 0; g.lives = 3; setLives(3)
                   applyWorld(g.level)
@@ -1731,6 +1763,7 @@ export default function FoxRunPage() {
                   g.targetWord = nextWord; g.collected = []; g.collectedIndices = new Set()
                   setTargetWord(nextWord); setCollected([])
                   const bonus = g.score + 100; g.score = bonus; setScore(bonus)
+                  postFoxRunResult()
                 }, 2000)
               }
             } else {
@@ -1779,14 +1812,17 @@ export default function FoxRunPage() {
               // Word complete!
               setTimeout(() => {
                 g.wordsCompletedInLevel++
+                g.sessionWordsCollected++
                 const wordsNeeded = g.level + 4
                 const bonus = g.score + 50
                 g.score = bonus; setScore(bonus)
+                postFoxRunResult()
                 if (g.wordsCompletedInLevel >= wordsNeeded) {
                   setWordsCompletedInLevel(g.wordsCompletedInLevel)
                   setLevelComplete(true)
                   setTimeout(() => {
                     g.level++; g.wordsCompletedInLevel = 0
+                    g.sessionWordsTarget += g.level === 3 ? DESERT_WORDS_TARGET : g.level + 4
                     setLevel(g.level); setWordsCompletedInLevel(0); setLevelComplete(false)
                     state.runTime = 0
                     g.lives = 3; setLives(3)
@@ -1796,6 +1832,7 @@ export default function FoxRunPage() {
                     g.targetWord = nextWord; g.collected = []; g.collectedIndices = new Set()
                     setTargetWord(nextWord); setCollected([])
                     const lvlBonus = g.score + 100; g.score = lvlBonus; setScore(lvlBonus)
+                    postFoxRunResult()
                   }, 2000)
                 } else {
                   setWordsCompletedInLevel(g.wordsCompletedInLevel)
