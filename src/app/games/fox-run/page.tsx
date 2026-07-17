@@ -89,6 +89,26 @@ export default function FoxRunPage() {
     if (!selectedLevel || !mountRef.current) return
     const container = mountRef.current
 
+    // Global error capture for the iOS white-screen crash investigation —
+    // forwards uncaught errors/rejections to the RN WebView console via
+    // postMessage, since Safari Web Inspector isn't always available.
+    function logToRN(type: string, message: string) {
+      console.error(`[${type}]`, message)
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const rnWebView = (window as any).ReactNativeWebView
+      if (rnWebView?.postMessage) {
+        rnWebView.postMessage(JSON.stringify({ type, message }))
+      }
+    }
+    const onWindowError = (event: ErrorEvent) => {
+      logToRN('window-error', `${event.message} at ${event.filename}:${event.lineno}:${event.colno}`)
+    }
+    const onUnhandledRejection = (event: PromiseRejectionEvent) => {
+      logToRN('unhandled-rejection', String(event.reason))
+    }
+    window.addEventListener('error', onWindowError)
+    window.addEventListener('unhandledrejection', onUnhandledRejection)
+
     // Shuffled word deck — use URL words param if provided (fill to 10), else default WORDS
     const urlWords = new URLSearchParams(window.location.search).get('words')
     function shuffle<T>(arr: T[]): T[] {
@@ -1855,6 +1875,8 @@ export default function FoxRunPage() {
 
     return () => {
       cancelAnimationFrame(animId)
+      window.removeEventListener('error', onWindowError)
+      window.removeEventListener('unhandledrejection', onUnhandledRejection)
       window.removeEventListener('keydown', handleKeyDown)
       window.removeEventListener('keyup', handleKeyUp)
       window.removeEventListener('resize', onResize)
