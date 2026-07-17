@@ -92,6 +92,10 @@ export default function FoxRunPage() {
     targetWord: '', collected: [], score: 0, lives: 3, dead: false, level: 1, wordsCompletedInLevel: 0,
     sessionWordsCollected: 0, sessionWordsTarget: 0,
   })
+  // Set inside the mount effect (where the animate loop's `state` closure
+  // lives) and called from the Game Over "Play again" button, which is
+  // rendered outside that effect's scope.
+  const respawnRef = useRef<() => void>(() => {})
 
   useEffect(() => {
     if (!selectedLevel || !mountRef.current) return
@@ -1934,6 +1938,27 @@ export default function FoxRunPage() {
     }
     window.addEventListener('resize', onResize)
 
+    // Resumes the current attempt after death instead of a full page reload —
+    // keeps level, score, and sessionWordsCollected/sessionWordsTarget intact,
+    // only refilling lives and clearing the letters collected for the current
+    // word. Obstacles/orbs are frozen wherever they were at the moment of
+    // death (animate() bails out early while gameRef.current.dead is true, see
+    // above), so state.invincible is granted the same 2.5s grace period used
+    // after every other hit — otherwise the very next frame could immediately
+    // re-trigger the collision that just killed the player.
+    function respawn() {
+      const g = gameRef.current
+      g.dead = false
+      g.lives = 3
+      setLives(3)
+      g.collected = []
+      g.collectedIndices = new Set()
+      setCollected([])
+      state.invincible = 2.5
+      setGameOver(false)
+    }
+    respawnRef.current = respawn
+
     return () => {
       cancelAnimationFrame(animId)
       window.removeEventListener('error', onWindowError)
@@ -2078,7 +2103,7 @@ export default function FoxRunPage() {
             <h2 className="text-white text-4xl font-bold mb-2">Край на играта!</h2>
             <p className="text-yellow-400 text-2xl mb-6">⭐ {score} точки</p>
             <button
-              onClick={() => { setGameOver(false); setScore(0); setLives(3); setCollected([]); window.location.reload() }}
+              onClick={() => respawnRef.current()}
               className="bg-yellow-400 text-yellow-900 px-8 py-3 rounded-full text-xl font-bold hover:bg-yellow-300 transition-all">
               Играй отново
             </button>
