@@ -938,8 +938,23 @@ export default function FoxRunPage() {
       applyWorld(gameRef.current.level)
     })
 
+    // Console-inspectable scene handle for manual debugging (e.g.
+    // window.__debugScene.state in Safari Web Inspector). obstacles/state
+    // are declared further below but the forward references are fine here
+    // since these are type-only (interfaces aren't subject to TDZ).
+    interface FoxRunDebugScene {
+      camera: THREE.PerspectiveCamera
+      gameRef: typeof gameRef
+      obstacles: () => Obstacle[]
+      oceanIslands: THREE.Group[]
+      THREE: typeof THREE
+      state?: typeof state
+    }
+
     applyWorld(selectedLevel ?? 1)
-    ;(window as any).__debugScene = { camera, gameRef, obstacles: () => obstacles, oceanIslands, THREE }
+    ;(window as unknown as Window & { __debugScene: FoxRunDebugScene }).__debugScene = {
+      camera, gameRef, obstacles: () => obstacles, oceanIslands, THREE,
+    }
 
     // Mixer + animations
     let mixer: THREE.AnimationMixer | null = null
@@ -1333,7 +1348,7 @@ export default function FoxRunPage() {
       obstacleSpawnZ: startLevel === 1 ? -80 - 6 * 22 : -35 - 6 * 22,
     }
     console.log('letterSpawnTimer init:', state.letterSpawnTimer, 'startLevel:', startLevel)
-    ;(window as any).__debugScene.state = state
+    ;(window as unknown as Window & { __debugScene: FoxRunDebugScene }).__debugScene.state = state
 
     const JUMP_FORCE = 9
     const GRAVITY = -22
