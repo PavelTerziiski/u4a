@@ -7,6 +7,7 @@ import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js'
 import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js'
 import { RenderPass } from 'three/addons/postprocessing/RenderPass.js'
 import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js'
+import { clone as cloneSkinned } from 'three/addons/utils/SkeletonUtils.js'
 
 const WORDS = [
   // Животни
@@ -57,12 +58,21 @@ export default function FoxRunPage() {
   const [level, setLevel] = useState(1)
   const [wordsCompletedInLevel, setWordsCompletedInLevel] = useState(0)
   const [levelComplete, setLevelComplete] = useState(false)
-  const [selectedLevel, setSelectedLevel] = useState<number | null>(() => {
-    if (typeof window === 'undefined') return null
+  // selectedLevel starts null on both server and client so the first client
+  // render matches the server-rendered HTML exactly (no hydration mismatch).
+  // The ?level= URL param is only readable client-side, so it's picked up in
+  // an effect after mount; levelParamChecked gates the world-select screen so
+  // a direct ?level=X deep link (how LevelFlowScreen opens this WebView) never
+  // flashes "Избери свят" before the game view takes over.
+  const [selectedLevel, setSelectedLevel] = useState<number | null>(null)
+  const [levelParamChecked, setLevelParamChecked] = useState(false)
+
+  useEffect(() => {
     const params = new URLSearchParams(window.location.search)
     const levelParam = parseInt(params.get('level') || '0')
-    return (levelParam >= 1 && levelParam <= 5) ? levelParam : null
-  })
+    if (levelParam >= 1 && levelParam <= 5) setSelectedLevel(levelParam)
+    setLevelParamChecked(true)
+  }, [])
 
   const gameRef = useRef<{
     targetWord: string
@@ -142,13 +152,28 @@ export default function FoxRunPage() {
     const audioCtx = new (window.AudioContext || (window as any).webkitAudioContext)()
     const audioBuffers = new Map<string, AudioBuffer>()
 
+    // Surfaces audio errors to the RN WebView console via postMessage (no-op
+    // when running as a plain web page outside the app).
+    function logAudioError(message: string) {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const rnWebView = (window as any).ReactNativeWebView
+      if (rnWebView?.postMessage) {
+        rnWebView.postMessage(JSON.stringify({ type: 'audio-error', message }))
+      }
+    }
+
     async function loadAudioBuffer(url: string): Promise<AudioBuffer> {
       if (audioBuffers.has(url)) return audioBuffers.get(url)!
-      const res = await fetch(url)
-      const ab = await res.arrayBuffer()
-      const buf = await audioCtx.decodeAudioData(ab)
-      audioBuffers.set(url, buf)
-      return buf
+      try {
+        const res = await fetch(url)
+        const ab = await res.arrayBuffer()
+        const buf = await audioCtx.decodeAudioData(ab)
+        audioBuffers.set(url, buf)
+        return buf
+      } catch (err) {
+        logAudioError(`decodeAudioData failed for ${url}: ${err}`)
+        throw err
+      }
     }
 
     function playOnce(buf: AudioBuffer | null, volume: number) {
@@ -199,11 +224,15 @@ export default function FoxRunPage() {
       sfxBufJump  = await loadAudioBuffer('/sounds/fox-jump.mp3')
     })()
 
-    // Start audio immediately (works if AudioContext was unlocked by injected JS)
-    audioCtx.resume().then(() => {
-      if (!musicStarted) { musicStarted = true; switchMusic(musicTracks[Math.floor(Math.random() * musicTracks.length)]) }
-      startRunLoop()
-    })
+    // iOS requires resume() to happen synchronously inside a trusted
+    // user-gesture event, so this is called from the real touchstart
+    // handler below rather than immediately at mount.
+    function unlockAndStartAudio() {
+      audioCtx.resume().then(() => {
+        if (!musicStarted) { musicStarted = true; switchMusic(musicTracks[Math.floor(Math.random() * musicTracks.length)]) }
+        startRunLoop()
+      }).catch(err => logAudioError(`audioCtx.resume() failed: ${err}`))
+    }
 
     renderer.domElement.setAttribute('tabindex', '0')
     renderer.domElement.style.outline = 'none'
@@ -257,6 +286,10 @@ export default function FoxRunPage() {
     const pathMat = new THREE.MeshStandardMaterial({ map: groundTex, roughness: 0.9, metalness: 0 })
     const edgeMat = new THREE.MeshStandardMaterial({ color: 0x3a2010, roughness: 0.9, metalness: 0 })
     const segments: THREE.Mesh[] = []
+    // Wooden curb strips along each path segment — tracked separately so
+    // applyWorld() can hide them together with the deck for the ocean world
+    // (a floating curb with no deck under it would read as broken, not surfing).
+    const pathEdges: THREE.Mesh[] = []
 
     for (let i = 0; i < NUM_SEGMENTS; i++) {
       const geo = new THREE.BoxGeometry(PATH_WIDTH, 0.25, SEGMENT_LENGTH)
@@ -269,9 +302,11 @@ export default function FoxRunPage() {
       const eL = new THREE.Mesh(new THREE.BoxGeometry(0.3, 0.35, SEGMENT_LENGTH), edgeMat)
       eL.position.set(-PATH_WIDTH / 2 - 0.15, -0.05, -i * SEGMENT_LENGTH)
       scene.add(eL)
+      pathEdges.push(eL)
       const eR = eL.clone()
       eR.position.set(PATH_WIDTH / 2 + 0.15, -0.05, -i * SEGMENT_LENGTH)
       scene.add(eR)
+      pathEdges.push(eR)
     }
 
     // --- GRASS ---
@@ -309,13 +344,18 @@ export default function FoxRunPage() {
       grassSegments.push(gR)
     }
 
-    // Dashed lane lines
+    // Dashed lane lines — tracked so applyWorld() can hide them for the ocean
+    // world (they were previously untracked/always-visible: added straight to
+    // scene with no array, so they kept floating over the water at y=0.02
+    // after the deck/curbs were hidden, reading as leftover path).
     const dashMat = new THREE.MeshBasicMaterial({ color: 0x6a4a2a, transparent: true, opacity: 0.6 })
+    const laneDashes: THREE.Mesh[] = []
     for (let lane = -1; lane <= 1; lane++) {
       for (let i = 0; i < NUM_SEGMENTS * 4; i++) {
         const dash = new THREE.Mesh(new THREE.BoxGeometry(0.06, 0.01, 1.2), dashMat)
         dash.position.set(lane * LANE_WIDTH, 0.02, -i * 3.5)
         scene.add(dash)
+        laneDashes.push(dash)
       }
     }
 
@@ -582,6 +622,175 @@ export default function FoxRunPage() {
     }
     spawnDesertCacti()
 
+    // --- OCEAN WORLD (world index 3): wave-displaced water plane + palm/island horizon decor ---
+    const oceanTimeUniform = { value: 0 }
+    // roughness/metalness raised from the original 0.25/0.1 — that glossier
+    // surface threw hard specular hotspots that, combined with bloom, read as
+    // blown-out sun spots rather than foam.
+    const waterMat = new THREE.MeshStandardMaterial({ color: 0x0f4c75, roughness: 0.65, metalness: 0.05 })
+    waterMat.onBeforeCompile = shader => {
+      shader.uniforms.uTime = oceanTimeUniform
+      // PlaneGeometry starts flat in local XY (normal +Z); the mesh below rotates
+      // -90deg on X so local Z becomes world-up once placed — displacing
+      // transformed.z here is what actually raises/lowers the surface.
+      shader.vertexShader = shader.vertexShader
+        .replace('#include <common>', '#include <common>\nuniform float uTime;\nvarying float vWave;\nvarying vec2 vLocalXY;')
+        .replace('#include <begin_vertex>', `#include <begin_vertex>
+          float wave = sin(position.x * 0.45 + uTime * 1.1) * 0.16
+            + sin(position.x * 1.1 - position.y * 0.6 + uTime * 1.8) * 0.08;
+          transformed.z += wave;
+          vWave = wave;
+          vLocalXY = position.xy;`)
+        // The displacement above never touched the normal, so lighting still
+        // saw a perfectly flat plane — the specular highlight collapsed into
+        // one large flat-mirror blob instead of glinting off individual wave
+        // crests. Rebuilding the normal from the wave function's own slope
+        // (analytic dwave/dx, dwave/dy) breaks that highlight up correctly.
+        .replace('#include <beginnormal_vertex>', `#include <beginnormal_vertex>
+          float wArg1 = position.x * 0.45 + uTime * 1.1;
+          float wArg2 = position.x * 1.1 - position.y * 0.6 + uTime * 1.8;
+          float dWaveDx = cos(wArg1) * 0.16 * 0.45 + cos(wArg2) * 0.08 * 1.1;
+          float dWaveDy = cos(wArg2) * 0.08 * -0.6;
+          objectNormal = normalize(vec3(-dWaveDx, -dWaveDy, 1.0));`)
+      // Prepended directly rather than anchored on '#include <common>' like
+      // the vertex shader above — simpler, and guaranteed valid regardless of
+      // where that chunk marker ends up in the assembled template.
+      shader.fragmentShader = 'uniform float uTime;\nvarying float vWave;\nvarying vec2 vLocalXY;\n'
+        + shader.fragmentShader.replace('#include <dithering_fragment>', `
+          // Fragment-only detail noise, uncorrelated frequencies/uncorrelated
+          // from the main wave (3.7/4.1 vs 0.45/1.1) and small amplitude
+          // (0.02 vs the 0.055-wide smoothstep band) — only perturbs which
+          // pixels cross the foam threshold, breaking the coarse 100x100
+          // mesh's large foam patches into finer, more numerous flecks.
+          // Never touches transformed.z or objectNormal, so wave shape/motion
+          // and lighting are unaffected.
+          float foamNoise = sin(vLocalXY.x * 3.7 + uTime * 2.3) * sin(vLocalXY.y * 4.1 - uTime * 1.7) * 0.02;
+          float foam = smoothstep(0.17, 0.225, vWave + foamNoise);
+          gl_FragColor.rgb = mix(gl_FragColor.rgb, vec3(0.95, 0.98, 1.0), foam);
+          #include <dithering_fragment>`)
+    }
+    waterMat.needsUpdate = true
+
+    const OCEAN_DEPTH = NUM_SEGMENTS * SEGMENT_LENGTH + 60
+    const waterPlane = new THREE.Mesh(new THREE.PlaneGeometry(80, OCEAN_DEPTH, 100, 100), waterMat)
+    waterPlane.rotation.x = -Math.PI / 2
+    // Camera and fox never actually move in Z (only world props scroll toward
+    // them), so unlike the tiled ground/hill segments this single static plane
+    // never needs to scroll or wrap — it's procedural, so there's no seam to hide.
+    waterPlane.position.set(0, -0.6, -(OCEAN_DEPTH / 2) + 30)
+    waterPlane.visible = false
+    waterPlane.receiveShadow = true
+    scene.add(waterPlane)
+
+    // Palms/islets — non-collidable horizon dressing, same "procedural group,
+    // hidden until its world is active" pattern as spawnDesertCacti() above.
+    const oceanIslands: THREE.Group[] = []
+    function spawnOceanIslands() {
+      const sandMat = new THREE.MeshLambertMaterial({ color: 0xe8d9a0 })
+      const trunkMat = new THREE.MeshLambertMaterial({ color: 0x8a5a2f })
+      const leafMat = new THREE.MeshLambertMaterial({ color: 0x2f8f4f })
+      const count = 14 + Math.floor(Math.random() * 8)
+      for (let i = 0; i < count; i++) {
+        const side = Math.random() > 0.5 ? 1 : -1
+        const x = side * (PATH_WIDTH / 2 + 14 + Math.random() * 20)
+        const z = -Math.random() * NUM_SEGMENTS * SEGMENT_LENGTH
+        const g = new THREE.Group()
+        const islet = new THREE.Mesh(new THREE.CylinderGeometry(1.4 + Math.random(), 1.8, 0.4, 10), sandMat)
+        islet.position.y = 0.1
+        g.add(islet)
+        const trunk = new THREE.Mesh(new THREE.CylinderGeometry(0.08, 0.14, 2.4, 6), trunkMat)
+        trunk.position.y = 1.4
+        trunk.rotation.z = 0.15
+        g.add(trunk)
+        for (let l = 0; l < 5; l++) {
+          const leaf = new THREE.Mesh(new THREE.ConeGeometry(0.5, 1.4, 5), leafMat)
+          const angle = (l / 5) * Math.PI * 2
+          leaf.position.set(Math.cos(angle) * 0.35, 2.6, Math.sin(angle) * 0.35)
+          leaf.rotation.x = Math.PI * 0.42
+          leaf.rotation.y = angle
+          g.add(leaf)
+        }
+        // Bumped up from 0.8-1.5 — read as a touch small/sparse against the
+        // wide water plane at the original range.
+        g.scale.setScalar(1.05 + Math.random() * 0.85)
+        g.position.set(x, -0.15, z)
+        g.visible = false
+        scene.add(g)
+        oceanIslands.push(g)
+      }
+    }
+    spawnOceanIslands()
+
+    // Sail ships — non-collidable horizon decor, same lazy-load + hidden-until-
+    // active pattern as the rest of the ocean world's dressing. CC0 "Sail Ship"
+    // by Quaternius (poly.pizza/m/cIzO4MBPqI).
+    const oceanShips: THREE.Group[] = []
+    const shipLoader = new GLTFLoader()
+    shipLoader.load('/models/nature/SailShip.glb', gltf => {
+      const shipSrc = gltf.scene
+      // Node transforms inside the GLB already carry most of the real-world
+      // scale (unlike the tiny raw accessor coordinates), so this only needs
+      // a small multiplier to land around a ~10-unit ship length.
+      shipSrc.scale.setScalar(1.7)
+      shipSrc.traverse(child => {
+        const m = child as THREE.Mesh
+        if (m.isMesh) { m.castShadow = true; m.receiveShadow = true }
+      })
+      const shipSpots = [{ x: -32, z: -120 }, { x: 34, z: -230 }]
+      shipSpots.forEach(({ x, z }) => {
+        const g = shipSrc.clone()
+        g.rotation.y = Math.random() * Math.PI * 2
+        g.position.set(x, -0.55, z)
+        g.visible = false
+        scene.add(g)
+        oceanShips.push(g)
+      })
+      // Model loaded after the initial applyWorld() call below (it's async) —
+      // re-apply for the current level so a direct ocean-world deep link still
+      // shows ships as soon as they're ready, same fixup as the nature pack.
+      applyWorld(gameRef.current.level)
+    })
+
+    // Shark obstacle template — CC0 "Shark" by Quaternius (poly.pizza/m/AyHTK3zUSG).
+    // Cloned per-spawn inside spawnObstacle() below; the initial synchronous
+    // obstacle spawns happen before this async load resolves, so callers must
+    // null-check and fall back (see the ocean branch of spawnObstacle).
+    let sharkTemplate: THREE.Group | null = null
+    const sharkLoader = new GLTFLoader()
+    sharkLoader.load('/models/nature/Shark.glb', gltf => {
+      const src = gltf.scene
+      // Skinned mesh with a deep node hierarchy carrying large baked scales
+      // (Armature x100, mesh node x~159) — Box3().setFromObject() is unusable
+      // for calibration here (bind-pose confusion on a detached template), so
+      // this was sized against live in-game screenshots instead, comparing its
+      // on-screen width to the fox's (~0.85) at matched camera distance.
+      src.scale.setScalar(0.09)
+      src.rotation.y = Math.PI / 2
+      src.traverse(child => {
+        const m = child as THREE.Mesh
+        if (m.isMesh) { m.castShadow = true }
+      })
+      sharkTemplate = src
+      // Obstacles are a fixed pool spawned once at mount and only repositioned
+      // afterward (never re-rolled) — this load almost always loses the race
+      // against that initial synchronous spawn, so any coral fallback minted
+      // in shark's slot needs upgrading retroactively once the model is ready.
+      obstacles.forEach(o => {
+        if (!o.mesh.userData.isSharkFallback) return
+        const pos = o.mesh.position
+        scene.remove(o.mesh)
+        const shark = cloneSkinned(sharkTemplate!)
+        shark.position.copy(pos)
+        scene.add(shark)
+        o.mesh = shark
+      })
+    })
+
+    // Surfboard — loaded further down once foxGroup exists (its mount point),
+    // but declared here so applyWorld()'s very first call (before it's loaded)
+    // can safely null-check it, same pattern as oceanShips/waterPlane above.
+    let surfboardMesh: THREE.Object3D | null = null
+
     const bloomPass = new UnrealBloomPass(
       new THREE.Vector2(container.clientWidth, container.clientHeight),
       0.35, 0.4, 0.6
@@ -596,41 +805,141 @@ export default function FoxRunPage() {
         // Winter — trees keep their own GLTF textures/materials; only fog, sky and
         // ground react to the world so lighting stays consistent (no forced recolor).
         bloomPass.strength = 0.1
+        bloomPass.threshold = 0.6
         pathMat.map = snowPathTex; pathMat.needsUpdate = true
         grassMat.map = snowTex; grassMat.color.set(0xddeeff); grassMat.needsUpdate = true
+        segments.forEach(seg => { seg.visible = true })
+        pathEdges.forEach(e => { e.visible = true })
+        laneDashes.forEach(d => { d.visible = true })
+        grassSegments.forEach(seg => { seg.visible = true })
+        hillSegments.forEach(seg => { seg.visible = true })
         trees.forEach(tree => { tree.visible = true })
         bushes.forEach(b => { b.visible = true })
         desertCacti.forEach(c => { c.visible = false })
+        oceanIslands.forEach(o => { o.visible = false })
+        oceanShips.forEach(s => { s.visible = false })
+        if (surfboardMesh) surfboardMesh.visible = false
+        waterPlane.visible = false
+        mountains.forEach(m => { m.visible = true })
         if (particles) particles.visible = true
         switchMusic('/sounds/forest-story-hyperfusion.mp3')
       } else if (worldIdx === 2) {
         // Desert
         bloomPass.strength = 0.2
+        bloomPass.threshold = 0.6
         pathMat.map = sandPathTex; pathMat.needsUpdate = true
         grassMat.map = sandTex; grassMat.color.set(0xc2a45a); grassMat.needsUpdate = true
+        segments.forEach(seg => { seg.visible = true })
+        pathEdges.forEach(e => { e.visible = true })
+        laneDashes.forEach(d => { d.visible = true })
+        grassSegments.forEach(seg => { seg.visible = true })
+        hillSegments.forEach(seg => { seg.visible = true })
         trees.forEach(tree => { tree.visible = false })
         bushes.forEach(b => { b.visible = false })
         desertCacti.forEach(c => { c.visible = true })
+        oceanIslands.forEach(o => { o.visible = false })
+        oceanShips.forEach(s => { s.visible = false })
+        if (surfboardMesh) surfboardMesh.visible = false
+        waterPlane.visible = false
+        mountains.forEach(m => { m.visible = true })
         if (particles) particles.visible = false
         switchMusic('/sounds/fox-run-music-1.mp3')
+      } else if (worldIdx === 3) {
+        // Ocean — the fox surfs directly on the water: hide the path deck/curbs
+        // and the grass/hill ground so the wave-shader water plane is the only
+        // surface visible underneath, and swap in palm-islet horizon decor
+        // instead of trees/desert cacti.
+        // Lowered from 0.45 — that overexposed the water's specular
+        // highlights into blown-out white blobs instead of readable foam.
+        bloomPass.strength = 0.22
+        // Raised from the shared 0.6 default — water's specular highlights
+        // sit close to white, so the default threshold still bloomed them
+        // into blown-out patches even at low strength.
+        bloomPass.threshold = 0.82
+        segments.forEach(seg => { seg.visible = false })
+        pathEdges.forEach(e => { e.visible = false })
+        laneDashes.forEach(d => { d.visible = false })
+        grassSegments.forEach(seg => { seg.visible = false })
+        hillSegments.forEach(seg => { seg.visible = false })
+        trees.forEach(tree => { tree.visible = false })
+        bushes.forEach(b => { b.visible = false })
+        desertCacti.forEach(c => { c.visible = false })
+        oceanIslands.forEach(o => { o.visible = true })
+        oceanShips.forEach(s => { s.visible = true })
+        if (surfboardMesh) surfboardMesh.visible = true
+        waterPlane.visible = true
+        // Sea stacks read as too dense/regular at the full nature-pack
+        // spawn count — keep roughly a third of them for a sparser horizon.
+        mountains.forEach((m, i) => { m.visible = i % 3 === 0 })
+        if (particles) particles.visible = false
+        // No dedicated ocean/sea track in /sounds/ yet — reusing an existing
+        // track as a placeholder until one is added.
+        switchMusic('/sounds/forest-story.mp3')
       } else {
         bloomPass.strength = 0.35
+        bloomPass.threshold = 0.6
         pathMat.map = groundTex; pathMat.needsUpdate = true
         grassMat.map = grassTex; grassMat.color.set(0x3a7a2a); grassMat.needsUpdate = true
+        segments.forEach(seg => { seg.visible = true })
+        pathEdges.forEach(e => { e.visible = true })
+        laneDashes.forEach(d => { d.visible = true })
+        grassSegments.forEach(seg => { seg.visible = true })
+        hillSegments.forEach(seg => { seg.visible = true })
         trees.forEach(tree => { tree.visible = true })
         bushes.forEach(b => { b.visible = true })
         desertCacti.forEach(c => { c.visible = false })
+        oceanIslands.forEach(o => { o.visible = false })
+        oceanShips.forEach(s => { s.visible = false })
+        if (surfboardMesh) surfboardMesh.visible = false
+        waterPlane.visible = false
+        mountains.forEach(m => { m.visible = true })
         if (particles) particles.visible = true
         switchMusic(musicTracks[Math.floor(Math.random() * musicTracks.length)])
       }
       const snowOn = worldIdx === 1 ? 1 : 0
       snowMaterials.forEach(m => { m.userData.snowUniform.value = snowOn })
     }
-    applyWorld(selectedLevel ?? 1)
 
     // --- FOX ---
     const foxGroup = new THREE.Group()
     scene.add(foxGroup)
+
+    // Surfboard — CC-BY 3.0 "Surfboard" by jeremy (poly.pizza/m/3js4cQ-O-p2),
+    // mounted as a foxGroup child so it inherits lerp/bank-tilt for free, same
+    // as everything else attached there. Verified against a live render (not
+    // guessed): raw mesh is authored upright, length along local Y (matching
+    // its thumbnail pose), width along local Z (tapers at nose/tail, widest
+    // ~8.62 at the middle), thickness along local X — deck (chevron-striped
+    // face) has its normal on local +X, hull bulk toward -X.
+    const surfLoader = new GLTFLoader()
+    surfLoader.load('/models/nature/Surfboard.glb', gltf => {
+      const board = gltf.scene
+      // Non-uniform: the raw mesh's length:width ratio (~5:1) is too narrow
+      // for a board a fox stands on at any single uniform scale — sized for
+      // fox proportions (body width ~0.85) it'd be an oversized 5.7 units
+      // long. Scaling axes independently instead gets a believably-wide
+      // board (1.1, noticeably wider than the fox) at a reasonable length
+      // (2.2) without the chunky over-thick hull uniform scaling produced.
+      // X=thickness, Y=length, Z=width (pre-rotation, local axes).
+      board.scale.set(0.032, 0.0511, 0.1276)
+      // Exact 120° rotation about the (1,1,1) axis — the permutation matrix
+      // that remaps local X(thickness)->world Y(up), Y(length)->world
+      // Z(forward), Z(width)->world X(side), so the board lies flat with the
+      // deck (local +X normal) facing up.
+      board.quaternion.setFromAxisAngle(new THREE.Vector3(1, 1, 1).normalize(), (2 * Math.PI) / 3)
+      board.position.set(0, -0.04, -0.16)
+      board.traverse(child => {
+        const m = child as THREE.Mesh
+        if (m.isMesh) { m.castShadow = true; m.receiveShadow = true }
+      })
+      board.visible = false
+      foxGroup.add(board)
+      surfboardMesh = board
+      applyWorld(gameRef.current.level)
+    })
+
+    applyWorld(selectedLevel ?? 1)
+    ;(window as any).__debugScene = { camera, gameRef, obstacles: () => obstacles, oceanIslands, THREE }
 
     // Mixer + animations
     let mixer: THREE.AnimationMixer | null = null
@@ -820,8 +1129,45 @@ export default function FoxRunPage() {
     }
 
     // --- OBSTACLES ---
-    interface Obstacle { mesh: THREE.Mesh; lane: number; type: 'rock' | 'log' | 'bush' }
+    interface Obstacle { mesh: THREE.Object3D; lane: number; type: 'rock' | 'log' | 'bush' }
     const obstacles: Obstacle[] = []
+
+    // Ocean obstacles — seaweed/coral are cheap procedural groups (no CC0
+    // model matched the nature-pack style on poly.pizza), same "clustered
+    // small primitives" pattern as the desert cactus below. Colors/shapes
+    // random per spawn so a run doesn't look like copy-pasted obstacles.
+    function makeSeaweed(): THREE.Group {
+      const g = new THREE.Group()
+      const colors = [0x1f7a4d, 0x2a9c5f, 0x186b42]
+      for (let i = 0; i < 3; i++) {
+        const h = 0.8 + Math.random() * 0.5
+        const frond = new THREE.Mesh(
+          new THREE.CylinderGeometry(0.04, 0.07, h, 6),
+          new THREE.MeshLambertMaterial({ color: colors[i % colors.length] })
+        )
+        frond.position.set((Math.random() - 0.5) * 0.25, h / 2, (Math.random() - 0.5) * 0.25)
+        frond.rotation.z = (Math.random() - 0.5) * 0.5
+        frond.rotation.x = (Math.random() - 0.5) * 0.3
+        frond.castShadow = true
+        g.add(frond)
+      }
+      return g
+    }
+    function makeCoral(): THREE.Group {
+      const g = new THREE.Group()
+      const colors = [0xff6f61, 0xff9770, 0xffb570, 0xe8636f]
+      for (let i = 0; i < 5; i++) {
+        const s = 0.12 + Math.random() * 0.12
+        const piece = new THREE.Mesh(
+          Math.random() < 0.5 ? new THREE.ConeGeometry(s, s * 2, 6) : new THREE.SphereGeometry(s, 6, 6),
+          new THREE.MeshLambertMaterial({ color: colors[Math.floor(Math.random() * colors.length)] })
+        )
+        piece.position.set((Math.random() - 0.5) * 0.5, s, (Math.random() - 0.5) * 0.5)
+        piece.castShadow = true
+        g.add(piece)
+      }
+      return g
+    }
 
     function spawnObstacle(zPos: number) {
       const lane = [-1, 0, 1][Math.floor(Math.random() * 3)]
@@ -829,6 +1175,26 @@ export default function FoxRunPage() {
       const lvl = gameRef.current.level
       const isWinter = lvl === 2
       const isDesert = lvl === 3
+      const isOcean = lvl === 4
+
+      if (isOcean) {
+        let group: THREE.Group
+        let type: 'rock' | 'log' | 'bush'
+        if (roll < 0.33) { group = makeSeaweed(); type = 'log' }
+        else if (roll < 0.66) { group = makeCoral(); type = 'rock' }
+        else if (sharkTemplate) { group = cloneSkinned(sharkTemplate) as THREE.Group; type = 'bush' }
+        else {
+          // Template not loaded yet — stand in with coral, tagged so the
+          // sharkLoader callback can retroactively swap it in once ready.
+          group = makeCoral(); type = 'bush'
+          group.userData.isSharkFallback = true
+        }
+        group.position.set(lane * LANE_WIDTH, 0.15, zPos)
+        scene.add(group)
+        obstacles.push({ mesh: group, lane, type })
+        return
+      }
+
       let geo: THREE.BufferGeometry
       let mat: THREE.MeshLambertMaterial
       let type: 'rock' | 'log' | 'bush'
@@ -953,6 +1319,9 @@ export default function FoxRunPage() {
       speed: 11,
       currentLane: 0,
       targetX: 0,
+      foxX: 0, // continuous drag-steer X target, ocean world only
+      waveBob: 0, // lerped vertical offset following the water surface height
+      wavePitch: 0, // lerped rotation.x following the wave's local slope
       isJumping: false,
       jumpVelocity: 0,
       foxY: 0,
@@ -964,6 +1333,7 @@ export default function FoxRunPage() {
       obstacleSpawnZ: startLevel === 1 ? -80 - 6 * 22 : -35 - 6 * 22,
     }
     console.log('letterSpawnTimer init:', state.letterSpawnTimer, 'startLevel:', startLevel)
+    ;(window as any).__debugScene.state = state
 
     const JUMP_FORCE = 9
     const GRAVITY = -22
@@ -977,8 +1347,13 @@ export default function FoxRunPage() {
     function handleKeyDown(e: KeyboardEvent) {
       if (keys[e.code]) return
       keys[e.code] = true
-      if (e.code === 'ArrowLeft') moveLane(-1)
-      if (e.code === 'ArrowRight') moveLane(1)
+      // Ocean world: arrows are polled every frame in animate() as continuous
+      // drag-steer input (state.foxX), matching the touchmove control scheme,
+      // instead of the discrete per-press moveLane() used elsewhere.
+      if (currentWorldIdx() !== 3) {
+        if (e.code === 'ArrowLeft') moveLane(-1)
+        if (e.code === 'ArrowRight') moveLane(1)
+      }
       if (e.code === 'ArrowUp' || e.code === 'Space') { e.preventDefault(); jump() }
       if (e.code === 'ArrowDown') slide()
     }
@@ -987,9 +1362,12 @@ export default function FoxRunPage() {
     window.addEventListener('keyup', handleKeyUp)
 
     let touchStartX = 0, touchStartY = 0
+    let oceanTouchX = 0
     function onTouchStart(e: TouchEvent) {
+      unlockAndStartAudio()
       touchStartX = e.touches[0].clientX
       touchStartY = e.touches[0].clientY
+      oceanTouchX = touchStartX
     }
     function onTouchEnd(e: TouchEvent) {
       const dx = e.changedTouches[0].clientX - touchStartX
@@ -1000,8 +1378,22 @@ export default function FoxRunPage() {
         if (dy < -35) jump(); else if (dy > 35) slide()
       }
     }
+    // Continuous drag-steer — active only while the ocean world (index 3) is
+    // current. Discrete moveLane()/currentLane logic above is untouched; this
+    // just drives state.foxX, which the ocean branch of the animate loop lerps
+    // foxGroup.position.x toward instead of state.targetX.
+    function currentWorldIdx() { return (gameRef.current.level - 1) % WORLDS.length }
+    function onOceanTouchMove(e: TouchEvent) {
+      if (currentWorldIdx() !== 3) return
+      e.preventDefault()
+      const x = e.touches[0].clientX
+      const dx = x - oceanTouchX
+      oceanTouchX = x
+      state.foxX = Math.max(-LANE_WIDTH * 1.5, Math.min(LANE_WIDTH * 1.5, state.foxX + dx * 0.03))
+    }
     container.addEventListener('touchstart', onTouchStart)
     container.addEventListener('touchend', onTouchEnd)
+    container.addEventListener('touchmove', onOceanTouchMove, { passive: false })
 
     function playSfx(buf: AudioBuffer | null, volume: number) { playOnce(buf, volume) }
 
@@ -1039,14 +1431,31 @@ export default function FoxRunPage() {
       const dt = Math.min((now - lastTime) / 1000, 0.05)
       lastTime = now
       state.runTime += dt
+      oceanTimeUniform.value += dt
       if (mixer) mixer.update(dt)
       state.speed = Math.min(12 + state.runTime * 0.25, 20 + gameRef.current.level * 2)
       if (runSoundSource) runSoundSource.playbackRate.value = Math.min(1 + state.runTime * 0.008, 1.6)
       if (laneChangeCooldown > 0) laneChangeCooldown -= dt
       if (state.invincible > 0) state.invincible -= dt
 
-      // Lane lerp
-      foxGroup.position.x += (state.targetX - foxGroup.position.x) * dt * 12
+      // Lane lerp — ocean world lerps toward the continuous drag target
+      // (state.foxX) instead of the discrete lane target (state.targetX).
+      const isOceanWorld = currentWorldIdx() === 3
+      if (isOceanWorld) {
+        // Keyboard drag-steer: polling held keys here (rather than stepping
+        // state.foxX once per keydown) gives smooth continuous motion that
+        // matches onOceanTouchMove's feel, and sidesteps inconsistent browser
+        // key-repeat timing.
+        const KEY_STEER_SPEED = 6
+        if (keys.ArrowLeft) state.foxX -= KEY_STEER_SPEED * dt
+        if (keys.ArrowRight) state.foxX += KEY_STEER_SPEED * dt
+        state.foxX = Math.max(-LANE_WIDTH * 1.5, Math.min(LANE_WIDTH * 1.5, state.foxX))
+        state.targetX = state.foxX
+      } else {
+        state.foxX = foxGroup.position.x // keep primed for a seamless handoff into ocean mode
+      }
+      const lerpTargetX = isOceanWorld ? state.foxX : state.targetX
+      foxGroup.position.x += (lerpTargetX - foxGroup.position.x) * dt * 12
 
       // Jump
       if (state.isJumping) {
@@ -1061,22 +1470,53 @@ export default function FoxRunPage() {
         if (state.slideTimer <= 0) state.isSliding = false
       }
 
-      // Fox position & animation
-      const bob = state.isJumping || state.isSliding ? 0 : Math.sin(state.runTime * 13) * 0.055
+      // Ocean-only: ride the water's vertical profile instead of the gallop
+      // bounce. Wave height/slope sampled with the exact same formula as the
+      // water shader (see waterMat.onBeforeCompile above), converting the
+      // fox's world position into the water plane's local space (plane is
+      // unrotated-scale, only translated+rotated -90° about X, so local
+      // x = worldX - plane.x, local y = plane.z - worldZ). foxGroup.position.z
+      // is always 0 (the fox never actually translates in Z — see the
+      // "camera and fox never move in Z" note by the water plane setup), so
+      // this is really "how does the animated wave look under a fixed X,Z
+      // point over time," which is what makes it move at all.
+      let waveBobTarget = 0
+      let wavePitchTarget = 0
+      if (isOceanWorld) {
+        const t = oceanTimeUniform.value
+        const localX = foxGroup.position.x - waterPlane.position.x
+        const localY = waterPlane.position.z - foxGroup.position.z
+        const waveArg2 = localX * 1.1 - localY * 0.6 + t * 1.8
+        waveBobTarget = Math.sin(localX * 0.45 + t * 1.1) * 0.16 + Math.sin(waveArg2) * 0.08
+        // d(wave)/d(worldZ) — same 0.08/0.6 coefficients as the height term
+        // above, chain-ruled through localY = plane.z - worldZ.
+        const waveSlope = 0.08 * 0.6 * Math.cos(waveArg2)
+        wavePitchTarget = Math.max(-0.12, Math.min(0.12, waveSlope * 2.5))
+      }
+      state.waveBob += (waveBobTarget - state.waveBob) * dt * 4
+      state.wavePitch += (wavePitchTarget - state.wavePitch) * dt * 4
+
+      // Fox position & animation — no gallop bounce while surfing (ocean world
+      // stands on the board; wave bob above carries it instead).
+      const bob = state.isJumping || state.isSliding ? 0 : (isOceanWorld ? state.waveBob : Math.sin(state.runTime * 13) * 0.055)
       foxGroup.position.y = state.foxY + bob
 
       // Animation state
       if (state.isSliding) playAnim('Idle_2_HeadLow', true)
       else if (state.isJumping) playAnim('Gallop_Jump', false)
+      else if (isOceanWorld) playAnim('Idle', true)
       else playAnim('Gallop', true)
 
-      // Slide tilt
-      foxGroup.rotation.x = state.isSliding ? 0.25 : 0
+      // Slide tilt / ocean wave pitch (down the wave's front, up its back)
+      foxGroup.rotation.x = state.isSliding ? 0.25 : (isOceanWorld ? state.wavePitch : 0)
 
-      // Tilt on lane change
-      const tilt = (state.targetX - foxGroup.position.x) * 0.25
-      foxGroup.rotation.z = -tilt * 0.5
-      foxGroup.rotation.y = tilt * 0.25
+      // Tilt on lane change / bank tilt while drag-steering in the ocean world.
+      // The lerp error is proportional to velocity (exponential lerp), so the
+      // same term drives both — ocean gets a wider swing clamped to ±0.3 rad,
+      // which relaxes back to 0 as foxGroup.position.x catches up to the target.
+      const tilt = (lerpTargetX - foxGroup.position.x) * (isOceanWorld ? 1.4 : 0.25)
+      foxGroup.rotation.z = isOceanWorld ? Math.max(-0.3, Math.min(0.3, -tilt)) : -tilt * 0.5
+      foxGroup.rotation.y = isOceanWorld ? 0 : tilt * 0.25
 
 
 
@@ -1118,6 +1558,22 @@ export default function FoxRunPage() {
           const side = c.position.x > 0 ? 1 : -1
           c.position.z -= NUM_SEGMENTS * SEGMENT_LENGTH + Math.random() * 20
           c.position.x = side * (PATH_WIDTH / 2 + 2 + Math.random() * 9)
+        }
+      })
+      oceanIslands.forEach(o => {
+        o.position.z += moveZ
+        if (o.position.z > 10) {
+          const side = o.position.x > 0 ? 1 : -1
+          o.position.z -= NUM_SEGMENTS * SEGMENT_LENGTH + Math.random() * 20
+          o.position.x = side * (PATH_WIDTH / 2 + 14 + Math.random() * 20)
+        }
+      })
+      oceanShips.forEach(sh => {
+        sh.position.z += moveZ
+        if (sh.position.z > 10) {
+          const side = sh.position.x > 0 ? 1 : -1
+          sh.position.z -= NUM_SEGMENTS * SEGMENT_LENGTH + Math.random() * 20
+          sh.position.x = side * (PATH_WIDTH / 2 + 20 + Math.random() * 14)
         }
       })
 
@@ -1371,6 +1827,7 @@ export default function FoxRunPage() {
       window.removeEventListener('resize', onResize)
       container.removeEventListener('touchstart', onTouchStart)
       container.removeEventListener('touchend', onTouchEnd)
+      container.removeEventListener('touchmove', onOceanTouchMove)
       if (musicSource) { try { musicSource.stop() } catch {} }
       if (runSoundSource) { try { runSoundSource.stop() } catch {} }
       audioCtx.close()
@@ -1386,6 +1843,14 @@ export default function FoxRunPage() {
     { icon: '🌊', label: 'Море',    card: 'bg-cyan-400 border-cyan-200',                 text: 'text-white' },
     { icon: '🌙', label: 'Нощ',     card: 'bg-purple-800 border-purple-400',             text: 'text-white' },
   ]
+
+  // Same markup shape server and client render before the mount effect above
+  // has run — this is what actually fixes the hydration mismatch. Once
+  // levelParamChecked flips, we know whether a ?level= param was present and
+  // can skip straight to the game without ever painting the select screen.
+  if (!levelParamChecked) {
+    return <div className="w-full h-screen bg-black" />
+  }
 
   if (selectedLevel === null) {
     return (
