@@ -283,6 +283,17 @@ export default function FoxRunPage() {
       logAudioInfo(`runSoundSource.start() called, audioCtx.state = ${audioCtx.state}`)
     }
 
+    // Callable by the RN host (via injectJavaScript) right before it tears
+    // down this WebView — native WebView teardown timing isn't reliable
+    // enough to depend on the effect cleanup below alone to silence audio
+    // before the view actually disappears, so the host explicitly asks the
+    // page to stop first.
+    ;(window as unknown as { __stopFoxRunAudio?: () => void }).__stopFoxRunAudio = () => {
+      try { if (musicSource) musicSource.stop() } catch {}
+      try { if (runSoundSource) runSoundSource.stop() } catch {}
+      try { audioCtx.close() } catch {}
+    }
+
     // SFX buffers (loaded async)
     let sfxBufLeft: AudioBuffer | null = null
     let sfxBufRight: AudioBuffer | null = null
