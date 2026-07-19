@@ -8,7 +8,7 @@ const supabase = createClient(
 
 export async function POST(req: NextRequest) {
   const { table, id, updates } = await req.json()
-  const allowed = ['pronunciation_words', 'pronunciation_strings']
+  const allowed = ['pronunciation_words', 'pronunciation_strings', 'error_texts']
   if (!allowed.includes(table)) return NextResponse.json({ error: 'Not allowed' }, { status: 403 })
   const { error } = await supabase.from(table).update(updates).eq('id', id)
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })

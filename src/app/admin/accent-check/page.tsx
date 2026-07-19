@@ -6,6 +6,37 @@ type Sentence = { text: string }
 type PronWord = { id: string; letter: string; word: string; emoji: string; tts_text: string; sort_order: number }
 type Dictation = { id: string; title: string; grade: number; sentences: Sentence[] }
 type Mission = { id: string; title: string; order_num: number; dictation_id: string | null; reading_dictation_id: string | null; words?: string | null }
+type ErrorPair = { wrong: string; correct: string }
+type ErrorText = { id: string; grade: number; title: string; full_text: string; errors: ErrorPair[] }
+
+// Punctuation stripped when comparing a token to a stored "wrong" word —
+// keeps matching at the word level instead of raw substring search.
+const PUNCT_RE = /^[.,!?;:„“"«»()'"\-–—]+|[.,!?;:„“"«»()'"\-–—]+$/g
+const stripPunct = (w: string) => w.replace(PUNCT_RE, '')
+
+function findMissingWrongWords(text: string, errors: ErrorPair[]): ErrorPair[] {
+  const tokens = new Set(text.split(/\s+/).map(stripPunct).filter(Boolean))
+  return errors.filter(e => !tokens.has(e.wrong))
+}
+
+// Renders text with every word matching an errors[].wrong entry highlighted —
+// read-only preview so editors can see at a glance which words must survive
+// edits to the surrounding style/wording.
+function HighlightedText({ text, errors }: { text: string; errors: ErrorPair[] }) {
+  const wrongSet = new Set(errors.map(e => e.wrong))
+  const parts = text.split(/(\s+)/)
+  return (
+    <>
+      {parts.map((part, i) => {
+        if (/^\s+$/.test(part) || part === '') return part
+        const isWrong = wrongSet.has(stripPunct(part))
+        return isWrong
+          ? <mark key={i} style={{ background: '#fef08a', borderRadius: '3px', padding: '0 2px' }}>{part}</mark>
+          : <span key={i}>{part}</span>
+      })}
+    </>
+  )
+}
 
 export default function AccentCheck() {
   const [dictations, setDictations] = useState<Dictation[]>([])
@@ -21,7 +52,7 @@ export default function AccentCheck() {
   const [titleText, setTitleText] = useState('')
   const [showDelete, setShowDelete] = useState(false)
   const [pronWords, setPronWords] = useState<PronWord[]>([])
-  const [activeSection, setActiveSection] = useState<'dictations' | 'pronunciation' | 'strings' | 'missions'>('dictations')
+  const [activeSection, setActiveSection] = useState<'dictations' | 'pronunciation' | 'strings' | 'missions' | 'errors'>('dictations')
   const [missions, setMissions] = useState<Mission[]>([])
   const [missionDictCache, setMissionDictCache] = useState<Record<string, Dictation>>({})
   const [selectedMission, setSelectedMission] = useState<Mission | null>(null)
@@ -32,6 +63,12 @@ export default function AccentCheck() {
   const [strings, setStrings] = useState<{id: string, key: string, text: string, description: string}[]>([])
   const [editingString, setEditingString] = useState<{id: string, key: string, text: string, description: string} | null>(null)
   const [stringText, setStringText] = useState('')
+  const [errorTexts, setErrorTexts] = useState<ErrorText[]>([])
+  const [errorGradeFilter, setErrorGradeFilter] = useState<3 | 4 | null>(null)
+  const [selectedError, setSelectedError] = useState<ErrorText | null>(null)
+  const [errorEditText, setErrorEditText] = useState('')
+  const [errorMissing, setErrorMissing] = useState<ErrorPair[] | null>(null)
+  const [errorSaving, setErrorSaving] = useState(false)
 
   useEffect(() => {
     supabase.from('dictations').select('id,title,grade,sentences').eq('language', 'bg').eq('category', 'original').in('grade', [1,2,3,4]).order('grade').order('title')
@@ -43,6 +80,8 @@ export default function AccentCheck() {
     supabase.from('missions').select('id, title, order_num, dictation_id, reading_dictation_id, words')
       .eq('book_id', '6e1927fe-38e0-4ce5-864d-98556a897e1c').order('order_num')
       .then(({ data }) => { if (data) setMissions(data) })
+    supabase.from('error_texts').select('id, grade, title, full_text, errors').order('grade').order('title')
+      .then(({ data }) => { if (data) setErrorTexts(data) })
   }, [])
 
   const playText = async (text: string) => {
@@ -84,6 +123,34 @@ export default function AccentCheck() {
     setEditText('')
   }
 
+  const selectErrorText = (et: ErrorText) => {
+    setSelectedError(et)
+    setErrorEditText(et.full_text)
+    setErrorMissing(null)
+    setMsg('')
+  }
+
+  const saveErrorText = async (force = false) => {
+    if (!selectedError) return
+    if (!force) {
+      const missing = findMissingWrongWords(errorEditText, selectedError.errors)
+      if (missing.length > 0) { setErrorMissing(missing); return }
+    }
+    setErrorSaving(true)
+    const res = await fetch('/api/admin-update', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ table: 'error_texts', id: selectedError.id, updates: { full_text: errorEditText } })
+    })
+    setErrorSaving(false)
+    if (!res.ok) { const { error } = await res.json(); setMsg(`❌ ${error}`); return }
+    const updated = { ...selectedError, full_text: errorEditText }
+    setSelectedError(updated)
+    setErrorTexts(prev => prev.map(e => e.id === updated.id ? updated : e))
+    setErrorMissing(null)
+    setMsg('✅ Текстът е обновен')
+  }
+
   const loadDictationById = async (id: string, forceRefresh = false) => {
     setActiveWord(null); setActiveSent(null); setMsg('')
     if (!forceRefresh && missionDictCache[id]) { setSelected(missionDictCache[id]); return }
@@ -102,9 +169,12 @@ export default function AccentCheck() {
           <button onClick={() => setActiveSection('dictations')} style={{flex:1, padding:'6px', background: activeSection==='dictations' ? '#f97316' : '#f3f4f6', color: activeSection==='dictations' ? '#fff' : '#000', border:'none', borderRadius:'6px', cursor:'pointer', fontSize:'11px', fontWeight:'bold'}}>📝 Диктовки</button>
           <button onClick={() => setActiveSection('pronunciation')} style={{flex:1, padding:'6px', background: activeSection==='pronunciation' ? '#7c3aed' : '#f3f4f6', color: activeSection==='pronunciation' ? '#fff' : '#000', border:'none', borderRadius:'6px', cursor:'pointer', fontSize:'11px', fontWeight:'bold'}}>🗣️ Правоговор</button>
         </div>
-        <div style={{display:'flex', gap:'6px', marginBottom:'8px'}}>
+        <div style={{display:'flex', gap:'6px', marginBottom:'6px'}}>
           <button onClick={() => setActiveSection('strings')} style={{flex:1, padding:'6px', background: activeSection==='strings' ? '#059669' : '#f3f4f6', color: activeSection==='strings' ? '#fff' : '#000', border:'none', borderRadius:'6px', cursor:'pointer', fontSize:'11px', fontWeight:'bold'}}>💬 Текстове</button>
           <button onClick={() => setActiveSection('missions')} style={{flex:1, padding:'6px', background: activeSection==='missions' ? '#0ea5e9' : '#f3f4f6', color: activeSection==='missions' ? '#fff' : '#000', border:'none', borderRadius:'6px', cursor:'pointer', fontSize:'11px', fontWeight:'bold'}}>🗺️ Мисии</button>
+        </div>
+        <div style={{display:'flex', gap:'6px', marginBottom:'8px'}}>
+          <button onClick={() => setActiveSection('errors')} style={{flex:1, padding:'6px', background: activeSection==='errors' ? '#dc2626' : '#f3f4f6', color: activeSection==='errors' ? '#fff' : '#000', border:'none', borderRadius:'6px', cursor:'pointer', fontSize:'11px', fontWeight:'bold'}}>⚠️ Открий грешките</button>
         </div>
         {activeSection === 'dictations' && [1,2,3,4].map(g => (
           <div key={g}>
@@ -145,6 +215,24 @@ export default function AccentCheck() {
             )}
           </div>
         ))}
+        {activeSection === 'errors' && (
+          <>
+            <div style={{display:'flex', gap:'6px', marginBottom:'10px'}}>
+              {[null, 3, 4].map(g => (
+                <button key={g ?? 'all'} onClick={() => setErrorGradeFilter(g as 3 | 4 | null)}
+                  style={{flex:1, padding:'5px', background: errorGradeFilter === g ? '#dc2626' : '#f3f4f6', color: errorGradeFilter === g ? '#fff' : '#000', border:'none', borderRadius:'6px', cursor:'pointer', fontSize:'11px', fontWeight:'bold'}}>
+                  {g === null ? 'Всички' : `${g} клас`}
+                </button>
+              ))}
+            </div>
+            {errorTexts.filter(e => errorGradeFilter === null || e.grade === errorGradeFilter).map(e => (
+              <button key={e.id} onClick={() => selectErrorText(e)}
+                style={{width:'100%', textAlign:'left', padding:'5px 10px', background: selectedError?.id === e.id ? '#fef2f2' : 'transparent', color: selectedError?.id === e.id ? '#dc2626' : '#374151', border:'none', borderRadius:'6px', marginBottom:'2px', cursor:'pointer', fontSize:'12px', fontWeight: selectedError?.id === e.id ? 'bold' : 'normal'}}>
+                {e.grade} кл. — {e.title}
+              </button>
+            ))}
+          </>
+        )}
       </div>
 
       {/* MAIN */}
@@ -231,6 +319,70 @@ export default function AccentCheck() {
               </div>
             )}
           </div>
+        ) : activeSection === 'errors' ? (
+          !selectedError ? (
+            <div style={{color:'#9ca3af', textAlign:'center', marginTop:'80px', fontSize:'18px'}}>← Избери текст</div>
+          ) : (
+            <div style={{maxWidth:'700px'}}>
+              <div style={{display:'flex', alignItems:'center', gap:'10px', marginBottom:'4px'}}>
+                <h2 style={{fontSize:'20px', fontWeight:'bold', color:'#000', margin:0}}>{selectedError.title}</h2>
+                <span style={{fontSize:'12px', fontWeight:'bold', color:'#dc2626', background:'#fef2f2', padding:'2px 8px', borderRadius:'4px'}}>{selectedError.grade} клас</span>
+              </div>
+              <p style={{color:'#6b7280', fontSize:'12px', marginBottom:'16px'}}>Жълто = дума от errors, която не бива да се променя при редакция на текста наоколо</p>
+
+              {msg && <div style={{background:'#f0fdf4', border:'1px solid #86efac', borderRadius:'8px', padding:'10px 16px', marginBottom:'16px', color:'#16a34a', fontSize:'14px'}}>{msg}</div>}
+
+              <div style={{border:'1px solid #e5e7eb', borderRadius:'10px', padding:'14px 16px', marginBottom:'12px', fontSize:'15px', lineHeight:'1.9', color:'#000', background:'#fafafa'}}>
+                <HighlightedText text={errorEditText} errors={selectedError.errors} />
+              </div>
+
+              <textarea value={errorEditText} onChange={e => { setErrorEditText(e.target.value); setErrorMissing(null) }}
+                rows={8}
+                style={{width:'100%', border:'1px solid #d1d5db', borderRadius:'10px', padding:'12px 14px', fontSize:'15px', lineHeight:'1.7', color:'#000', fontFamily:'inherit', marginBottom:'12px'}} />
+
+              {errorMissing && errorMissing.length > 0 && (
+                <div style={{background:'#fffbeb', border:'2px solid #f59e0b', borderRadius:'10px', padding:'12px 16px', marginBottom:'12px'}}>
+                  <div style={{fontWeight:'bold', color:'#92400e', fontSize:'13px', marginBottom:'6px'}}>⚠️ Тези грешни думи вече не се намират в текста:</div>
+                  <div style={{fontSize:'14px', color:'#92400e', marginBottom:'10px'}}>
+                    {errorMissing.map(m => <span key={m.wrong} style={{marginRight:'10px'}}>„{m.wrong}"</span>)}
+                  </div>
+                  <div style={{display:'flex', gap:'8px'}}>
+                    <button onClick={() => saveErrorText(true)} disabled={errorSaving}
+                      style={{background:'#f59e0b', color:'#fff', border:'none', borderRadius:'8px', padding:'7px 16px', cursor:'pointer', fontWeight:'bold', fontSize:'13px', opacity: errorSaving ? 0.6 : 1}}>
+                      Запази въпреки това
+                    </button>
+                    <button onClick={() => setErrorMissing(null)}
+                      style={{background:'#f3f4f6', color:'#374151', border:'none', borderRadius:'8px', padding:'7px 14px', cursor:'pointer', fontSize:'13px'}}>
+                      Върни се към редакция
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              <div style={{display:'flex', gap:'10px', marginBottom:'24px'}}>
+                <button onClick={() => saveErrorText(false)} disabled={errorSaving || errorEditText === selectedError.full_text}
+                  style={{background:'#dc2626', color:'#fff', border:'none', borderRadius:'8px', padding:'8px 20px', cursor:'pointer', fontWeight:'bold', fontSize:'14px', opacity: (errorSaving || errorEditText === selectedError.full_text) ? 0.5 : 1}}>
+                  {errorSaving ? '...' : 'Запази'}
+                </button>
+                <button onClick={() => { setErrorEditText(selectedError.full_text); setErrorMissing(null) }}
+                  disabled={errorEditText === selectedError.full_text}
+                  style={{background:'#f3f4f6', color:'#374151', border:'none', borderRadius:'8px', padding:'8px 16px', cursor:'pointer', fontSize:'14px', opacity: errorEditText === selectedError.full_text ? 0.5 : 1}}>
+                  Отказ
+                </button>
+              </div>
+
+              <div style={{fontSize:'13px', fontWeight:'bold', color:'#6b7280', marginBottom:'8px'}}>Грешки (read-only справка)</div>
+              <div style={{display:'flex', flexDirection:'column', gap:'6px'}}>
+                {selectedError.errors.map((e, i) => (
+                  <div key={i} style={{fontSize:'13px', color:'#374151', display:'flex', gap:'8px', alignItems:'center'}}>
+                    <span style={{background:'#fef08a', borderRadius:'4px', padding:'1px 6px'}}>{e.wrong}</span>
+                    <span style={{color:'#9ca3af'}}>→</span>
+                    <span style={{color:'#16a34a', fontWeight:'bold'}}>{e.correct}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )
         ) : !selected ? (
           <div style={{color:'#9ca3af', textAlign:'center', marginTop:'80px', fontSize:'18px'}}>← Избери диктовка</div>
         ) : (
