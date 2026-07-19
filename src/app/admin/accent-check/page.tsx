@@ -344,7 +344,7 @@ export default function AccentCheck() {
                 <div style={{background:'#fffbeb', border:'2px solid #f59e0b', borderRadius:'10px', padding:'12px 16px', marginBottom:'12px'}}>
                   <div style={{fontWeight:'bold', color:'#92400e', fontSize:'13px', marginBottom:'6px'}}>⚠️ Тези грешни думи вече не се намират в текста:</div>
                   <div style={{fontSize:'14px', color:'#92400e', marginBottom:'10px'}}>
-                    {errorMissing.map(m => <span key={m.wrong} style={{marginRight:'10px'}}>„{m.wrong}"</span>)}
+                    {errorMissing.map(m => <span key={m.wrong} style={{marginRight:'10px'}}>&#8222;{m.wrong}&#8220;</span>)}
                   </div>
                   <div style={{display:'flex', gap:'8px'}}>
                     <button onClick={() => saveErrorText(true)} disabled={errorSaving}
