@@ -35,7 +35,7 @@ export async function POST(req: NextRequest) {
       lang = 'en-GB'
     } else {
       switch (voice) {
-        case 'borisslav':
+        case 'borislav':
           voiceName = 'bg-BG-BorislavNeural'
           lang = 'bg-BG'
           break
