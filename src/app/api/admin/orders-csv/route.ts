@@ -19,12 +19,14 @@ export async function GET(req: NextRequest) {
     .from('orders')
     .select('*')
     .eq('status', 'paid')
+    .gt('amount_eur', 0)
     .order('created_at', { ascending: true })
 
   if (month) {
-    const start = `${month}-01`
-    const end = `${month}-31`
-    query = query.gte('created_at', start).lte('created_at', end)
+    const [year, mon] = month.split('-').map(Number)
+    const start = new Date(year, mon - 1, 1).toISOString()
+    const end = new Date(year, mon, 1).toISOString()
+    query = query.gte('created_at', start).lt('created_at', end)
   }
 
   const { data, error } = await query
@@ -32,17 +34,9 @@ export async function GET(req: NextRequest) {
 
   const rows = data || []
   const headers = [
-    'document_number',
-    'created_at',
-    'customer_email',
-    'customer_name',
-    'plan_type',
-    'billing_period',
-    'amount_eur',
-    'currency',
-    'stripe_payment_intent_id',
-    'stripe_invoice_id',
-    'id',
+    'document_number', 'created_at_sofia', 'customer_email', 'customer_name',
+    'plan_type', 'billing_period', 'amount_eur', 'currency',
+    'stripe_payment_intent_id', 'stripe_invoice_id', 'id',
   ]
 
   const csv = [
