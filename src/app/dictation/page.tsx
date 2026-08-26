@@ -62,6 +62,13 @@ export default function DictationPage() {
   }
 
   useEffect(() => {
+    return () => {
+      currentSourceRef.current?.stop()
+      audioCtxRef.current?.close()
+    }
+  }, [])
+
+  useEffect(() => {
     const username = localStorage.getItem('u4a_username')
     if (!username) { router.push('/login'); return }
     supabase.from('profiles').select('*').eq('username', username).single()
@@ -539,7 +546,7 @@ export default function DictationPage() {
               </div>
             ))}
           </div>
-          <button onClick={() => router.push('/dashboard')}
+          <button onClick={() => { stopAll(); router.push('/dashboard') }}
             className="w-full bg-orange-500 text-white text-xl font-bold py-4 rounded-2xl hover:bg-orange-600 transition-colors">
             Към началото 🏠
           </button>
