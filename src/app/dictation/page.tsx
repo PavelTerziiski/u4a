@@ -112,8 +112,8 @@ export default function DictationPage() {
   headers: { 'Content-Type': 'application/json' },
   body: JSON.stringify(
     profile?.is_premium
-      ? { text, voice: profile?.preferred_voice || 'kalina' }
-      : { text, speed: 0.85 * speed, voice: 'male' }
+      ? { text, voice: profile?.preferred_voice || 'kalina', dictation_id: selected?.id }
+      : { text, speed: 0.85 * speed, voice: 'male', dictation_id: selected?.id }
   )
 })
       .then(res => res.arrayBuffer())
