@@ -35,8 +35,31 @@ export default function DictationPage() {
   const [loadingExplanations, setLoadingExplanations] = useState(false)
   const [checkoutLoading, setCheckoutLoading] = useState(false)
   const progressTimer = useRef<NodeJS.Timeout | null>(null)
-  const currentAudio = useRef<HTMLAudioElement | null>(null)
+  const audioCtxRef = useRef<AudioContext | null>(null)
+  const currentSourceRef = useRef<AudioBufferSourceNode | null>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
+
+  const getAudioCtx = () => {
+    if (!audioCtxRef.current) {
+      const AC = window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext
+      audioCtxRef.current = new AC()
+    }
+    return audioCtxRef.current
+  }
+
+  // Must run synchronously inside a user-gesture click handler, before any
+  // await/fetch — resuming the AudioContext here (not later, after the TTS
+  // fetch resolves) is what keeps later programmatic playback allowed under
+  // the browser's autoplay policy.
+  const unlockAudio = async () => {
+    const ctx = getAudioCtx()
+    if (ctx.state === 'suspended') await ctx.resume()
+    const buf = ctx.createBuffer(1, 1, 22050)
+    const src = ctx.createBufferSource()
+    src.buffer = buf
+    src.connect(ctx.destination)
+    src.start(0)
+  }
 
   useEffect(() => {
     const username = localStorage.getItem('u4a_username')
@@ -61,9 +84,9 @@ export default function DictationPage() {
   }, [])
 
   const stopAll = () => {
-    if (currentAudio.current) {
-      currentAudio.current.pause()
-      currentAudio.current = null
+    if (currentSourceRef.current) {
+      try { currentSourceRef.current.stop() } catch {}
+      currentSourceRef.current = null
     }
     clearInterval(progressTimer.current!)
     setSpeaking(false)
@@ -72,37 +95,46 @@ export default function DictationPage() {
   }
 
   const speak = (text: string, onDone?: () => void) => {
-    if (currentAudio.current) {
-      currentAudio.current.pause()
-      currentAudio.current = null
+    if (currentSourceRef.current) {
+      try { currentSourceRef.current.stop() } catch {}
+      currentSourceRef.current = null
     }
     setSpeaking(true)
     fetch(profile?.is_premium ? '/api/tts-azure' : '/api/tts', {
   method: 'POST',
   headers: { 'Content-Type': 'application/json' },
   body: JSON.stringify(
-    profile?.is_premium 
-      ? { text, voice: profile?.preferred_voice || 'kalina' } 
+    profile?.is_premium
+      ? { text, voice: profile?.preferred_voice || 'kalina' }
       : { text, speed: 0.85 * speed, voice: 'male' }
   )
 })
-      .then(res => res.json())
-      .then(data => {
-        if (data.audio) {
-          const audio = new Audio(`data:audio/mpeg;base64,${data.audio}`)
-          currentAudio.current = audio
-          audio.onended = () => {
+      .then(res => res.arrayBuffer())
+      .then(arrayBuffer => {
+        const ctx = getAudioCtx()
+        ctx.decodeAudioData(
+          arrayBuffer,
+          (decoded) => {
+            const source = ctx.createBufferSource()
+            currentSourceRef.current = source
+            source.buffer = decoded
+            source.connect(ctx.destination)
+            source.onended = () => {
+              setSpeaking(false)
+              currentSourceRef.current = null
+              if (onDone) onDone()
+            }
+            source.start(0)
+          },
+          (err) => {
+            console.error('Audio play blocked:', err)
             setSpeaking(false)
-            currentAudio.current = null
             if (onDone) onDone()
           }
-          audio.play()
-        } else {
-          setSpeaking(false)
-          if (onDone) onDone()
-        }
+        )
       })
-      .catch(() => {
+      .catch(err => {
+        console.error('Audio play blocked:', err)
         setSpeaking(false)
         if (onDone) onDone()
       })
@@ -366,7 +398,7 @@ export default function DictationPage() {
         <h2 className="text-2xl font-bold text-gray-700 mt-6 mb-2">{selected.title}</h2>
         <p className="text-gray-500 mb-2">{(selected.sentences as Sentence[]).length} изречения</p>
         <p className="text-gray-500 mb-8">Вземи молив и хартия. Когато си готов, натисни бутона!</p>
-        <button onClick={() => { setPhase('play'); setTimeout(() => readSentence(selected.sentences as Sentence[], 0, selected.grade), 300) }}
+        <button onClick={async () => { await unlockAudio(); setPhase('play'); readSentence(selected.sentences as Sentence[], 0, selected.grade) }}
           className="w-full bg-orange-500 text-white text-2xl font-bold py-6 rounded-2xl hover:bg-orange-600 transition-colors shadow-lg">
           Готов съм! ✏️
         </button>
