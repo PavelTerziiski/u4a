@@ -3,21 +3,66 @@
 import { useEffect, useState, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
+import '../dashboard/dashboard.css'
 import { Dictation, Profile } from '@/lib/types'
 import Fox, { FoxMood } from '@/components/fox/Fox'
+import AnimatedFox from '@/components/AnimatedFox'
+import DoneScreen from '@/components/DoneScreen'
 
 type Sentence = { id: number; text: string }
-type WordResult = { word: string; correct: boolean; input: string }
+type WordResult = { word: string; correct: boolean; input: string; errorType: 'none' | 'spelling' | 'punctuation' | 'capitalization' }
 type SentenceResult = { sentence: string; input: string; wordResults: WordResult[]; correct: boolean }
 
 const REPEAT_LIMITS: Record<number, number> = { 2: 4, 3: 3, 4: 2, 5: 1 }
 const CHARS_PER_SECOND: Record<number, number> = { 2: 0.7, 3: 1.0, 4: 1.4, 5: 1.8 }
-const FREE_WEEKLY_LIMIT = 2
+const FREE_TOTAL_LIMIT = 6
+
+async function loadForeignDictations(lang: 'en' | 'de', level: 'easy' | 'medium' | 'hard', setFd: (d: Dictation[]) => void) {
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
+  const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+  const res = await fetch(`${supabaseUrl}/rest/v1/dictations?language=eq.${lang}&level=eq.${level}&select=*&order=title.asc`, {
+    headers: { 'apikey': supabaseKey, 'Authorization': `Bearer ${supabaseKey}` }
+  })
+  const d = await res.json()
+  setFd(d || [])
+}
+
+function changeGrade(grade: number, setDictations: (d: Dictation[]) => void, setSelectedGrade: (g: number) => void) {
+  setSelectedGrade(grade)
+  supabase.from('dictations').select('*').eq('grade', grade)
+    .then(({ data: d }) => setDictations(d || []))
+}
+
+function CategorySection({ label, group, startDictation }: { label: string, group: Dictation[], startDictation: (d: Dictation) => void }) {
+  const [open, setOpen] = useState(false)
+  return (
+    <div style={{ marginBottom: 16 }}>
+      <button onClick={() => setOpen(o => !o)} style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: '#FFF7ED', border: '2px solid #FED7AA', borderRadius: 16, padding: '14px 18px', cursor: 'pointer', marginBottom: open ? 12 : 0 }}>
+        <span style={{ fontFamily: 'Russo One, sans-serif', fontSize: '1rem', color: '#7C2D12' }}>{label}</span>
+        <span style={{ fontSize: '1.2rem', color: '#F97316' }}>{open ? '▲' : '▼'}</span>
+      </button>
+      {open && (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+          {group.map((d: Dictation) => (
+            <button key={d.id} onClick={() => startDictation(d)}
+              className="bg-white rounded-2xl p-6 shadow text-left hover:shadow-md transition-shadow border-2 border-transparent hover:border-orange-300">
+              <h2 className="text-xl font-bold text-gray-700">{d.title}</h2>
+              {d.author && <p style={{ fontSize: '0.8rem', color: '#F97316', fontWeight: 700, marginTop: 2 }}>✍️ {d.author}</p>}
+              <p className="text-orange-500 mt-1">{(d.sentences as Sentence[]).length} изречения • {d.grade} клас</p>
+              {d.is_premium && <span className="text-xs bg-orange-100 text-orange-600 px-2 py-1 rounded-full mt-2 inline-block">⭐ Premium</span>}
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  )
+}
 
 export default function DictationPage() {
   const router = useRouter()
   const [profile, setProfile] = useState<Profile | null>(null)
   const [dictations, setDictations] = useState<Dictation[]>([])
+  const [selectedGrade, setSelectedGrade] = useState<number>(0)
   const [selected, setSelected] = useState<Dictation | null>(null)
   const [phase, setPhase] = useState<'pick' | 'ready' | 'play' | 'write' | 'done' | 'limit'>('pick')
   const [sentenceIndex, setSentenceIndex] = useState(0)
@@ -29,11 +74,17 @@ export default function DictationPage() {
   const [fullInput, setFullInput] = useState('')
   const [results, setResults] = useState<SentenceResult[]>([])
   const [speed, setSpeed] = useState(1.0)
-  const [weeklyCount, setWeeklyCount] = useState(0)
+  const trialEndsAt = profile?.trial_ends_at ? new Date(profile.trial_ends_at) : null
+  const trialActive = trialEndsAt ? new Date() < trialEndsAt : false
+  const totalSessions = profile?.total_sessions || 0
+  const isFree = !profile?.is_premium && (trialEndsAt ? !trialActive : totalSessions >= FREE_TOTAL_LIMIT)
   const [ocrLoading, setOcrLoading] = useState(false)
   const [explanations, setExplanations] = useState<Record<number, string>>({})
   const [loadingExplanations, setLoadingExplanations] = useState(false)
   const [checkoutLoading, setCheckoutLoading] = useState(false)
+  const [foreignLang, setForeignLang] = useState<null | 'en' | 'de'>(null)
+  const [foreignLevel, setForeignLevel] = useState<null | 'easy' | 'medium' | 'hard'>(null)
+  const [foreignDictations, setForeignDictations] = useState<Dictation[]>([])
   const progressTimer = useRef<NodeJS.Timeout | null>(null)
   const audioCtxRef = useRef<AudioContext | null>(null)
   const currentSourceRef = useRef<AudioBufferSourceNode | null>(null)
@@ -75,18 +126,9 @@ export default function DictationPage() {
       .then(({ data }) => {
         if (!data) { router.push('/login'); return }
         setProfile(data)
+        setSelectedGrade(data.grade)
         supabase.from('dictations').select('*').eq('grade', data.grade)
           .then(({ data: d }) => setDictations(d || []))
-
-        const weekStart = new Date()
-        weekStart.setDate(weekStart.getDate() - weekStart.getDay())
-        weekStart.setHours(0, 0, 0, 0)
-        supabase
-          .from('dictation_sessions')
-          .select('*', { count: 'exact', head: true })
-          .eq('profile_id', data.id)
-          .gte('created_at', weekStart.toISOString())
-          .then(({ count }) => setWeeklyCount(count ?? 0))
       })
   }, [])
 
@@ -107,15 +149,19 @@ export default function DictationPage() {
       currentSourceRef.current = null
     }
     setSpeaking(true)
-    fetch(profile?.is_premium ? '/api/tts-azure' : '/api/tts', {
-  method: 'POST',
-  headers: { 'Content-Type': 'application/json' },
-  body: JSON.stringify(
-    profile?.is_premium
-      ? { text, voice: profile?.preferred_voice || 'kalina', dictation_id: selected?.id }
-      : { text, speed: 0.85 * speed, voice: 'male', dictation_id: selected?.id }
-  )
-})
+    fetch('/api/tts-azure', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        text,
+        lang: selected?.language,
+        voice: (selected?.language === 'en' || selected?.language === 'de')
+          ? (profile?.preferred_voice === 'straus' ? 'straus' : 'koala')
+          : (profile?.preferred_voice || 'kalina'),
+        speed,
+        dictation_id: selected?.id,
+      })
+    })
       .then(res => res.arrayBuffer())
       .then(arrayBuffer => {
         const ctx = getAudioCtx()
@@ -149,7 +195,8 @@ export default function DictationPage() {
 
   const startPause = (text: string, grade: number, onDone: () => void) => {
     const chars = text.length
-    const charsPerSec = CHARS_PER_SECOND[grade] || 1.0
+    const isForeign = selected?.language === 'en' || selected?.language === 'de'
+    const charsPerSec = isForeign ? 2.0 : (CHARS_PER_SECOND[grade] || 1.0)
     const pauseMs = Math.round((chars / charsPerSec) * 1000 / speed)
     setPausing(true)
     setPauseProgress(0)
@@ -157,6 +204,7 @@ export default function DictationPage() {
     const steps = 50
     const stepMs = pauseMs / steps
     let step = 0
+    clearInterval(progressTimer.current!)
     progressTimer.current = setInterval(() => {
       step++
       setPauseProgress(Math.round((step / steps) * 100))
@@ -177,6 +225,35 @@ export default function DictationPage() {
     }
     setSentenceIndex(index)
     setFoxMood('happy')
+    if (index === 2 && profile && selected) {
+      const autoConfirm = true
+      supabase.from('dictation_sessions').insert({
+        profile_id: profile.id,
+        dictation_id: selected.id,
+        dictation_title: selected.title,
+        score: 0,
+        total: sentences.length,
+        time_seconds: 0,
+        results: [],
+        parent_confirmed: autoConfirm,
+        is_started_only: true,
+      }).then(() => {
+        const today = new Date().toISOString().slice(0, 10)
+        const lastDate = profile.last_session_date
+        const yesterday = new Date(Date.now() - 86400000).toISOString().slice(0, 10)
+        const newStreak = lastDate === today
+          ? (profile.streak || 0)
+          : lastDate === yesterday
+          ? (profile.streak || 0) + 1
+          : 1
+        supabase.from('profiles').update({
+          total_sessions: (profile.total_sessions || 0) + 1,
+          streak: newStreak,
+          last_session_date: today,
+        }).eq('id', profile.id)
+        setProfile(p => p ? { ...p, streak: newStreak, last_session_date: today, total_sessions: (profile.total_sessions || 0) + 1 } : p)
+      })
+    }
     speak(sentences[index].text, () => {
       startPause(sentences[index].text, grade, () => {
         readSentence(sentences, index + 1, grade)
@@ -186,7 +263,7 @@ export default function DictationPage() {
 
   const startDictation = (d: Dictation) => {
     if (!profile) return
-    if (!profile.is_premium && weeklyCount >= FREE_WEEKLY_LIMIT) {
+    if (isFree) {
       setPhase('limit')
       return
     }
@@ -194,7 +271,7 @@ export default function DictationPage() {
     setSelected(d)
     setPhase('ready')
     setSentenceIndex(0)
-    setRepeatsLeft(REPEAT_LIMITS[grade] ?? 0)
+    setRepeatsLeft(REPEAT_LIMITS[grade] ?? (d.language && d.language !== 'bg' ? 3 : 0))
     setFoxMood('happy')
     setFullInput('')
     setExplanations({})
@@ -226,15 +303,28 @@ export default function DictationPage() {
     try {
       const reader = new FileReader()
       reader.onload = async (e) => {
-        const base64 = (e.target?.result as string).split(',')[1]
-        const res = await fetch('/api/ocr', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ image: base64 })
-        })
-        const data = await res.json()
-        if (data.text) setFullInput(data.text)
-        setOcrLoading(false)
+        const img = new Image()
+        img.onload = async () => {
+          const canvas = document.createElement('canvas')
+          const maxSize = 800
+          let w = img.width, h = img.height
+          if (w > maxSize || h > maxSize) {
+            if (w > h) { h = Math.round(h * maxSize / w); w = maxSize }
+            else { w = Math.round(w * maxSize / h); h = maxSize }
+          }
+          canvas.width = w; canvas.height = h
+          canvas.getContext('2d')!.drawImage(img, 0, 0, w, h)
+          const base64 = canvas.toDataURL('image/jpeg', 0.5).split(',')[1]
+          const res = await fetch('/api/ocr', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ image: base64 })
+          })
+          const data = await res.json()
+          if (data.text) setFullInput(data.text)
+          setOcrLoading(false)
+        }
+        img.src = e.target?.result as string
       }
       reader.readAsDataURL(file)
     } catch {
@@ -249,12 +339,11 @@ export default function DictationPage() {
     await Promise.all(
       newResults.map(async (r, i) => {
         if (!r.correct) {
-          const wrongWords = r.wordResults.filter(w => !w.correct).map(w => w.word)
           try {
             const res = await fetch('/api/explain', {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ sentence: r.sentence, userInput: r.input, wrongWords })
+              body: JSON.stringify({ sentence: r.sentence, userInput: r.input, grade: selectedGrade, language: selected?.language || 'bg', level: selected?.level || null })
             })
             const data = await res.json()
             if (data.explanation) newExplanations[i] = data.explanation
@@ -266,17 +355,52 @@ export default function DictationPage() {
     )
     setExplanations(newExplanations)
     setLoadingExplanations(false)
+    const updatedResults = newResults.map((r, i) => ({
+      ...r,
+      explanation: newExplanations[i] || null
+    }))
+    const lastSession = await supabase
+      .from('dictation_sessions')
+      .select('id')
+      .eq('profile_id', profile?.id || '')
+      .order('created_at', { ascending: false })
+      .limit(1)
+      .single()
+    if (lastSession.data) {
+      await supabase
+        .from('dictation_sessions')
+        .update({ results: updatedResults })
+        .eq('id', lastSession.data.id)
+    }
   }
 
   const checkSentence = (original: string, userInput: string): WordResult[] => {
-    const normalize = (s: string) => s.trim().toLowerCase().replace(/[.,!?;:»«–]/g, '')
+    const onlyPunct = (s: string) => s.replace(/[^.,!?;:»«–]/g, '')
+    const onlyLetters = (s: string) => s.replace(/[.,!?;:»«–]/g, '')
     const originalWords = original.trim().split(/\s+/)
     const inputWords = userInput.trim().split(/\s+/)
-    return originalWords.map((word, i) => ({
-      word,
-      input: inputWords[i] || '',
-      correct: normalize(word) === normalize(inputWords[i] || '')
-    }))
+    return originalWords.map((word, i) => {
+      const input = inputWords[i] || ''
+      const wordLetters = onlyLetters(word).toLowerCase()
+      const inputLetters = onlyLetters(input).toLowerCase()
+      const wordPunct = onlyPunct(word)
+      const inputPunct = onlyPunct(input)
+      const lettersMatch = wordLetters === inputLetters
+      const punctMatch = wordPunct === inputPunct
+      const caseMatch = onlyLetters(word)[0] === onlyLetters(input)[0]
+      const correct = lettersMatch && punctMatch && caseMatch
+      let errorType: WordResult['errorType'] = 'none'
+      if (!correct) {
+        if (lettersMatch && !punctMatch) {
+          errorType = 'punctuation'
+        } else if (lettersMatch && punctMatch && !caseMatch) {
+          errorType = 'capitalization'
+        } else {
+          errorType = 'spelling'
+        }
+      }
+      return { word, input, correct, errorType }
+    })
   }
 
   const handleSubmit = async () => {
@@ -289,6 +413,12 @@ export default function DictationPage() {
       return { sentence: s.text, input: userInput, wordResults, correct: wordResults.every(r => r.correct) }
     })
     const score = newResults.filter(r => r.correct).length
+    const { data: parentLink } = await supabase
+      .from('parent_children')
+      .select('parent_id')
+      .eq('child_id', profile.id)
+      .single()
+    const autoConfirm = !parentLink
     await supabase.from('dictation_sessions').insert({
       profile_id: profile.id,
       dictation_id: selected.id,
@@ -297,6 +427,7 @@ export default function DictationPage() {
       total: sentences.length,
       time_seconds: 0,
       results: newResults,
+      parent_confirmed: autoConfirm,
     })
     const today = new Date().toISOString().slice(0, 10)
     const lastDate = profile.last_session_date
@@ -311,7 +442,7 @@ export default function DictationPage() {
       streak: newStreak,
       last_session_date: today
     }).eq('id', profile.id)
-    setWeeklyCount(c => c + 1)
+    setProfile(p => p ? { ...p, streak: newStreak, last_session_date: today, total_sessions: (profile.total_sessions || 0) + 1 } : p)
     setResults(newResults)
     setPhase('done')
     fetchExplanations(newResults)
@@ -335,11 +466,12 @@ export default function DictationPage() {
 
   // ЛИМИТ
   if (phase === 'limit') return (
-    <main className="min-h-screen bg-orange-50 flex flex-col items-center justify-center p-6">
+    <main className="u4a-dash min-h-screen flex flex-col items-center justify-center p-6">
+      <div className="u4a-dash-overlay"></div>
       <div className="w-full max-w-md text-center">
         <Fox mood="sad" size={160} />
-        <h2 className="text-2xl font-bold text-gray-700 mt-6 mb-2">Достигна седмичния лимит</h2>
-        <p className="text-gray-500 mb-2">Безплатният план включва {FREE_WEEKLY_LIMIT} диктовки седмично.</p>
+        <h2 className="text-2xl font-bold text-gray-700 mt-6 mb-2">Пробният период приключи 🦊</h2>
+        <p className="text-gray-500 mb-2">Безплатният план включва {FREE_TOTAL_LIMIT} пробни диктовки.</p>
         <p className="text-gray-500 mb-8">Нова седмица — нови диктовки! 🗓️</p>
         <div className="bg-orange-100 rounded-2xl p-6 mb-6">
           <p className="text-orange-700 font-bold text-lg mb-2">⭐ Premium — 4.50€/месец</p>
@@ -361,14 +493,15 @@ export default function DictationPage() {
 
   // ИЗБОР
   if (phase === 'pick') return (
-    <main className="min-h-screen bg-orange-50 p-6">
+    <main className="u4a-dash min-h-screen p-6">
+      <div className="u4a-dash-overlay"></div>
       <div className="max-w-md mx-auto">
         <button onClick={() => router.push('/dashboard')} className="text-orange-400 mb-6 flex items-center gap-2">← Назад</button>
         <h1 className="text-2xl font-bold text-gray-700 mb-2">Избери диктовка</h1>
         {!profile?.is_premium && (
           <div className="bg-orange-100 rounded-2xl p-3 mb-4 flex items-center justify-between">
-            <p className="text-orange-700 text-sm">Безплатни диктовки тази седмица:</p>
-            <p className="text-orange-700 font-bold">{weeklyCount}/{FREE_WEEKLY_LIMIT}</p>
+            <p className="text-orange-700 text-sm">Пробни диктовки:</p>
+            <p className="text-orange-700 font-bold">{totalSessions}/{FREE_TOTAL_LIMIT}</p>
           </div>
         )}
         <div className="bg-white rounded-2xl p-4 shadow mb-6">
@@ -382,26 +515,145 @@ export default function DictationPage() {
             ))}
           </div>
         </div>
-        {dictations.length === 0 && <p className="text-gray-400 text-center">Няма диктовки за твоя клас.</p>}
-        <div className="flex flex-col gap-4">
-          {dictations.map(d => (
-            <button key={d.id} onClick={() => startDictation(d)}
-              className="bg-white rounded-2xl p-6 shadow text-left hover:shadow-md transition-shadow border-2 border-transparent hover:border-orange-300">
-              <h2 className="text-xl font-bold text-gray-700">{d.title}</h2>
-              <p className="text-orange-500 mt-1">{(d.sentences as Sentence[]).length} изречения • {d.grade} клас</p>
-              {d.is_premium && <span className="text-xs bg-orange-100 text-orange-600 px-2 py-1 rounded-full mt-2 inline-block">⭐ Premium</span>}
+        <div style={{ display: 'flex', gap: 8, marginBottom: 16, flexWrap: 'wrap' }}>
+          {[2, 3, 4, 5].map(g => (
+            <button key={g} onClick={() => changeGrade(g, setDictations, setSelectedGrade)}
+              style={{ padding: '8px 18px', borderRadius: 12, border: '2px solid #FED7AA', fontFamily: 'Russo One, sans-serif', fontSize: '0.9rem', cursor: 'pointer', background: selectedGrade === g ? '#F97316' : 'white', color: selectedGrade === g ? 'white' : '#F97316', fontWeight: 700 }}>
+              {g} клас
             </button>
           ))}
         </div>
+        {dictations.length === 0 && <p className="text-gray-400 text-center">Няма диктовки за твоя клас.</p>}
+        {[
+          { key: 'original', label: '📝 Оригинални диктовки u4a' },
+        ].map(({ key, label }) => {
+          const group = dictations.filter((d: Dictation) => (d.category || 'original') === key)
+          if (group.length === 0) return null
+          return (
+            <CategorySection key={key} label={label} group={group} startDictation={startDictation} />
+          )
+        })}
+
+        {/* 🌍 ЧУЖДИ ЕЗИЦИ */}
+        <div style={{ marginTop: 24 }}>
+          <div style={{
+            background: (profile?.plan_type === 'max' || !isFree) ? 'linear-gradient(135deg, #EDE9FE, #F5F3FF)' : '#F5F5F5',
+            border: `2px solid ${(profile?.plan_type === 'max' || !isFree) ? '#A78BFA' : '#E5E7EB'}`,
+            borderRadius: 16,
+            padding: '14px 18px',
+            marginBottom: 12,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between'
+          }}>
+            <span style={{ fontFamily: 'Russo One, sans-serif', fontSize: '1rem', color: (profile?.plan_type === 'max' || !isFree) ? '#5B21B6' : '#9CA3AF' }}>
+              🌍 Чужди езици
+            </span>
+            {isFree && (
+              <span style={{ fontSize: '0.75rem', background: '#7C3AED', color: 'white', borderRadius: 20, padding: '3px 10px', fontWeight: 700 }}>🔒 Max</span>
+            )}
+          </div>
+
+          {(profile?.plan_type === 'max' || !isFree) ? (
+            <div>
+              <div style={{ display: 'flex', gap: 10, marginBottom: 12 }}>
+                {[{ code: 'en', label: '🇬🇧 Английски' }, { code: 'de', label: '🇩🇪 Немски' }].map(l => (
+                  <button key={l.code}
+                    onClick={() => { setForeignLang(l.code as 'en' | 'de'); setForeignLevel(null); setForeignDictations([]) }}
+                    style={{
+                      flex: 1,
+                      padding: '10px 0',
+                      borderRadius: 12,
+                      border: `2px solid ${foreignLang === l.code ? '#7C3AED' : '#DDD6FE'}`,
+                      background: foreignLang === l.code ? '#7C3AED' : 'white',
+                      color: foreignLang === l.code ? 'white' : '#5B21B6',
+                      fontWeight: 700,
+                      cursor: 'pointer',
+                      fontSize: '0.9rem'
+                    }}>
+                    {l.label}
+                  </button>
+                ))}
+              </div>
+
+              {foreignLang && (
+                <div style={{ display: 'flex', gap: 8, marginBottom: 12 }}>
+                  {[
+                    { code: 'easy', label: '🟢 Лесно (A1)' },
+                    { code: 'medium', label: '🟡 Средно (A2)' },
+                    { code: 'hard', label: '🔴 Трудно (B1)' }
+                  ].map(lv => (
+                    <button key={lv.code}
+                      onClick={() => {
+                        setForeignLevel(lv.code as 'easy' | 'medium' | 'hard')
+                        loadForeignDictations(foreignLang, lv.code as 'easy' | 'medium' | 'hard', setForeignDictations)
+                      }}
+                      style={{
+                        flex: 1,
+                        padding: '8px 4px',
+                        borderRadius: 12,
+                        border: `2px solid ${foreignLevel === lv.code ? '#7C3AED' : '#DDD6FE'}`,
+                        background: foreignLevel === lv.code ? '#EDE9FE' : 'white',
+                        color: '#5B21B6',
+                        fontWeight: 700,
+                        cursor: 'pointer',
+                        fontSize: '0.75rem'
+                      }}>
+                      {lv.label}
+                    </button>
+                  ))}
+                </div>
+              )}
+
+              {foreignLevel && foreignDictations.length === 0 && (
+                <p style={{ color: '#A78BFA', textAlign: 'center', padding: 16 }}>Няма диктовки за тази комбинация.</p>
+              )}
+
+              {foreignDictations.map(d => (
+                <button key={d.id} onClick={() => startDictation(d)}
+                  style={{
+                    width: '100%',
+                    background: 'white',
+                    border: '2px solid #DDD6FE',
+                    borderRadius: 16,
+                    padding: '16px 20px',
+                    marginBottom: 10,
+                    textAlign: 'left',
+                    cursor: 'pointer',
+                    transition: 'border-color 0.2s'
+                  }}
+                  onMouseEnter={e => (e.currentTarget.style.borderColor = '#7C3AED')}
+                  onMouseLeave={e => (e.currentTarget.style.borderColor = '#DDD6FE')}>
+                  <h2 style={{ fontWeight: 700, color: '#374151', fontSize: '1.1rem' }}>{d.title}</h2>
+                  <p style={{ color: '#7C3AED', fontSize: '0.85rem', marginTop: 4 }}>
+                    {(d.sentences as Sentence[]).length} изречения • {foreignLang === 'en' ? '🇬🇧' : '🇩🇪'} {foreignLevel === 'easy' ? 'A1' : foreignLevel === 'medium' ? 'A2' : 'B1'}
+                  </p>
+                </button>
+              ))}
+            </div>
+          ) : (
+            <div style={{ background: '#F5F3FF', borderRadius: 12, padding: '16px 20px', textAlign: 'center' }}>
+              <p style={{ color: '#7C3AED', fontSize: '0.9rem', marginBottom: 12 }}>
+                Чужди езици се отключват с план <strong>Max</strong> 🌍
+              </p>
+              <button onClick={() => router.push('/plans')}
+                style={{ background: '#7C3AED', color: 'white', border: 'none', borderRadius: 12, padding: '10px 24px', fontWeight: 700, cursor: 'pointer', fontSize: '0.9rem' }}>
+                Виж план Max →
+              </button>
+            </div>
+          )}
+        </div>
+
       </div>
     </main>
   )
 
   // ГОТОВ
   if (phase === 'ready' && selected) return (
-    <main className="min-h-screen bg-orange-50 flex flex-col items-center justify-center p-6">
+    <main className="u4a-dash min-h-screen flex flex-col items-center justify-center p-6">
+      <div className="u4a-dash-overlay"></div>
       <div className="w-full max-w-md text-center">
-        <Fox mood="happy" size={160} />
+        <AnimatedFox mood="happy" size={180} />
         <h2 className="text-2xl font-bold text-gray-700 mt-6 mb-2">{selected.title}</h2>
         <p className="text-gray-500 mb-2">{(selected.sentences as Sentence[]).length} изречения</p>
         <p className="text-gray-500 mb-8">Вземи молив и хартия. Когато си готов, натисни бутона!</p>
@@ -417,9 +669,10 @@ export default function DictationPage() {
   // ЧЕТЕНЕ
   if (phase === 'play' && selected) {
     const sentences = selected.sentences as Sentence[]
-    const repeatLimit = REPEAT_LIMITS[selected.grade] ?? 0
+    const repeatLimit = REPEAT_LIMITS[selected.grade] ?? (selected.language && selected.language !== 'bg' ? 3 : 0)
     return (
-      <main className="min-h-screen bg-orange-50 flex flex-col items-center justify-center p-6">
+      <main className="u4a-dash min-h-screen flex flex-col items-center justify-center p-6">
+      <div className="u4a-dash-overlay"></div>
         <div className="w-full max-w-md">
           <button onClick={handleBack} className="text-orange-400 mb-4 flex items-center gap-2">← Спри диктовката</button>
           <div className="text-center mb-4">
@@ -429,7 +682,7 @@ export default function DictationPage() {
           <div className="w-full bg-orange-100 rounded-full h-3 mb-6">
             <div className="bg-orange-500 h-3 rounded-full transition-all" style={{ width: `${(sentenceIndex / sentences.length) * 100}%` }} />
           </div>
-          <div className="flex justify-center mb-4"><Fox mood={foxMood} size={140} /></div>
+          <div className="flex justify-center mb-4"><AnimatedFox mood={foxMood === 'writing' ? 'writes' : foxMood === 'sad' ? 'tryagain' : foxMood === 'excited' ? 'excited' : 'happy'} size={160} /></div>
           <div className="bg-white rounded-3xl p-6 shadow-lg mb-4">
             {speaking && <p className="text-orange-500 font-bold text-lg animate-pulse">🔊 Лисицата чете...</p>}
             {pausing && (
@@ -458,7 +711,8 @@ export default function DictationPage() {
   if (phase === 'write' && selected) {
     const sentences = selected.sentences as Sentence[]
     return (
-      <main className="min-h-screen bg-orange-50 flex flex-col items-center justify-center p-6">
+      <main className="u4a-dash min-h-screen flex flex-col items-center justify-center p-6">
+      <div className="u4a-dash-overlay"></div>
         <div className="w-full max-w-lg">
           <div className="text-center mb-6">
             <Fox mood="pointing" size={120} />
@@ -487,8 +741,29 @@ export default function DictationPage() {
               placeholder={`Изречение 1\nИзречение 2\n...`} autoFocus />
           </div>
           <button onClick={handleSubmit} disabled={!fullInput.trim()}
-            className="w-full bg-orange-500 text-white text-xl font-bold py-4 rounded-2xl hover:bg-orange-600 disabled:opacity-40 transition-colors">
-            Провери диктовката ✓
+            className="w-full bg-orange-500 text-white text-xl font-bold py-4 rounded-2xl hover:bg-orange-600 disabled:opacity-40 transition-colors mb-3">
+            ✏️ Провери диктовката
+          </button>
+          <button onClick={async () => {
+            if (!selected || !profile) return
+            const { data: parentLink } = await supabase.from('parent_children').select('parent_id').eq('child_id', profile.id).maybeSingle()
+            const autoConfirm = !parentLink
+            await supabase.from('dictation_sessions').insert({
+              profile_id: profile.id,
+              dictation_id: selected.id,
+              dictation_title: selected.title,
+              score: null,
+              total: (selected.sentences as Sentence[]).length,
+              time_seconds: 0,
+              results: null,
+              parent_confirmed: autoConfirm,
+              is_started_only: false,
+            })
+            setResults([])
+            setPhase('done')
+          }}
+            className="w-full bg-white text-orange-500 border-2 border-orange-300 font-bold py-4 rounded-2xl hover:bg-orange-50 transition-colors">
+            ➡️ Продължи без оценяване
           </button>
         </div>
       </main>
@@ -500,60 +775,7 @@ export default function DictationPage() {
     const sentences = selected.sentences as Sentence[]
     const score = results.filter(r => r.correct).length
     const percent = Math.round((score / sentences.length) * 100)
-    const mood: FoxMood = percent >= 80 ? 'excited' : percent >= 50 ? 'wink' : 'sad'
-    return (
-      <main className="min-h-screen bg-orange-50 flex flex-col items-center justify-center p-6">
-        <div className="w-full max-w-lg">
-          <div className="text-center mb-6">
-            <Fox mood={mood} size={128} />
-            <h1 className="text-3xl font-bold text-gray-700 mb-2 mt-4">
-              {percent >= 80 ? '🎉 Браво!' : percent >= 50 ? '👍 Добре!' : '💪 Продължавай!'}
-            </h1>
-            <p className="text-6xl font-bold text-orange-500">{score}/{sentences.length}</p>
-            <p className="text-gray-400">{percent}% верни изречения</p>
-          </div>
-          {loadingExplanations && (
-            <div className="bg-orange-50 rounded-2xl p-4 mb-4 text-center">
-              <p className="text-orange-500 animate-pulse">🦊 Лисицата анализира грешките...</p>
-            </div>
-          )}
-          <div className="bg-white rounded-3xl p-6 shadow-lg mb-6">
-            {results.map((r, i) => (
-              <div key={i} className="py-3 border-b border-gray-100 last:border-0">
-                <div className="flex items-start justify-between gap-2">
-                  <p className="text-gray-500 text-sm flex-1">{r.sentence}</p>
-                  <span className={r.correct ? 'text-green-500 text-xl' : 'text-red-500 text-xl'}>
-                    {r.correct ? '✓' : '✗'}
-                  </span>
-                </div>
-                {!r.correct && (
-                  <>
-                    <div className="mt-2 flex flex-wrap gap-1">
-                      {r.wordResults.map((wr, j) => (
-                        <span key={j} className={`text-sm px-1 rounded ${wr.correct ? 'text-gray-600' : 'bg-red-100 text-red-600 font-bold'}`}>
-                          {wr.word}
-                        </span>
-                      ))}
-                    </div>
-                    {explanations[i] && (
-                      <div className="mt-3 bg-orange-50 rounded-xl p-3 border border-orange-200">
-                        <p className="text-xs text-orange-500 font-bold mb-1">🦊 Лисицата обяснява:</p>
-                        <p className="text-sm text-gray-600">{explanations[i]}</p>
-                      </div>
-                    )}
-                  </>
-                )}
-              </div>
-            ))}
-          </div>
-          <button onClick={() => { stopAll(); router.push('/dashboard') }}
-            className="w-full bg-orange-500 text-white text-xl font-bold py-4 rounded-2xl hover:bg-orange-600 transition-colors">
-            Към началото 🏠
-          </button>
-        </div>
-      </main>
-    )
+    return <DoneScreen score={score} total={sentences.length} percent={percent} streak={profile?.streak || 0} results={results} explanations={explanations} loadingExplanations={loadingExplanations} onHome={() => router.push('/dashboard')} onAnotherDictation={() => { setSelected(null); setPhase('pick'); setResults([]); setExplanations({}); setSentenceIndex(0) }} />
   }
-
   return null
 }
