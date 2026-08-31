@@ -1,4 +1,5 @@
 'use client'
+import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 
 const s = {
@@ -11,6 +12,7 @@ const s = {
   p: { fontSize: '0.95rem', color: '#5C3A1A', lineHeight: 1.7, marginBottom: 12 } as const,
   ul: { paddingLeft: 20, marginBottom: 12 } as const,
   li: { fontSize: '0.95rem', color: '#5C3A1A', lineHeight: 1.8, marginBottom: 6 } as const,
+  link: { color: '#F97316', fontWeight: 700 } as const,
 }
 
 export default function PrivacyPage() {
@@ -128,10 +130,12 @@ export default function PrivacyPage() {
 
         <h2 style={s.h2}>10. Бисквитки (само за уеб версията u4a.bg)</h2>
         <p style={s.p}>
-          Уебсайтът използва единствено технически необходими бисквитки за поддържане на активна сесия при вход
-          в профила. Не използваме аналитични, маркетингови или проследяващи бисквитки на трети страни. Тъй
-          като тези бисквитки са строго необходими за функционирането на услугата, не се изисква съгласие
-          (consent банер) съгласно чл. 4а, ал. 2 от Закона за електронните съобщения и Директива 2002/58/EO.
+          Уебсайтът използва технически необходими записи (бисквитки/localStorage) за поддържане на активна
+          сесия при вход в профила — те не изискват съгласие. Освен това използваме <strong>Meta Pixel</strong> за
+          маркетингови цели — разпознаване на посетители, дошли от реклами, и измерване на конверсии от
+          кампании във Facebook/Instagram — заедно с хеширан <strong>Meta Conversions API</strong> (сървър-до-сървър)
+          за същата цел. За пълен списък на бисквитките, техния тип и срок на съхранение, вижте нашата{' '}
+          <Link href="/cookies" style={s.link}>Политика за бисквитки</Link>.
         </p>
 
         <h2 style={s.h2}>11. Промени в политиката</h2>
