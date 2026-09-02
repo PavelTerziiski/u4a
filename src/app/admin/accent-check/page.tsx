@@ -4,7 +4,7 @@ import { supabase } from '@/lib/supabase'
 
 type Sentence = { text: string }
 type PronWord = { id: string; letter: string; word: string; emoji: string; tts_text: string; sort_order: number }
-type Dictation = { id: string; title: string; grade: number; sentences: Sentence[] }
+type Dictation = { id: string; title: string; grade: number; sentences: Sentence[]; category?: string; author?: string | null }
 type Mission = { id: string; title: string; order_num: number; dictation_id: string | null; reading_dictation_id: string | null; words?: string | null }
 type ErrorPair = { wrong: string; correct: string }
 type ErrorText = { id: string; grade: number; title: string; full_text: string; errors: ErrorPair[] }
@@ -71,7 +71,7 @@ export default function AccentCheck() {
   const [errorSaving, setErrorSaving] = useState(false)
 
   useEffect(() => {
-    supabase.from('dictations').select('id,title,grade,sentences').eq('language', 'bg').eq('category', 'original').in('grade', [1,2,3,4]).order('grade').order('title')
+    supabase.from('dictations').select('id,title,grade,sentences,category,author').eq('language', 'bg').in('category', ['original', 'writers']).in('grade', [1,2,3,4,5]).order('grade').order('title')
       .then(({ data }) => { if (data) setDictations(data) })
     supabase.from('pronunciation_words').select('*').order('sort_order')
       .then(({ data }) => { if (data) setPronWords(data) })
@@ -176,20 +176,37 @@ export default function AccentCheck() {
         <div style={{display:'flex', gap:'6px', marginBottom:'8px'}}>
           <button onClick={() => setActiveSection('errors')} style={{flex:1, padding:'6px', background: activeSection==='errors' ? '#dc2626' : '#f3f4f6', color: activeSection==='errors' ? '#fff' : '#000', border:'none', borderRadius:'6px', cursor:'pointer', fontSize:'11px', fontWeight:'bold'}}>⚠️ Открий грешките</button>
         </div>
-        {activeSection === 'dictations' && [1,2,3,4].map(g => (
+        {activeSection === 'dictations' && [1,2,3,4].map(g => {
+          const originals = dictations.filter(d => (d.category ?? 'original') === 'original' && d.grade === g)
+          // Класиката се показва с една година „по-нагоре": в „g клас" влизат writers-текстовете от (g+1) клас
+          const classics = dictations.filter(d => d.category === 'writers' && d.grade === g + 1)
+          const dictBtn = (d: Dictation, activeColor: string, activeBg: string) => (
+            <button key={d.id} onClick={() => { setSelected(d); setActiveWord(null); setActiveSent(null); setMsg('') }}
+              style={{width:'100%', textAlign:'left', padding:'5px 10px 5px 20px', background: selected?.id === d.id ? activeBg : 'transparent', color: selected?.id === d.id ? activeColor : '#374151', border:'none', borderRadius:'6px', marginBottom:'2px', cursor:'pointer', fontSize:'12px', fontWeight: selected?.id === d.id ? 'bold' : 'normal'}}>
+              {d.title}
+              {d.category === 'writers' && d.author && (
+                <span style={{display:'block', fontSize:'10px', color:'#9ca3af', fontWeight:'normal'}}>{d.author}</span>
+              )}
+            </button>
+          )
+          return (
           <div key={g}>
             <button onClick={() => setOpenGrade(openGrade === g ? null : g)}
               style={{width:'100%', textAlign:'left', padding:'7px 10px', background: openGrade === g ? '#f97316' : '#f3f4f6', color: openGrade === g ? '#fff' : '#000', border:'none', borderRadius:'8px', marginBottom:'4px', cursor:'pointer', fontWeight:'bold', fontSize:'13px'}}>
               {openGrade === g ? '▼' : '▶'} {g} клас
             </button>
-            {openGrade === g && dictations.filter(d => d.grade === g).map(d => (
-              <button key={d.id} onClick={() => { setSelected(d); setActiveWord(null); setActiveSent(null); setMsg('') }}
-                style={{width:'100%', textAlign:'left', padding:'5px 10px 5px 20px', background: selected?.id === d.id ? '#fff7ed' : 'transparent', color: selected?.id === d.id ? '#ea580c' : '#374151', border:'none', borderRadius:'6px', marginBottom:'2px', cursor:'pointer', fontSize:'12px', fontWeight: selected?.id === d.id ? 'bold' : 'normal'}}>
-                {d.title}
-              </button>
-            ))}
+            {openGrade === g && (
+              <>
+                {originals.map(d => dictBtn(d, '#ea580c', '#fff7ed'))}
+                {classics.length > 0 && (
+                  <div style={{fontSize:'10px', fontWeight:'bold', color:'#7c3aed', letterSpacing:'0.5px', textTransform:'uppercase', padding:'8px 10px 3px 20px'}}>📖 Класика</div>
+                )}
+                {classics.map(d => dictBtn(d, '#7c3aed', '#ede9fe'))}
+              </>
+            )}
           </div>
-        ))}
+          )
+        })}
         {activeSection === 'pronunciation' && pronWords.map(w => (
           <button key={w.id} onClick={() => { setEditingPron(w); setPronForm({ word: w.word, emoji: w.emoji, tts_text: w.tts_text }) }}
             style={{width:'100%', textAlign:'left', padding:'5px 10px', background: editingPron?.id === w.id ? '#ede9fe' : 'transparent', color: editingPron?.id === w.id ? '#7c3aed' : '#374151', border:'none', borderRadius:'6px', marginBottom:'2px', cursor:'pointer', fontSize:'12px', fontWeight: editingPron?.id === w.id ? 'bold' : 'normal'}}>
