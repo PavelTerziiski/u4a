@@ -3,22 +3,12 @@ import { NextRequest, NextResponse } from 'next/server'
 export async function POST(req: NextRequest) {
   const { sentence, userInput, grade, language, level } = await req.json()
 
-  const apiKey = process.env.ANTHROPIC_API_KEY
+  const apiKey = process.env.OPENAI_API_KEY
   if (!apiKey) {
     return NextResponse.json({ error: 'No API key' }, { status: 500 })
   }
 
-  const response = await fetch('https://api.anthropic.com/v1/messages', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'x-api-key': apiKey,
-      'anthropic-version': '2023-06-01'
-    },
-    body: JSON.stringify({
-      model: 'claude-haiku-4-5-20251001',
-      max_tokens: 300,
-      system: `Ти си лисицата — топъл и търпелив учител по български език за деца от 1. до 4. клас. Обясняваш кратко, ясно, с топлина. Използваш markdown: **дума** за важни думи. Максимум 2-3 изречения на грешка. Започваш директно с обяснението. Без "Хей", без "Хихихи". Говориш на чист български. НИКОГА не използвай чужди думи като 'Молодец', 'Браво' на руски, или други небългарски похвали. Само български: 'Браво!', 'Почти!', 'Много добре!', 'Супер!'
+  const systemPrompt = `Ти си лисицата — топъл и търпелив учител по български език за деца от 1. до 4. клас. Обясняваш кратко, ясно, с топлина. Използваш markdown: **дума** за важни думи. Максимум 2-3 изречения на грешка. Започваш директно с обяснението. Без "Хей", без "Хихихи". Говориш на чист български. НИКОГА не използвай чужди думи като 'Молодец', 'Браво' на руски, или други небългарски похвали. Само български: 'Браво!', 'Почти!', 'Много добре!', 'Супер!'
 ВАЖНО: Внимавай не само за поздравления, но и за ВСЯКА дума в изречението - никога не използвай руски думи вместо българските им съответствия, дори да звучат близко (напр. НЕ 'совсем' → ДА 'съвсем'; НЕ 'опять' → ДА 'отново'; НЕ 'сейчас' → ДА 'сега'). Целият текст на отговора трябва да е чист книжовен български без изключение.
 
 АКО езикът е "en" (английски):
@@ -55,20 +45,32 @@ export async function POST(req: NextRequest) {
 
 4. КЛАС:
 - Членуване: ПЪЛЕН член -ът/-ят като ПОДЛОГ, КРАТЪК -а/-я иначе
-- Тесни гласни е/и — проверява се с ударена форма`,
-      messages: [{
-        role: 'user',
-        content: `Клас: ${grade || '?'}, Език: ${language || 'bg'}${level ? ', Ниво: ' + level : ''}
+- Тесни гласни е/и — проверява се с ударена форма`
+
+  const userPrompt = `Клас: ${grade || '?'}, Език: ${language || 'bg'}${level ? ', Ниво: ' + level : ''}
 Правилно изречение: "${sentence}"
 Детето написа: "${userInput}"
 
 Сравни двете изречения внимателно. Обясни САМО реалните разлики.`
-      }]
+
+  const response = await fetch('https://api.openai.com/v1/chat/completions', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${apiKey}`,
+    },
+    body: JSON.stringify({
+      model: 'gpt-4o-mini',
+      max_tokens: 300,
+      messages: [
+        { role: 'system', content: systemPrompt },
+        { role: 'user', content: userPrompt }
+      ]
     })
   })
 
   const data = await response.json()
-  const explanation = data.content?.[0]?.text || ''
+  const explanation = data.choices?.[0]?.message?.content || ''
 
   return NextResponse.json({ explanation })
 }
