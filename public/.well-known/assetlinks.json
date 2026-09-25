@@ -1,0 +1,10 @@
+[
+  {
+    "relation": ["delegate_permission/common.handle_all_urls"],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "com.u4ahitro.app",
+      "sha256_cert_fingerprints": ["E8:79:B4:97:7C:0D:1F:47:67:06:91:EB:93:0C:55:70:95:91:22:99:50:22:2D:59:DB:F0:67:AC:75:B5:4F:59"]
+    }
+  }
+]
