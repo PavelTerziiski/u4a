@@ -43,6 +43,7 @@ export default function Register() {
       const { data: authData, error: authError } = await supabase.auth.signUp({
         email: email.toLowerCase().trim(),
         password,
+        options: { emailRedirectTo: 'https://u4a.bg/confirm' },
       })
       if (authError) throw authError
       if (!authData.user) throw new Error('Грешка при създаване на профил')
