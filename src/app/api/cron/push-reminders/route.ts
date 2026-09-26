@@ -100,8 +100,6 @@ async function sendReminders() {
   }
 
   let sent = 0
-  // TEMP debug — remove once a manual test run confirms the flow end to end.
-  const debug: Record<string, unknown>[] = []
 
   for (let i = 0; i < targets.length; i += BATCH_SIZE) {
     const batch = targets.slice(i, i + BATCH_SIZE)
@@ -112,15 +110,13 @@ async function sendReminders() {
       body: JSON.stringify(batch.map((t) => ({ to: t.pushToken, title: t.message.title, body: t.message.body }))),
     })
     const json = await res.json().catch(() => null)
-    const tickets: { status?: string; message?: string; details?: unknown }[] = json?.data ?? []
+    const tickets: { status?: string }[] = json?.data ?? []
 
     for (let j = 0; j < batch.length; j++) {
       const target = batch[j]
       const ticket = tickets[j]
       if (ticket?.status !== 'ok') {
         console.warn('[push-reminders] send failed for', target.id, ticket)
-        // TEMP debug — remove once a manual test run confirms the flow end to end.
-        debug.push({ id: target.id, bucket: target.bucket, httpStatus: res.status, expoResponseOk: res.ok, ticket: ticket ?? null, rawExpoBody: !ticket ? json : undefined })
         continue
       }
       const { error: updateErr } = await supabase
@@ -129,13 +125,11 @@ async function sendReminders() {
         .eq('id', target.id)
       if (updateErr) {
         console.warn('[push-reminders] bucket update failed for', target.id, updateErr.message)
-        debug.push({ id: target.id, bucket: target.bucket, ticket, dbUpdateError: updateErr.message })
       } else {
         sent++
-        debug.push({ id: target.id, bucket: target.bucket, ticket, saved: true })
       }
     }
   }
 
-  return NextResponse.json({ ok: true, sent, candidates: targets.length, debug })
+  return NextResponse.json({ ok: true, sent, candidates: targets.length })
 }
